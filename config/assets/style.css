@@ -1,4 +1,3 @@
-/* CSS Reset cơ bản */
 * {
   margin: 0;
   padding: 0;
@@ -296,13 +295,6 @@
   background-color: #f1f5f9; /* Màu nền chờ load ảnh */
 }
 
-.slider-wrapper {
-  display: flex;
-  width: 100%;
-  height: 100%;
-  transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1); /* Hiệu ứng lướt mượt, chậm dần ở cuối */
-}
-
 .slide {
   min-width: 100%;
   height: 100%;
@@ -388,5 +380,469 @@
   .dot {
     width: 8px;
     height: 8px;
+  }
+}
+/* Ẩn thanh cuộn ngang cho khung trượt sản phẩm */
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.hide-scrollbar {
+  -ms-overflow-style: none; /* Dành cho IE và Edge */
+  scrollbar-width: none; /* Dành cho Firefox */
+}
+/* ============================================== */
+/* CSS CHO SECTION SLIDER SẢN PHẨM          */
+/* ============================================== */
+/* ============================================== */
+/* CUSTOM SLIDER STYLES */
+/* ============================================== */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f5f5f5;
+}
+
+.custom-slider-section {
+  padding: 40px 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+  background-color: transparent;
+}
+/* Header */
+.cs-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.cs-title {
+  font-size: 26px;
+  font-weight: 700;
+  color: #003da5;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.cs-view-all {
+  color: #003da5;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.cs-view-all:hover {
+  color: #00a3e0;
+}
+
+/* Layout */
+/* Layout */
+/* Layout */
+.cs-layout {
+  display: grid;
+  grid-template-columns: 390px 1fr; /* Tăng rộng lên 400px (bạn có thể thử 380px hoặc 420px) */
+  gap: 25px;
+  align-items: flex-start;
+}
+
+/* Left Placeholder */
+/* Left Placeholder - Ảnh kín khung trên và 2 bên */
+/* SỬA LỖI: Buộc padding về 0 và định vị tương đối */
+/* CẬP NHẬT: Tăng chiều cao để ảnh contain đầy đủ */
+.cs-left-placeholder {
+  flex: 0 0 340px;
+  background: linear-gradient(135deg, #fff9e6 0%, #fff0cc 100%);
+  border-radius: 12px;
+  padding: 0; /* bỏ hết padding khung cha */
+  display: flex;
+  flex-direction: column;
+  height: 340px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  border: 2px dashed #ddd;
+  overflow: hidden;
+  position: relative;
+}
+/* Tên sản phẩm mặc định đen, hover xanh */
+.cs-featured-img + h3 {
+  color: #000000; /* đen rõ ràng */
+  transition: color 0.3s ease; /* chuyển màu mượt mà */
+}
+
+.cs-left-placeholder:hover .cs-featured-img + h3 {
+  color: #003da5; /* màu xanh chính (hoặc dùng var(--primary-color) nếu bạn có) */
+}
+
+/* Giá tiền mặc định đen (hoặc giữ màu xanh đậm nếu bạn muốn), hover sáng hơn */
+.cs-featured-img + h3 + p {
+  color: #000000; /* đổi sang đen nếu bạn muốn đồng bộ */
+  transition: color 0.3s ease;
+  font-weight: 700;
+}
+
+.cs-left-placeholder:hover .cs-featured-img + h3 + p {
+  color: #003da5; /* hoặc #0066cc / #059669 tùy thích */
+}
+.cs-featured-img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0; /* sát phải */
+  width: 100%;
+  height: calc(
+    100% - 100px
+  ); /* để lại 100px dưới cho chữ - bạn có thể chỉnh số này */
+  object-fit: contain; /* hoặc thử 'cover' nếu muốn ảnh lấp đầy hơn */
+  object-position: top center; /* ưu tiên phần trên ảnh */
+  margin: 0; /* bỏ margin */
+  padding: 0; /* sát mép hoàn toàn */
+}
+
+/* Tên sản phẩm */
+.cs-featured-img + h3 {
+  position: absolute;
+  bottom: 68px; /* điều chỉnh nếu muốn tên sản phẩm cao/thấp hơn */
+  left: 0;
+  right: 0;
+  margin: 0;
+  padding: 0 20px; /* chỉ padding ngang cho chữ không sát viền */
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+  line-height: 1.4;
+  text-align: center;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Giá tiền */
+.cs-featured-img + h3 + p {
+  position: absolute;
+  bottom: 10px; /* sát đáy hơn nữa thì giảm xuống 12px-15px */
+  left: 0;
+  right: 0;
+  margin: 0;
+  padding: 0 20px;
+  font-size: 16px;
+  font-weight: 700;
+  color: #000000;
+  text-align: center;
+}
+/* Right Slider */
+.cs-right-slider {
+  flex: 1;
+  position: relative;
+}
+
+/* Track Wrapper */
+.cs-track-wrapper {
+  position: relative;
+  overflow: hidden;
+  border-radius: 12px;
+}
+
+/* Track */
+/* ============================================== */
+/* NOTE: RIGHT SIDE - Force exactly 3 cards / row  */
+/* ============================================== */
+.cs-track-wrapper {
+  overflow: hidden; /* NOTE: chỉ hiển thị 3 thẻ trong khung */
+}
+
+.cs-track {
+  display: flex;
+  flex-wrap: nowrap; /* NOTE: luôn 1 hàng để trượt ngang */
+  gap: 12px; /* NOTE: khoảng cách giữa thẻ */
+  transition: transform 0.5s ease-in-out;
+  will-change: transform;
+}
+
+.cs-card {
+  flex: 0 0 calc((100% - 24px) / 3); /* NOTE: đúng 3 thẻ vừa khít */
+  max-width: calc((100% - 24px) / 3); /* NOTE: khóa width */
+  height: 340px; /* NOTE: bằng .cs-left-placeholder */
+}
+.cs-card:nth-child(n + 4) {
+  display: none; /* NOTE: chỉ hiện 3 sản phẩm, từ sản phẩm thứ 4 trở đi ẩn */
+}
+.cs-track-wrapper {
+  overflow: hidden; /* NOTE: chỉ hiển thị phần nằm trong khung (đúng 3 thẻ) */
+}
+/* ============================================== */
+/* NOTE: Right card image area = 80% height        */
+/* Image must stick to top/left/right (no padding) */
+/* ============================================== */
+.cs-img-box {
+  /* NOTE: reserve ~80% height for image */
+  flex: 0 0 80%; /* NOTE: image area height */
+  height: 80%; /* NOTE: enforce in case flex calculation differs */
+
+  background: linear-gradient(135deg, #f0f0f0 0%, #e8e8e8 100%);
+  display: block; /* NOTE: no centering */
+  overflow: hidden;
+
+  /* NOTE: image must touch top/left/right */
+  padding: 0; /* NOTE */
+  margin: 0; /* NOTE */
+}
+
+.cs-img-box img {
+  /* NOTE: stick to edges */
+  display: block; /* NOTE: remove inline gap */
+  width: 100%;
+  height: 100%;
+
+  object-fit: cover; /* NOTE: fill nicely without distortion */
+  object-position: top center;
+
+  margin: 0; /* NOTE */
+  padding: 0; /* NOTE */
+}
+
+/* ============================================== */
+/* NOTE: Text area = 20% height (name + price)     */
+/* ============================================== */
+.cs-name {
+  /* NOTE: reserve ~20% height for name + price area */
+  flex: 0 0 20%; /* NOTE */
+  height: 20%; /* NOTE */
+
+  font-size: 13px;
+  font-weight: 600;
+  color: #333;
+  line-height: 1.3;
+  padding: 10px 12px 0;
+
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.cs-card:hover {
+  border-color: #00a3e0;
+  transform: scale(1.02);
+  box-shadow: 0 4px 25px rgba(0, 163, 224, 0.2);
+}
+
+/* Badge */
+.cs-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: #003da5;
+  color: white;
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 700;
+  z-index: 10;
+}
+
+/* Image Box */
+.cs-img-box {
+  flex: 0 0 55%;
+  background: linear-gradient(135deg, #f0f0f0 0%, #e8e8e8 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  min-height: 150px;
+}
+
+.cs-img-box img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Product Name */
+.cs-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #333;
+  line-height: 1.3;
+  padding: 10px 12px 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  flex: 1;
+}
+/* Price Box */
+@media (max-width: 1400px) {
+  .custom-slider-section {
+    padding: 30px 15px;
+  }
+
+  .cs-layout {
+    gap: 20px;
+  }
+
+  .cs-left-placeholder {
+    flex: 0 0 270px;
+    height: 350px;
+    padding: 10px;
+  }
+
+  .cs-featured-img {
+    height: 55%;
+  }
+
+  .cs-card {
+    flex: 0 0 calc((100% - 30px) / 3.5);
+    max-width: 170px;
+    min-height: 260px;
+  }
+
+  .cs-track {
+    gap: 10px;
+  }
+}
+/* Navigation Buttons */
+.cs-nav-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: white;
+  border: none;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  color: #003da5;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  z-index: 20;
+}
+
+.cs-nav-btn:hover:not(:disabled) {
+  background: #003da5;
+  color: white;
+  box-shadow: 0 4px 20px rgba(0, 61, 165, 0.3);
+}
+
+.cs-nav-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.cs-prev {
+  left: -40px;
+}
+
+.cs-next {
+  right: -60px;
+}
+
+@media (max-width: 1600px) {
+  .cs-card {
+    flex: 0 0 calc((100% - 45px) / 4);
+    max-width: 180px;
+  }
+}
+
+@media (max-width: 1400px) {
+  .custom-slider-section {
+    padding: 30px 15px;
+  }
+
+  .cs-layout {
+    gap: 20px;
+  }
+
+  .cs-left-placeholder {
+    flex: 0 0 250px;
+    height: 350px;
+  }
+
+  .cs-card {
+    flex: 0 0 calc((100% - 30px) / 3.5);
+    max-width: 160px;
+  }
+
+  .cs-track {
+    gap: 10px;
+  }
+}
+
+@media (max-width: 1200px) {
+  .cs-layout {
+    grid-template-columns: 260px 1fr;
+    gap: 20px;
+  }
+
+  .cs-left-placeholder {
+    flex: 0 0 260px;
+    height: 340px;
+    padding: 10px;
+  }
+
+  .cs-featured-img {
+    height: 55%;
+  }
+
+  .cs-card {
+    flex: 0 0 calc((100% - 20px) / 3);
+    max-width: 150px;
+    aspect-ratio: 0.65 / 1;
+  }
+
+  .cs-track {
+    gap: 10px;
+  }
+
+  .cs-prev {
+    left: 5px;
+  }
+
+  .cs-next {
+    right: 5px;
+  }
+}
+
+@media (max-width: 768px) {
+  .custom-slider-section {
+    padding: 20px 10px;
+  }
+
+  .cs-title {
+    font-size: 20px;
+  }
+
+  .cs-layout {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+
+  .cs-left-placeholder {
+    height: 280px;
+    width: 100%;
+  }
+
+  .cs-card {
+    flex: 0 0 calc((100% - 30px) / 2);
+    max-width: none;
+  }
+
+  .cs-track {
+    gap: 10px;
+  }
+
+  .cs-nav-btn {
+    width: 36px;
+    height: 36px;
+    font-size: 16px;
   }
 }

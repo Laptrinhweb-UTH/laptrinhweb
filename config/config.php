@@ -20,4 +20,5 @@ try {
     echo "Kết nối Database thất bại: " . $e->getMessage();
     die();
 }
+
 ?>

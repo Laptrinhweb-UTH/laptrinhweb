@@ -160,3 +160,74 @@ sliderWrapper.addEventListener("mousedown", touchStart);
 sliderWrapper.addEventListener("mousemove", touchMove);
 sliderWrapper.addEventListener("mouseup", touchEnd);
 sliderWrapper.addEventListener("mouseleave", touchEnd); // Trường hợp kéo chuột lố ra ngoài khung
+document.addEventListener("DOMContentLoaded", function () {
+  const carousel = document.getElementById("product-carousel");
+  const prevBtn = document.getElementById("prevBtn");
+  const nextBtn = document.getElementById("nextBtn");
+
+  if (carousel && prevBtn && nextBtn) {
+    // Trượt sang trái
+    prevBtn.addEventListener("click", function () {
+      carousel.scrollBy({ left: -260, behavior: "smooth" });
+    });
+
+    // Trượt sang phải
+    nextBtn.addEventListener("click", function () {
+      carousel.scrollBy({ left: 260, behavior: "smooth" });
+    });
+  }
+});
+/* ============================================== */
+/* JS THUẦN  SECTION SLIDER SẢN PHẨM           */
+/* ============================================== */
+// ==============================================
+// CUSTOM SLIDER - JavaScript
+// ==============================================
+
+// Config
+const config = {
+  itemsPerView: 1,
+  currentIndex: 0,
+};
+/* ============================================== */
+/* NOTE: (VI) CAROUSEL BÊN PHẢI - chỉ hiện 3 thẻ, bấm mũi tên để trượt */
+/* ============================================== */
+const sliderTrack = document.querySelector(".cs-track");
+const btnPrev = document.getElementById("btnPrev");
+const btnNext = document.getElementById("btnNext");
+
+const cards = document.querySelectorAll(".cs-card");
+let currentIndex = 0;
+
+function updateCarousel() {
+  if (!sliderTrack || cards.length === 0) return;
+
+  const cardWidth = cards[0].getBoundingClientRect().width;
+  const gap = 12; // NOTE: (VI) phải khớp với gap trong CSS
+  const step = cardWidth + gap;
+
+  sliderTrack.style.transform = `translateX(-${currentIndex * step}px)`;
+
+  // NOTE: (VI) giới hạn để luôn còn đúng 3 thẻ trong khung
+  const maxIndex = Math.max(0, cards.length - 3);
+  if (btnPrev) btnPrev.disabled = currentIndex <= 0;
+  if (btnNext) btnNext.disabled = currentIndex >= maxIndex;
+}
+
+if (btnPrev) {
+  btnPrev.addEventListener("click", () => {
+    currentIndex = Math.max(0, currentIndex - 1);
+    updateCarousel();
+  });
+}
+
+if (btnNext) {
+  btnNext.addEventListener("click", () => {
+    const maxIndex = Math.max(0, cards.length - 3);
+    currentIndex = Math.min(maxIndex, currentIndex + 1);
+    updateCarousel();
+  });
+}
+
+window.addEventListener("resize", updateCarousel);
+updateCarousel();
