@@ -1,35 +1,5 @@
 <?php
-// Kết nối database
-require_once 'config/config.php';
-
-// Lấy dữ liệu sản phẩm
-try {
-    $query = "
-        SELECT 
-            p.id,
-            p.name,
-            p.brand,
-            p.price,
-            p.old_price,
-            p.discount,
-            p.is_featured,
-            pi.image_url
-        FROM products p
-        LEFT JOIN product_images pi ON p.id = pi.product_id AND pi.is_primary = 1
-        ORDER BY p.id ASC
-        LIMIT 47
-    ";
-    
-    $stmt = $conn->prepare($query);
-    $stmt->execute();
-    $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    
-} catch(PDOException $e) {
-    echo "Lỗi khi lấy dữ liệu: " . $e->getMessage();
-    $products = [];
-}
 ?>
-
 <!doctype html>
 <html lang="vi">
   <head>
@@ -47,7 +17,7 @@ try {
     />
     <!-- Gọi file CSS -->
     <link rel="stylesheet" href="config/assets/style.css" />
-    <script src="https://cdn.tailwindcss.com"></script>
+     
   </head>
   <body>
     <header class="site-header">
@@ -58,7 +28,7 @@ try {
         </button>
 
         <!-- Logo -->
-        <a href="#" class="header-logo">
+        <a href="index.php" class="header-logo">
           <i class="fa-solid fa-bicycle"></i>
           Spinbike
         </a>
@@ -105,10 +75,7 @@ try {
         </div>
       </div>
     </header>
-
-    <!-- ============================================== -->
     <!-- HERO SLIDER BANNER -->
-    <!-- ============================================== -->
     <section class="hero-slider">
       <div class="slider-wrapper" id="slider-wrapper">
         <!-- Slide 1 -->
@@ -154,86 +121,76 @@ try {
         <span class="dot" data-index="4"></span>
       </div>
     </section>
-    <!-- ============================================== -->
-    <!-- KẾT THÚC HERO SLIDER -->
-    <!-- ============================================== -->
-<!-- ============================================== -->
-    <!-- BẮT ĐẦU: DANH SÁCH SẢN PHẨM -->
-    <!-- ============================================== -->
-    <section class="custom-slider-section">
-        <!-- Header -->
-        <div class="cs-header">
-            <h2 class="cs-title">Xe đạp thể thao đường phố</h2>
-            <a href="products.php" class="cs-view-all">Xem tất cả <i class="fa-solid fa-chevron-right" style="font-size: 12px; margin-left:4px;"></i></a>
-        </div>
 
-        <!-- Khung Layout -->
-        <div class="cs-layout">
+ <!-- PRODUCT SLIDER -->
+<section class="product-section">
+  <div class="product-header">
+    <h2>Xe đạp thể thao đường phố</h2>
+    <a href="#" class="view-all">Xem tất cả</a>
+  </div>
+
+  <div class="product-slider">
+
+    <!-- nút trái -->
+    <button class="nav-btn prev">&#10094;</button>
+
+    <!-- CHỈ CÓ ĐÚNG 1 THẺ product-wrapper DƯỚI ĐÂY -->
+    <div class="product-wrapper" id="productWrapper">
+  
+  <?php
+    // 1. Cấu hình kết nối
+    $servername = "localhost";
+    $username = "root";
+    $password = "";
+    $dbname = "spinbike_db";
+
+    $conn = new mysqli($servername, $username, $password, $dbname);
+
+    if ($conn->connect_error) {
+      die("Kết nối thất bại: " . $conn->connect_error);
+    }
+
+    // 2. Câu lệnh SQL JOIN để lấy dữ liệu
+    $sql = "SELECT p.id, p.name, p.price, pi.image_url 
+            FROM products p
+            JOIN product_category pc ON p.id = pc.product_id
+            JOIN product_images pi ON p.id = pi.product_id
+            WHERE pc.category_id = 1 AND pi.is_primary = 1"; 
             
-      
-<!-- CỘT TRÁI: Placeholder -->
-<div class="cs-left-placeholder">
-    <img src="config/assets/images/xedapduongpho.png" alt="Xe đạp đường phố nổi bật" class="cs-featured-img">
-    <h3>Xe Đạp Đường Phố Touring GIANT Fastroad Advanced 2</h3>
-    <p>39.490.000 đ</p>
-</div>
-            <!-- CỘT PHẢI: Khung Trượt (Slider) -->
-            <div class="cs-right-slider">
-                
-                <!-- Nút Trái -->
-                <button class="cs-nav-btn cs-prev" id="btnPrev" disabled>
-                    <i class="fa-solid fa-chevron-left"></i>
-                </button>
+    $result = $conn->query($sql);
 
-                <!-- Wrapper bọc thẻ track -->
-                <div class="cs-track-wrapper">
-                    <div class="cs-track" id="sliderTrack">
-                        
-                        <!-- Sản phẩm được render từ database -->
-                        <?php foreach ($products as $product): ?>
-                            <div class="cs-card">
-                                
-                                <?php if (!empty($product['discount'])): ?>
-                                    <div class="cs-badge"><?= htmlspecialchars($product['discount']) ?></div>
-                                <?php endif; ?>
-                                
-                                <div class="cs-img-box">
-                                    <?php if (!empty($product['image_url'])): ?>
-                                        <img src="<?= htmlspecialchars($product['image_url']) ?>" alt="<?= htmlspecialchars($product['name']) ?>">
-                                    <?php else: ?>
-                                        <img src="https://via.placeholder.com/300x300?text=No+Image" alt="No image">
-                                    <?php endif; ?>
-                                </div>
-                                
-                                <h3 class="cs-name"><?= htmlspecialchars($product['name']) ?></h3>
-                                
-                                <div class="cs-price-box">
-                                    <p class="cs-price"><?= number_format($product['price'], 0, ',', '.') ?> đ</p>
-                                    <div class="cs-old-price">
-                                        <?php if (!empty($product['old_price'])): ?>
-                                            <?= number_format($product['old_price'], 0, ',', '.') ?> đ
-                                        <?php endif; ?>
-                                    </div>
-                                </div>
-                                
-                            </div>
-                        <?php endforeach; ?>
-                        
-                    </div>
-                </div>
+    // 3. Hiển thị dữ liệu
+    if ($result->num_rows > 0) {
+      while($row = $result->fetch_assoc()) {
+        $formatted_price = number_format($row["price"], 0, ',', '.') . 'đ';
+        
+     
+$image_path = $row["image_url"];
 
-                <!-- Nút Phải -->
-                <button class="cs-nav-btn cs-next" id="btnNext">
-                    <i class="fa-solid fa-chevron-right"></i>
-                </button>
+        echo '<div class="product-card">';
+        echo '  <img src="' . $image_path . '" alt="' . htmlspecialchars($row["name"]) . '">';
+        echo '  <div class="product-info">';
+        echo '    <p>' . htmlspecialchars($row["name"]) . '</p>';
+        echo '    <span>' . $formatted_price . '</span>';
+        echo '  </div>';
+        echo '</div>';
+      }
+    } else {
+      echo "<p>Chưa có sản phẩm nào.</p>";
+    }
 
-            </div>
-        </div>
-    </section>
-    <!-- ============================================== -->
-    <!-- KẾT THÚC DANH SÁCH SẢN PHẨM -->
-    <!-- ============================================== -->
+    $conn->close();
+  ?>
+    </div> <!-- Kết thúc thẻ product-wrapper -->
+
+    <!-- nút phải -->
+    <button class="nav-btn next">&#10095;</button>
+
+  </div>
+</section>
     <!-- Gọi file JS -->
     <script src="config/assets/script.js"></script>
   </body>
 </html>
+<?php
+?>
