@@ -381,7 +381,7 @@
 /* ===== PRODUCT SECTION ===== */
 .product-section {
   max-width: 1400px;
-  margin: 50px auto;
+  margin: 30px auto;
   padding: 0 70px;
 }
 
@@ -389,72 +389,125 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 10px !important;
 }
 
+/* Tiêu đề chính "Xe đạp thể thao đường phố" */
 .product-header h2 {
-  font-size: 24px;
-  color: var(--text-dark); /* Sử dụng màu chữ tối từ :root */
+  font-size: 26px; /* Tăng nhẹ kích thước lên 26px cho oai */
+  color: #2563eb;
+  font-weight: 900 !important; /* Đẩy độ đậm lên mức 800 (Extra Bold) */
+  text-transform: uppercase; /* (Tùy chọn) Nếu muốn mạnh mẽ hơn nữa bạn có thể cho viết hoa hết */
+  letter-spacing: 0.5px; /* Khoảng cách chữ thưa ra một chút cho sang */
 }
 
 .view-all {
   text-decoration: none;
-  color: var(--primary-color); /* Sử dụng màu chính */
+  color: #2563eb; /* ← Đổi thành màu xanh dương */
   font-weight: 600;
   transition: color 0.3s ease;
 }
 
 .view-all:hover {
-  color: var(--primary-hover);
+  color: #0f3ebe;
 }
 
-/* slider */
+/* LAYOUT CHUNG - CHIA 2 CỘT NGANG HÀNG */
+.product-layout {
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  gap: 4px;
+  align-items: stretch; /* Ép 2 cột cao bằng nhau */
+  width: 100%;
+}
+
+/* =========================================
+   Ô TO CỐ ĐỊNH BÊN TRÁI
+   ========================================= */
+.featured-banner {
+  flex: 0 0 30%;
+  width: 30%;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid #eaeaea;
+  background-color: #fff;
+  display: flex;
+  flex-direction: column;
+  margin: 15px 0; /* Căn mép bằng với 3 ô bên phải */
+}
+
+/* Ảnh ô to: Khít 3 cạnh, to đẹp, không thu nhỏ */
+.featured-banner img {
+  width: 100%;
+  height: 215px;
+  object-fit: contain; /* ← THAY ĐỔI Ở ĐÂY */
+  object-position: top center; /* ← THÊM DÒNG NÀY */
+}
+
+.featured-info {
+  padding: 20px 15px;
+  text-align: center;
+  background: #fff;
+  flex-grow: 1; /* Tự giãn lấp đầy phần dưới */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  justify-content: space-between !important;
+}
+
+.featured-name {
+  font-weight: 500;
+  color: var(--text-dark);
+  font-size: 16px;
+  line-height: 1.4;
+  margin-bottom: 10px;
+  transition: color 0.1s ease;
+  cursor: pointer;
+}
+.featured-name:hover {
+  color: #2563eb;
+}
+.featured-price {
+  color: #2563eb;
+  font-weight: 700;
+  font-size: 18px;
+}
+
+/* =========================================
+   KHU VỰC SLIDER 3 Ô BÊN PHẢI
+   ========================================= */
 .product-slider {
+  flex: 0 0 calc(70% - 20px);
+  width: calc(70% - 20px);
   position: relative;
   display: flex;
-  align-items: center;
-  /* Thêm khoảng trống 50px ở 2 bên mép để làm không gian chứa 2 nút mũi tên, giống như dấu vàng bạn vẽ */
-  padding: 0 50px;
+  align-items: stretch;
+  padding: 0 0 0 45px;
 }
 
-/* Bao bọc danh sách sản phẩm */
-/* Bao bọc danh sách sản phẩm */
 .product-wrapper {
   display: flex;
   gap: 12px;
-  overflow-x: auto; /* Cho phép cuộn ngang */
-
-  /* Đã xóa scroll-behavior: smooth; ở đây vì JS đã lo việc lướt mượt, chống xung đột */
-
+  overflow-x: auto;
   width: 100%;
-
-  /* Thêm 2px padding trái phải để tạo không gian thở, viền 1px sẽ không bị ăn lẹm */
-  padding: 15px 2px;
-
-  /* Báo cho CSS biết khi hít nam châm phải chừa ra 2px lề */
+  padding: 15px 0px;
   scroll-padding-left: 2px;
-
-  /* Bổ sung Scroll Snap - Bắt buộc hít vào lề */
   scroll-snap-type: x mandatory;
-
-  /* Ẩn thanh cuộn xấu xí */
   scrollbar-width: none;
   -ms-overflow-style: none;
+  align-items: stretch; /* Ép 3 ô nhỏ giãn bằng nhau */
 }
 
 .product-wrapper::-webkit-scrollbar {
   display: none;
 }
-/* Thẻ sản phẩm */
+
+/* THẺ SẢN PHẨM NHỎ */
 .product-card {
-  /* Vẫn giữ công thức chia đúng 4 cột */
-  flex: 0 0 calc((100% - 36px) / 4);
-
-  /* Khóa vị trí: Luôn hít sát lề bên trái của khung */
+  flex: 0 0 calc((100% - 24px) / 3);
   scroll-snap-align: start;
-
   border: 1px solid #eaeaea;
-  padding: 0;
+  padding: 0; /* XÓA PADDING ĐỂ ẢNH CHẠM SÁT MÉP */
   text-align: center;
   background: #fff;
   border-radius: 12px;
@@ -464,56 +517,53 @@
   flex-direction: column;
   overflow: hidden;
 }
+
+/* Ảnh sản phẩm nhỏ: Khít 3 cạnh */
 .product-card img {
   width: 100%;
-  height: 250px;
-  object-fit: contain; /* Hoặc 'cover' nếu bạn muốn ảnh lấp đầy hoàn toàn, nhưng có thể bị cắt một phần */
-  /* Thêm đường viền mỏng ngăn cách ảnh và phần chữ */
-  transition: transform 0.3s ease;
+  height: 215px;
+  object-fit: contain; /* ← THAY ĐỔI Ở ĐÂY */
+  object-position: top center; /* ← THÊM DÒNG NÀY */
 }
+
 .product-info {
-  padding: 15px; /* Thêm lại padding cho khu vực chứa chữ */
+  padding: 15px;
   display: flex;
   flex-direction: column;
   gap: 8px;
-  flex-grow: 1; /* Cho phép phần info tự giãn để đẩy giá xuống dưới cùng nếu chiều cao ảnh/chữ khác nhau */
+  flex-grow: 1;
   justify-content: space-between;
 }
-/* Hiệu ứng tương tác hiện đại khi hover */
+
 .product-card:hover {
-  transform: translateY(-5px); /* Nổi thẻ lên nhẹ */
+  transform: translateY(-5px);
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
   border-color: var(--primary-color);
-}
-
-/* Xóa hiệu ứng phóng to ảnh cũ để nó không xung đột với hiệu ứng card mới */
-.product-card:hover img {
-  transform: none; /* Reset lại, không phóng to ảnh */
 }
 
 .product-card p {
   font-weight: 500;
   color: var(--text-dark);
   font-size: 16px;
-  margin-top: auto; /* Đẩy tên sản phẩm xuống */
+  margin-top: auto;
 }
 
 .product-card span {
-  color: #ef4444; /* Dùng mã màu đỏ dịu mắt hơn */
+  color: #2563eb;
   font-weight: 700;
-  font-size: 18px; /* Chữ giá tiền to hơn */
+  font-size: 18px;
 }
 
-/* nút điều hướng */
+/* NÚT ĐIỀU HƯỚNG */
 .nav-btn {
   position: absolute;
   background: #fff;
   border: 1px solid #eaeaea;
-  width: 44px; /* Tăng nhẹ kích thước nút */
+  width: 44px;
   height: 44px;
   cursor: pointer;
   border-radius: 50%;
-  top: 50%; /* Căn giữa */
+  top: 50%;
   transform: translateY(-50%);
   z-index: 10;
   display: flex;
@@ -532,9 +582,8 @@
 }
 
 .prev {
-  left: 0; /* Ép sát nút trái đụng lề ngoài cùng */
+  left: 0;
 }
-
 .next {
-  right: 0; /* Ép sát nút phải đụng lề ngoài cùng */
+  right: -45px !important;
 }

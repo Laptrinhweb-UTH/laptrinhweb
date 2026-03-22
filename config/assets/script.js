@@ -169,22 +169,74 @@ document.addEventListener("DOMContentLoaded", () => {
   const prev = document.querySelector(".prev");
 
   if (wrapper && next && prev) {
-    next.addEventListener("click", () => {
-      const card = wrapper.querySelector(".product-card");
-      if (card) {
-        // Lấy chính xác chiều rộng 1 ô + 20px khoảng cách (gap)
-        const scrollAmount = card.getBoundingClientRect().width + 20;
+    // Lấy danh sách TẤT CẢ các thẻ sản phẩm để tính vị trí
+    const cards = wrapper.querySelectorAll(".product-card");
 
-        // Cộng thêm 10px làm "đà" để ép CSS tự động hít khung chuẩn xác 100%
-        wrapper.scrollBy({ left: scrollAmount + 10, behavior: "smooth" });
+    // Hàm tìm thẻ đang hiển thị đầu tiên bên trái màn hình
+    const getFirstVisibleCardIndex = () => {
+      let index = 0;
+      let minDistance = Infinity;
+      const wrapperRect = wrapper.getBoundingClientRect();
+
+      cards.forEach((card, i) => {
+        const cardRect = card.getBoundingClientRect();
+        // Tính khoảng cách từ mép trái của thẻ đến mép trái của wrapper
+        const distance = Math.abs(cardRect.left - wrapperRect.left);
+        if (distance < minDistance) {
+          minDistance = distance;
+          index = i;
+        }
+      });
+      return index;
+    };
+
+    // =========================================
+    // XỬ LÝ NÚT PHẢI (NEXT) - LƯỚT TỪNG LẦN
+    // =========================================
+    next.addEventListener("click", () => {
+      // Tìm vị trí hiện tại và nhảy tới thẻ tiếp theo
+      const currentIndex = getFirstVisibleCardIndex();
+      const nextIndex = currentIndex + 1;
+
+      // Nếu còn sản phẩm phía sau
+      if (nextIndex < cards.length) {
+        // Bắt thẻ tiếp theo cuộn vào đúng tầm nhìn (start = sát lề trái)
+        cards[nextIndex].scrollIntoView({
+          behavior: "smooth",
+          block: "nearest",
+          inline: "start",
+        });
+      } else {
+        // Nếu đã đến cuối, quay lại sản phẩm đầu tiên
+        cards[0].scrollIntoView({
+          behavior: "smooth",
+          block: "nearest",
+          inline: "start",
+        });
       }
     });
 
+    // =========================================
+    // XỬ LÝ NÚT TRÁI (PREV) - LƯỚT TỪNG LẦN
+    // =========================================
     prev.addEventListener("click", () => {
-      const card = wrapper.querySelector(".product-card");
-      if (card) {
-        const scrollAmount = card.getBoundingClientRect().width + 20;
-        wrapper.scrollBy({ left: -(scrollAmount + 10), behavior: "smooth" });
+      const currentIndex = getFirstVisibleCardIndex();
+      const prevIndex = currentIndex - 1;
+
+      // Nếu còn sản phẩm phía trước
+      if (prevIndex >= 0) {
+        cards[prevIndex].scrollIntoView({
+          behavior: "smooth",
+          block: "nearest",
+          inline: "start",
+        });
+      } else {
+        // Nếu đã ở đầu, nhảy đến sản phẩm cuối cùng
+        cards[cards.length - 1].scrollIntoView({
+          behavior: "smooth",
+          block: "nearest",
+          inline: "start",
+        });
       }
     });
   }

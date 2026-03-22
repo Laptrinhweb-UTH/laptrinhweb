@@ -122,71 +122,81 @@
       </div>
     </section>
 
- <!-- PRODUCT SLIDER -->
 <section class="product-section">
   <div class="product-header">
     <h2>Xe đạp thể thao đường phố</h2>
     <a href="#" class="view-all">Xem tất cả</a>
   </div>
 
-  <div class="product-slider">
+  <!-- BẮT ĐẦU LAYOUT CHIA 2 CỘT (Đã thêm thẻ này) -->
+  <div class="product-layout">
+    
+    <!-- Ô TO CỐ ĐỊNH BÊN TRÁI -->
+    <div class="featured-banner">
+      <img src="config/assets/images/xedapduongpho.png" alt="GIANT Fastroad">
+      
+      <div class="featured-info">
+        <p class="featured-name">Xe Đạp Đường Phố Touring GIANT Fastroad Advanced 2 – Phanh Đĩa, Bánh 700C – 2024</p>
+        <span class="featured-price">39.490.000 VND</span>
+      </div>
+    </div>
 
-    <!-- nút trái -->
-    <button class="nav-btn prev">&#10094;</button>
+    <!-- KHU VỰC LƯỚT SẢN PHẨM BÊN PHẢI -->
+    <div class="product-slider">
+      <button class="nav-btn prev">&#10094;</button>
 
-    <!-- CHỈ CÓ ĐÚNG 1 THẺ product-wrapper DƯỚI ĐÂY -->
-    <div class="product-wrapper" id="productWrapper">
-  
-  <?php
-    // 1. Cấu hình kết nối
-    $servername = "localhost";
-    $username = "root";
-    $password = "";
-    $dbname = "spinbike_db";
+      <div class="product-wrapper" id="productWrapper">
+        <?php
+          // 1. Cấu hình kết nối
+          $servername = "localhost";
+          $username = "root";
+          $password = "";
+          $dbname = "spinbike_db";
 
-    $conn = new mysqli($servername, $username, $password, $dbname);
+          $conn = new mysqli($servername, $username, $password, $dbname);
 
-    if ($conn->connect_error) {
-      die("Kết nối thất bại: " . $conn->connect_error);
-    }
+          if ($conn->connect_error) {
+            die("Kết nối thất bại: " . $conn->connect_error);
+          }
 
-    // 2. Câu lệnh SQL JOIN để lấy dữ liệu
-    $sql = "SELECT p.id, p.name, p.price, pi.image_url 
-            FROM products p
-            JOIN product_category pc ON p.id = pc.product_id
-            JOIN product_images pi ON p.id = pi.product_id
-            WHERE pc.category_id = 1 AND pi.is_primary = 1"; 
-            
-    $result = $conn->query($sql);
+          // 2. Câu lệnh SQL JOIN để lấy dữ liệu
+          $sql = "SELECT p.id, p.name, p.price, pi.image_url 
+                  FROM products p
+                  JOIN product_category pc ON p.id = pc.product_id
+                  JOIN product_images pi ON p.id = pi.product_id
+                  WHERE pc.category_id = 1 AND pi.is_primary = 1"; 
+                  
+          $result = $conn->query($sql);
 
-    // 3. Hiển thị dữ liệu
-    if ($result->num_rows > 0) {
-      while($row = $result->fetch_assoc()) {
-        $formatted_price = number_format($row["price"], 0, ',', '.') . 'đ';
-        
-     
-$image_path = $row["image_url"];
+          // 3. Hiển thị dữ liệu
+          if ($result->num_rows > 0) {
+            while($row = $result->fetch_assoc()) {
+              $formatted_price = number_format($row["price"], 0, ',', '.') . 'đ';
+              
+              // Sử dụng trực tiếp dữ liệu từ DB.
+              $image_path = $row["image_url"];
 
-        echo '<div class="product-card">';
-        echo '  <img src="' . $image_path . '" alt="' . htmlspecialchars($row["name"]) . '">';
-        echo '  <div class="product-info">';
-        echo '    <p>' . htmlspecialchars($row["name"]) . '</p>';
-        echo '    <span>' . $formatted_price . '</span>';
-        echo '  </div>';
-        echo '</div>';
-      }
-    } else {
-      echo "<p>Chưa có sản phẩm nào.</p>";
-    }
+              echo '<div class="product-card">';
+              echo '  <img src="' . $image_path . '" alt="' . htmlspecialchars($row["name"]) . '">';
+              echo '  <div class="product-info">';
+              echo '    <p>' . htmlspecialchars($row["name"]) . '</p>';
+              echo '    <span>' . $formatted_price . '</span>';
+              echo '  </div>';
+              echo '</div>';
+            }
+          } else {
+            echo "<p>Chưa có sản phẩm nào.</p>";
+          }
+          $conn->close();
+        ?>
+      </div> 
 
-    $conn->close();
-  ?>
-    </div> <!-- Kết thúc thẻ product-wrapper -->
+      <button class="nav-btn next">&#10095;</button>
+    </div> 
+    
+  <!-- KẾT THÚC LAYOUT CHIA 2 CỘT (Thẻ đóng này bảo vệ cấu trúc) -->
+  </div> 
 
-    <!-- nút phải -->
-    <button class="nav-btn next">&#10095;</button>
-
-  </div>
 </section>
     <!-- Gọi file JS -->
     <script src="config/assets/script.js"></script>
