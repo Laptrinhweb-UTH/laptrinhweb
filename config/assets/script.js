@@ -1,243 +1,351 @@
-document.addEventListener("DOMContentLoaded", () => {
-  // JS Xử lý Hamburger Menu trên Mobile
-  const mobileToggle = document.getElementById("mobile-toggle");
-  const headerCenter = document.getElementById("header-center");
-  const mobileIcon = mobileToggle.querySelector("i");
+// ==================== DỮ LIỆU MẪU ====================
+const products = [
+  {
+    id: 1,
+    title: "Trek Domane SL 5 2022",
+    brand: "Trek",
+    type: "Road",
+    size: "M",
+    groupset: "105",
+    condition: "9/10",
+    price: 18500000,
+    year: 2022,
+    location: "TP.HCM",
+    verified: true,
+    desc: "Xe carbon nhẹ, đi 1200km, cực kỳ êm.",
+    images: [
+      "https://picsum.photos/id/1015/800/800",
+      "https://picsum.photos/id/201/800/800",
+    ],
+  },
+  {
+    id: 2,
+    title: "Giant TCR Advanced 2023",
+    brand: "Giant",
+    type: "Road",
+    size: "L",
+    groupset: "Ultegra",
+    condition: "10/10",
+    price: 24500000,
+    year: 2023,
+    location: "Hà Nội",
+    verified: true,
+    desc: "Mới 99%, full Ultegra.",
+    images: [
+      "https://picsum.photos/id/102/800/800",
+      "https://picsum.photos/id/202/800/800",
+    ],
+  },
+  {
+    id: 3,
+    title: "Specialized Rockhopper",
+    brand: "Specialized",
+    type: "MTB",
+    size: "XL",
+    groupset: "Rival",
+    condition: "8/10",
+    price: 13500000,
+    year: 2021,
+    location: "Đà Nẵng",
+    verified: false,
+    desc: "Lốp mới, phanh dầu tốt.",
+    images: [
+      "https://picsum.photos/id/103/800/800",
+      "https://picsum.photos/id/203/800/800",
+    ],
+  },
+  {
+    id: 4,
+    title: "Scott Addict RC 2024",
+    brand: "Scott",
+    type: "Road",
+    size: "M",
+    groupset: "Dura-Ace",
+    condition: "9/10",
+    price: 32000000,
+    year: 2024,
+    location: "TP.HCM",
+    verified: true,
+    desc: "Siêu nhẹ, dành cho đua.",
+    images: [
+      "https://picsum.photos/id/104/800/800",
+      "https://picsum.photos/id/204/800/800",
+    ],
+  },
+  {
+    id: 5,
+    title: "Cannondale Topstone Gravel",
+    brand: "Cannondale",
+    type: "Gravel",
+    size: "L",
+    groupset: "105",
+    condition: "10/10",
+    price: 19800000,
+    year: 2023,
+    location: "Hà Nội",
+    verified: true,
+    desc: "Touring cực tốt.",
+    images: [
+      "https://picsum.photos/id/105/800/800",
+      "https://picsum.photos/id/205/800/800",
+    ],
+  },
+  {
+    id: 6,
+    title: "Pinarello Dogma F10",
+    brand: "Pinarello",
+    type: "Road",
+    size: "S",
+    groupset: "Dura-Ace",
+    condition: "8/10",
+    price: 45000000,
+    year: 2020,
+    location: "TP.HCM",
+    verified: false,
+    desc: "Xe đua cao cấp.",
+    images: [
+      "https://picsum.photos/id/106/800/800",
+      "https://picsum.photos/id/206/800/800",
+    ],
+  },
+  {
+    id: 7,
+    title: "Trek Marlin 7",
+    brand: "Trek",
+    type: "MTB",
+    size: "L",
+    groupset: "Deore",
+    condition: "9/10",
+    price: 9800000,
+    year: 2022,
+    location: "Đà Nẵng",
+    verified: true,
+    desc: "Phù hợp người mới.",
+    images: [
+      "https://picsum.photos/id/107/800/800",
+      "https://picsum.photos/id/207/800/800",
+    ],
+  },
+  {
+    id: 8,
+    title: "Bianchi Oltre XR4",
+    brand: "Bianchi",
+    type: "Road",
+    size: "M",
+    groupset: "Ultegra",
+    condition: "10/10",
+    price: 28500000,
+    year: 2023,
+    location: "TP.HCM",
+    verified: true,
+    desc: "Màu celeste đẹp nhất.",
+    images: [
+      "https://picsum.photos/id/108/800/800",
+      "https://picsum.photos/id/208/800/800",
+    ],
+  },
+];
 
-  // JS Xử lý Dropdown riêng trên Mobile (Click để mở thay vì Hover)
-  const dropdownToggleMobile = document.getElementById(
-    "dropdown-toggle-mobile",
-  );
-  const dropdownMenuMobile = document.getElementById("dropdown-menu-mobile");
+let wishlist = JSON.parse(localStorage.getItem("wishlist")) || [];
 
-  // Đóng/Mở menu Hamburger
-  mobileToggle.addEventListener("click", () => {
-    headerCenter.classList.toggle("active");
+// ==================== RENDER SẢN PHẨM ====================
+function renderProducts(filtered) {
+  const grid = document.getElementById("productGrid");
+  grid.innerHTML = "";
 
-    // Đổi icon hamburger <-> dấu X
-    if (headerCenter.classList.contains("active")) {
-      mobileIcon.classList.remove("fa-bars");
-      mobileIcon.classList.add("fa-xmark");
-    } else {
-      mobileIcon.classList.remove("fa-xmark");
-      mobileIcon.classList.add("fa-bars");
-    }
+  filtered.forEach((p) => {
+    const isLiked = wishlist.includes(p.id);
+    const verifiedHTML = p.verified
+      ? `<i class="fa-solid fa-circle-check product-verified"></i>`
+      : "";
+
+    const html = `
+            <div class="product-card" onclick="showDetail(${p.id})">
+                <div class="product-image-container">
+                    <img src="${p.images[0]}" class="product-image" alt="${p.title}">
+                    <button class="product-wishlist-btn" onclick="event.stopImmediatePropagation(); toggleWishlist(${p.id});">
+                        <i class="fa-solid fa-heart heart ${isLiked ? "liked" : ""}"></i>
+                    </button>
+                </div>
+                <div class="product-info">
+                    <div class="product-header">
+                        <div class="product-title">${p.title}</div>
+                        ${verifiedHTML}
+                    </div>
+                    <p class="product-meta">${p.brand} • Size ${p.size} • ${p.groupset}</p>
+                    <div class="product-footer">
+                        <span class="product-price">${(p.price / 1000000).toFixed(1)}tr</span>
+                        <span class="product-condition">${p.condition}</span>
+                    </div>
+                </div>
+            </div>`;
+    grid.innerHTML += html;
   });
 
-  // Xử lý mở/đóng danh mục sản phẩm khi đang ở chế độ mobile
-  dropdownToggleMobile.addEventListener("click", (e) => {
-    if (window.innerWidth <= 768) {
-      e.preventDefault(); // Ngăn link '#' nhảy lên đầu trang
-      dropdownMenuMobile.classList.toggle("active");
-    }
-  });
-});
-// =========================================
-// JS XỬ LÝ HERO SLIDER BANNER
-// =========================================
-const sliderWrapper = document.getElementById("slider-wrapper");
-const slides = document.querySelectorAll(".slide");
-const dots = document.querySelectorAll(".dot");
+  document.getElementById("resultCount").textContent =
+    `${filtered.length} sản phẩm`;
+}
 
-let currentSlide = 0;
-const totalSlides = slides.length;
-const autoSlideInterval = 5000; // 7000ms = 7 giây
-let slideTimer;
+// ==================== FILTER LIVE ====================
+function applyFilters() {
+  let filtered = products;
 
-// Hàm thực hiện trượt slide
-function goToSlide(index) {
-  // Xử lý logic quay vòng lặp lại
-  if (index >= totalSlides) {
-    currentSlide = 0;
-  } else if (index < 0) {
-    currentSlide = totalSlides - 1;
+  // Search
+  const search = document.getElementById("searchInput").value.toLowerCase();
+  if (search) {
+    filtered = filtered.filter(
+      (p) =>
+        p.title.toLowerCase().includes(search) ||
+        p.brand.toLowerCase().includes(search),
+    );
+  }
+
+  // Type
+  const activeTypes = Array.from(
+    document.querySelectorAll("#typeFilters button.filter-btn.active"),
+  ).map((b) => b.dataset.type);
+  if (activeTypes.length)
+    filtered = filtered.filter((p) => activeTypes.includes(p.type));
+
+  // Size
+  const size = document.getElementById("sizeFilter").value;
+  if (size) filtered = filtered.filter((p) => p.size === size);
+
+  // Price
+  const minP =
+    parseFloat(document.getElementById("priceMin").value) * 1000000 || 0;
+  const maxP =
+    parseFloat(document.getElementById("priceMax").value) * 1000000 || Infinity;
+  filtered = filtered.filter((p) => p.price >= minP && p.price <= maxP);
+
+  // Groupset
+  const gs = document.getElementById("groupsetFilter").value;
+  if (gs) filtered = filtered.filter((p) => p.groupset === gs);
+
+  // Condition
+  const activeCond = Array.from(
+    document.querySelectorAll("#conditionFilters button.condition-btn.active"),
+  ).map((b) => b.dataset.cond);
+  if (activeCond.length)
+    filtered = filtered.filter((p) => activeCond.includes(p.condition));
+
+  // Sort
+  const sortMode = document.getElementById("sortFilter").value;
+  if (sortMode === "price-low") filtered.sort((a, b) => a.price - b.price);
+  if (sortMode === "price-high") filtered.sort((a, b) => b.price - a.price);
+
+  renderProducts(filtered);
+}
+
+// Toggle filter buttons
+function toggleFilter(btn) {
+  btn.classList.toggle("active");
+  applyFilters();
+}
+
+function toggleCondition(btn) {
+  btn.classList.toggle("active");
+  applyFilters();
+}
+
+// ==================== WISHLIST ====================
+function toggleWishlist(id) {
+  if (wishlist.includes(id)) {
+    wishlist = wishlist.filter((i) => i !== id);
   } else {
-    currentSlide = index;
+    wishlist.push(id);
   }
+  localStorage.setItem("wishlist", JSON.stringify(wishlist));
+  applyFilters();
+}
 
-  // Di chuyển Wrapper sang trái
-  const translateX = -currentSlide * 100;
-  sliderWrapper.style.transform = `translateX(${translateX}%)`;
+function toggleWishlistFromModal() {
+  if (!currentProduct) return;
+  toggleWishlist(currentProduct.id);
+  hideDetailModal();
+}
 
-  // Cập nhật trạng thái các dấu chấm (Dots)
-  dots.forEach((dot) => dot.classList.remove("active"));
-  if (dots[currentSlide]) {
-    dots[currentSlide].classList.add("active");
+// ==================== MODAL ====================
+let currentProduct = null;
+
+function showDetail(id) {
+  currentProduct = products.find((p) => p.id === id);
+  if (!currentProduct) return;
+
+  document.getElementById("detailModal").classList.remove("hidden");
+
+  document.getElementById("modalTitle").textContent = currentProduct.title;
+  document.getElementById("modalSubtitle").textContent =
+    `${currentProduct.brand} • ${currentProduct.type}`;
+  document.getElementById("modalPrice").innerHTML =
+    `${(currentProduct.price / 1000000).toFixed(1)} <span style="font-size: 20px;">triệu</span>`;
+  document.getElementById("modalVerified").innerHTML = currentProduct.verified
+    ? `<i class="fa-solid fa-check-circle"></i> Verified Seller`
+    : "";
+
+  document.getElementById("modalSize").textContent = currentProduct.size;
+  document.getElementById("modalGroupset").textContent =
+    currentProduct.groupset;
+  document.getElementById("modalCondition").textContent =
+    currentProduct.condition;
+  document.getElementById("modalYear").textContent = currentProduct.year;
+  document.getElementById("modalLocation").textContent =
+    currentProduct.location;
+  document.getElementById("modalDesc").textContent = currentProduct.desc;
+
+  document.getElementById("modalMainImage").innerHTML =
+    `<img src="${currentProduct.images[0]}" alt="">`;
+  document.getElementById("thumb0").style.backgroundImage =
+    `url('${currentProduct.images[0]}')`;
+  document.getElementById("thumb1").style.backgroundImage =
+    `url('${currentProduct.images[1]}')`;
+
+  // Update wishlist heart
+  const heart = document.querySelector(".modal-info .heart");
+  if (wishlist.includes(currentProduct.id)) {
+    heart.classList.add("liked");
+  } else {
+    heart.classList.remove("liked");
   }
 }
 
-// Hàm tự động lướt
-function startAutoSlide() {
-  slideTimer = setInterval(() => {
-    goToSlide(currentSlide + 1);
-  }, autoSlideInterval);
+function changeModalImage(i) {
+  if (!currentProduct) return;
+  document.getElementById("modalMainImage").innerHTML =
+    `<img src="${currentProduct.images[i]}" alt="">`;
 }
 
-// Reset bộ đếm thời gian khi người dùng tự thao tác (click dots)
-function resetAutoSlide() {
-  clearInterval(slideTimer);
-  startAutoSlide();
+function hideDetailModal() {
+  document.getElementById("detailModal").classList.add("hidden");
 }
 
-// Bắt sự kiện click vào các dấu chấm
-dots.forEach((dot) => {
-  dot.addEventListener("click", function () {
-    const index = parseInt(this.getAttribute("data-index"));
-    goToSlide(index);
-    resetAutoSlide(); // Khởi động lại đếm ngược 7 giây
-  });
-});
-
-// Bắt đầu chạy Slider nếu có slide tồn tại
-if (totalSlides > 0) {
-  startAutoSlide();
-}
-// =========================================
-// JS XỬ LÝ VUỐT/KÉO CHUỘT (SWIPE/DRAG)
-// =========================================
-let isDragging = false;
-let startPos = 0;
-let currentPos = 0;
-
-// Lấy tọa độ X của chuột hoặc ngón tay
-function getPositionX(event) {
-  return event.type.includes("mouse") ? event.pageX : event.touches[0].clientX;
+function fakeChat() {
+  hideDetailModal();
+  setTimeout(
+    () =>
+      alert(
+        "💬 Chat đã mở!\nNgười bán: Chào bạn! Xe em còn rất tốt, bạn muốn gặp xem trực tiếp không?",
+      ),
+    400,
+  );
 }
 
-// Khi bắt đầu nhấn chuột / chạm tay
-function touchStart(event) {
-  isDragging = true;
-  startPos = getPositionX(event);
-  clearInterval(slideTimer); // Tạm dừng tự động chuyển slide khi đang kéo
+// ==================== ĐĂNG BÁN ====================
+function showSellModal() {
+  document.getElementById("sellModal").classList.remove("hidden");
 }
 
-// Khi di chuyển chuột / ngón tay
-function touchMove(event) {
-  if (!isDragging) return;
-  currentPos = getPositionX(event);
+function hideSellModal() {
+  document.getElementById("sellModal").classList.add("hidden");
+  alert("✅ Tin đăng đã được gửi! (Demo - bạn có thể kết nối backend sau)");
 }
 
-// Khi nhả chuột / nhấc tay lên
-function touchEnd() {
-  if (!isDragging) return;
-  isDragging = false;
+// ==================== KHỞI ĐỘNG ====================
+window.addEventListener("load", () => {
+  renderProducts(products);
 
-  // Tính khoảng cách đã kéo
-  const movedBy = currentPos - startPos;
-
-  // Nếu kéo sang trái hơn 50px -> Qua slide tiếp theo
-  if (movedBy < -50 && currentPos !== 0) {
-    goToSlide(currentSlide + 1);
-  }
-  // Nếu kéo sang phải hơn 50px -> Về slide trước đó
-  else if (movedBy > 50 && currentPos !== 0) {
-    goToSlide(currentSlide - 1);
-  }
-  // Nếu click nhẹ (không kéo) hoặc kéo quá ít -> Xử lý click link
-  else if (movedBy > -50 && movedBy < 50) {
-    // Lấy link đích của slide hiện tại và chuyển trang
-    const targetLink = slides[currentSlide]
-      .querySelector("a")
-      .getAttribute("href");
-    if (targetLink && targetLink !== "#") {
-      window.location.href = targetLink;
-    }
-  }
-
-  // Reset lại tọa độ
-  startPos = 0;
-  currentPos = 0;
-  resetAutoSlide(); // Chạy lại bộ đếm tự động
-}
-
-// Gắn sự kiện cho ngón tay (Mobile)
-sliderWrapper.addEventListener("touchstart", touchStart);
-sliderWrapper.addEventListener("touchmove", touchMove);
-sliderWrapper.addEventListener("touchend", touchEnd);
-
-// Gắn sự kiện cho chuột (Desktop)
-sliderWrapper.addEventListener("mousedown", touchStart);
-sliderWrapper.addEventListener("mousemove", touchMove);
-sliderWrapper.addEventListener("mouseup", touchEnd);
-sliderWrapper.addEventListener("mouseleave", touchEnd); // Trường hợp kéo chuột lố ra ngoài khung
-// =========================================
-// JS XỬ LÝ PRODUCT SLIDER
-// =========================================
-document.addEventListener("DOMContentLoaded", () => {
-  const wrapper = document.getElementById("productWrapper");
-  const next = document.querySelector(".next");
-  const prev = document.querySelector(".prev");
-
-  if (wrapper && next && prev) {
-    // Lấy danh sách TẤT CẢ các thẻ sản phẩm để tính vị trí
-    const cards = wrapper.querySelectorAll(".product-card");
-
-    // Hàm tìm thẻ đang hiển thị đầu tiên bên trái màn hình
-    const getFirstVisibleCardIndex = () => {
-      let index = 0;
-      let minDistance = Infinity;
-      const wrapperRect = wrapper.getBoundingClientRect();
-
-      cards.forEach((card, i) => {
-        const cardRect = card.getBoundingClientRect();
-        // Tính khoảng cách từ mép trái của thẻ đến mép trái của wrapper
-        const distance = Math.abs(cardRect.left - wrapperRect.left);
-        if (distance < minDistance) {
-          minDistance = distance;
-          index = i;
-        }
-      });
-      return index;
-    };
-
-    // =========================================
-    // XỬ LÝ NÚT PHẢI (NEXT) - LƯỚT TỪNG LẦN
-    // =========================================
-    next.addEventListener("click", () => {
-      // Tìm vị trí hiện tại và nhảy tới thẻ tiếp theo
-      const currentIndex = getFirstVisibleCardIndex();
-      const nextIndex = currentIndex + 1;
-
-      // Nếu còn sản phẩm phía sau
-      if (nextIndex < cards.length) {
-        // Bắt thẻ tiếp theo cuộn vào đúng tầm nhìn (start = sát lề trái)
-        cards[nextIndex].scrollIntoView({
-          behavior: "smooth",
-          block: "nearest",
-          inline: "start",
-        });
-      } else {
-        // Nếu đã đến cuối, quay lại sản phẩm đầu tiên
-        cards[0].scrollIntoView({
-          behavior: "smooth",
-          block: "nearest",
-          inline: "start",
-        });
-      }
-    });
-
-    // =========================================
-    // XỬ LÝ NÚT TRÁI (PREV) - LƯỚT TỪNG LẦN
-    // =========================================
-    prev.addEventListener("click", () => {
-      const currentIndex = getFirstVisibleCardIndex();
-      const prevIndex = currentIndex - 1;
-
-      // Nếu còn sản phẩm phía trước
-      if (prevIndex >= 0) {
-        cards[prevIndex].scrollIntoView({
-          behavior: "smooth",
-          block: "nearest",
-          inline: "start",
-        });
-      } else {
-        // Nếu đã ở đầu, nhảy đến sản phẩm cuối cùng
-        cards[cards.length - 1].scrollIntoView({
-          behavior: "smooth",
-          block: "nearest",
-          inline: "start",
-        });
-      }
-    });
-  }
+  // Live search
+  document
+    .getElementById("searchInput")
+    .addEventListener("keyup", applyFilters);
 });
