@@ -1,25 +1,27 @@
 ```
 spinbike/
 │
-├── index.php              # Trang chủ
+├── index.php                  # Trang chủ
 │
 ├── config/
-│   └── config.php         # Kết nối database
+│   └── config.php             # Kết nối database
 │
 ├── assets/
 │   ├── css/
+│   │   └── bootstrap.min.css
 │   ├── js/
-│   └── images/            # Ảnh xe đạp
+│   │   └── bootstrap.bundle.min.js
+│   └── images/
 │
 ├── includes/
 │   ├── header.php
 │   └── footer.php
 │
 ├── pages/
-│   ├── products.php       # Danh sách sản phẩm
-│   ├── detail.php         # Chi tiết sản phẩm
-│   ├── cart.php           # Giỏ hàng
-│   └── checkout.php       # Thanh toán
+│   ├── products.php           # Danh sách sản phẩm
+│   ├── detail.php             # Chi tiết sản phẩm
+│   ├── cart.php               # Giỏ hàng
+│   └── checkout.php           # Thanh toán
 │
 ├── admin/
 │   ├── index.php
@@ -27,6 +29,12 @@ spinbike/
 │   ├── edit_product.php
 │   └── delete_product.php
 │
-└── database/
-    └── web_xedap.sql
+├── auth/                      # Xử lý đăng nhập / đăng ký
+│   ├── login.php
+│   ├── register.php
+│   └── logout.php
+│
+├── database/
+│   └── web_xedap.sql          # Script database (cũ)
+├── README.md
 ```

@@ -1,88 +1,6 @@
-<?php 
-session_start(); 
-?>
-<!doctype html>
-<html lang="vi">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>SpinBike - Mua bán xe đạp thể thao cũ</title>
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
-    />
-
-   <link rel="stylesheet" href="config/assets/style.css" />
-  </head>
-  <body>
-    <!-- HEADER -->
-    <header class="header">
-      <div class="container header-content">
-
-  <div class="logo">
-    <i class="fa-solid fa-bicycle"></i>
-    <span class="brand-name">SpinBike</span>
-    <span class="brand-domain">.vn</span>
-  </div>
-
-  <div class="search-box">
-    <input
-      id="searchInput"
-      type="text"
-      placeholder="Tìm xe đạp..."
-    />
-    <i class="fa-solid fa-magnifying-glass"></i>
-  </div>
-
-
-
-  <!-- NÚT ĐĂNG BÁN -->
-  <button class="btn-sell" onclick="showSellModal()">
-    <i class="fa-solid fa-plus"></i>
-    Đăng bán ngay
-  </button>
-  <!-- NÚT ĐĂNG NHẬP / ĐĂNG KÝ -->
-<div class="auth-buttons">
-    <?php if(isset($_SESSION['user_name'])): ?>
-      
-      <div style="display: flex; align-items: center; gap: 12px;">
-        
-        <span style="font-weight: 600; color: var(--primary); font-size: 16px;">
-           <?php echo htmlspecialchars($_SESSION['user_name']); ?>
-        </span>
-
-        <div class="user-dropdown-wrapper">
-          <a href="javascript:void(0)" class="btn-user-icon" title="Tài khoản">
-            <i class="fa-solid fa-circle-user"></i>
-          </a>
-          
-          <div class="user-dropdown-menu">
-            <a href="update_profile.php" class="dropdown-item" style="border-top-left-radius: 12px; border-top-right-radius: 12px;">
-              <i class="fa-solid fa-user-pen"></i> Cập nhật thông tin
-            </a>
-            
-            <hr class="dropdown-divider">
-            
-            <a href="auth/logout.php" onclick="return confirm('Bạn có chắc chắn muốn đăng xuất khỏi SpinBike không?');" class="dropdown-item text-danger">
-              <i class="fa-solid fa-right-from-bracket"></i> Đăng xuất
-            </a>
-          </div>
-        </div>
-        
-      </div>
-
-    <?php else: ?>
-      <a href="auth/auth.html" class="btn-user-icon" title="Đăng nhập / Đăng ký">
-        <i class="fa-solid fa-circle-user"></i>
-      </a>
-    <?php endif; ?>
-  </div>
-
-</div>
-    </header>
+<?php include 'config/includes/header.php'; ?>
 
     <div class="main-content">
-      <!-- FILTER SIDEBAR -->
       <aside class="sidebar">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
           <h3 class="sidebar-title" style="margin: 0;">
@@ -92,7 +10,8 @@ session_start();
             <i class="fa-solid fa-rotate-right"></i> Đặt lại
           </button>
         </div>
-<div class="filter-group">
+        
+        <div class="filter-group">
           <label class="filter-label"><i class="fa-solid fa-bicycle"></i> Loại xe</label>
           <select id="typeFilter" onchange="applyFilters()" class="filter-select-modern">
             <option value="">Tất cả loại xe</option>
@@ -104,6 +23,7 @@ session_start();
             <option value="Other">Khác</option>
           </select>
         </div>
+        
         <div class="filter-group">
           <label class="filter-label"><i class="fa-solid fa-ruler"></i> Size khung</label>
           <select id="sizeFilter" onchange="applyFilters()" class="filter-select-modern">
@@ -146,20 +66,17 @@ session_start();
         </div>
       </aside>
 
-      <!-- PRODUCT GRID -->
       <div class="products-section">
         <div class="products-header">
           <h1>Danh sách xe đạp</h1>
-          <p id="resultCount">8 sản phẩm</p>
+          <p id="resultCount">0 sản phẩm</p>
         </div>
 
         <div id="productGrid" class="product-grid">
-          <!-- JS render ở đây -->
-        </div>
+          </div>
       </div>
     </div>
 
-    <!-- MODAL CHI TIẾT -->
     <div id="detailModal" class="modal hidden">
       <div class="modal-backdrop" onclick="hideDetailModal()"></div>
       <div class="modal-content detail-modal">
@@ -167,21 +84,13 @@ session_start();
           <div class="modal-images">
             <div id="modalMainImage" class="modal-main-image"></div>
             <div class="modal-thumbnails">
-              <div
-                onclick="changeModalImage(0)"
-                id="thumb0"
-                class="modal-thumb"
-              ></div>
-              <div
-                onclick="changeModalImage(1)"
-                id="thumb1"
-                class="modal-thumb"
-              ></div>
+              <div onclick="changeModalImage(0)" id="thumb0" class="modal-thumb"></div>
+              <div onclick="changeModalImage(1)" id="thumb1" class="modal-thumb"></div>
             </div>
           </div>
 
           <div class="modal-info">
-            <button type="button" onclick="hideSellModal()" class="modal-close" style="position: static;">×</button>
+            <button type="button" onclick="hideDetailModal()" class="modal-close" style="position: static;">×</button>
 
             <div id="modalTitle" class="modal-title"></div>
             <div id="modalSubtitle" class="modal-subtitle"></div>
@@ -217,10 +126,7 @@ session_start();
             <p id="modalDesc" class="modal-description"></p>
 
             <div class="modal-actions">
-              <button
-                onclick="toggleWishlistFromModal()"
-                class="btn btn-wishlist"
-              >
+              <button onclick="toggleWishlistFromModal()" class="btn btn-wishlist">
                 <i class="fa-solid fa-heart heart"></i>
                 <span>Yêu thích</span>
               </button>
@@ -233,8 +139,7 @@ session_start();
       </div>
     </div>
 
-    <!-- MODAL ĐĂNG BÁN -->
- <div id="sellModal" class="modal hidden">
+    <div id="sellModal" class="modal hidden">
       <div class="modal-backdrop" onclick="hideSellModal()"></div>
       <div class="modal-content sell-modal" style="max-width: 650px; max-height: 90vh; overflow-y: auto;">
         
@@ -333,9 +238,8 @@ session_start();
       </div>
     </div>
 
-    <script src="config/assets/script.js"></script>
+    <?php include 'config/includes/footer.php'; ?>
+    
+    <script src="assets/script.js"></script>
   </body>
 </html>
-
-<?php
-?>
