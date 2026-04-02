@@ -80,8 +80,9 @@ body {
 
 .search-box {
   flex: 1;
-  max-width: 512px;
+  max-width: 850px; /* Tăng từ 512px lên 750px để thanh tìm kiếm dài ra */
   position: relative;
+  margin: 0 40px; /* Thêm khoảng cách hai bên để tạo sự cân đối */
 }
 
 .search-box input {
@@ -962,5 +963,235 @@ body {
   .btn-wishlist,
   .btn-chat {
     width: 100%;
+  }
+}
+/* ========================================= */
+/* CSS FOOTER CHUYÊN NGHIỆP                  */
+/* ========================================= */
+
+.pro-footer {
+  background-color: #111111; /* Màu nền đen tối giản, sang trọng */
+  color: #a0a0a0;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  margin-top: 50px;
+}
+
+.pro-footer .container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+/* --- Phần Newsletter (Màu nhấn) --- */
+.footer-newsletter {
+  background-color: #ff5722; /* Màu cam thể thao, bạn có thể đổi theo màu chủ đạo của web */
+  padding: 30px 0;
+  color: #ffffff;
+}
+
+.newsletter-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.newsletter-text h3 {
+  margin: 0 0 5px 0;
+  font-size: 24px;
+}
+
+.newsletter-text p {
+  margin: 0;
+  font-size: 14px;
+  opacity: 0.9;
+}
+
+.newsletter-form {
+  display: flex;
+  flex: 1;
+  max-width: 500px;
+}
+
+.newsletter-form input {
+  width: 100%;
+  padding: 12px 15px;
+  border: none;
+  outline: none;
+  font-size: 14px;
+  border-radius: 4px 0 0 4px;
+}
+
+.newsletter-form button {
+  padding: 12px 25px;
+  background-color: #222222;
+  color: #ffffff;
+  border: none;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.3s;
+  border-radius: 0 4px 4px 0;
+}
+
+.newsletter-form button:hover {
+  background-color: #000000;
+}
+
+/* --- Phần Main Footer --- */
+.footer-main {
+  padding: 60px 0;
+}
+
+.footer-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1.5fr; /* Chia cột theo tỷ lệ */
+  gap: 30px;
+}
+
+.footer-widget h4 {
+  color: #ffffff;
+  font-size: 15px; /* Giảm từ 18px xuống 15px (hoặc 14px tùy mắt bạn) */
+  margin-bottom: 25px;
+  position: relative;
+  text-transform: uppercase;
+  letter-spacing: 0.5px; /* Giảm từ 1px xuống 0.5px để tiết kiệm chiều ngang */
+  white-space: nowrap; /* Thêm thuộc tính này để ép chữ không bao giờ rớt dòng */
+}
+
+.footer-widget h4::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -8px;
+  width: 40px;
+  height: 2px;
+  background-color: #ff5722; /* Màu gạch chân trùng màu cam ở trên */
+}
+
+.footer-logo {
+  color: #ffffff;
+  font-size: 28px;
+  font-weight: 800;
+  margin: 0 0 15px 0;
+  letter-spacing: 2px;
+}
+
+.footer-logo span {
+  color: #ff5722;
+}
+
+.brand-info p {
+  line-height: 1.6;
+  margin-bottom: 20px;
+  font-size: 14px;
+}
+
+.footer-widget ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.footer-widget ul li {
+  margin-bottom: 15px;
+}
+
+.footer-widget ul li a {
+  color: #a0a0a0;
+  text-decoration: none;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+.footer-widget ul li a:hover {
+  color: #ff5722;
+  padding-left: 5px; /* Hiệu ứng dịch chuyển nhẹ khi hover */
+}
+
+.contact-widget ul li {
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.contact-widget ul li strong {
+  color: #ffffff;
+  margin-right: 5px;
+}
+
+/* Biểu tượng MXH */
+.pro-socials a {
+  display: inline-block;
+  width: 36px;
+  height: 36px;
+  background-color: #222222;
+  color: #ffffff;
+  text-align: center;
+  line-height: 36px;
+  border-radius: 4px;
+  margin-right: 8px;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: bold;
+  transition: background 0.3s;
+}
+
+.pro-socials a:hover {
+  background-color: #ff5722;
+}
+
+/* --- Phần Bottom --- */
+.footer-bottom {
+  background-color: #080808;
+  padding: 20px 0;
+  font-size: 13px;
+}
+
+.bottom-flex {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.bottom-flex p {
+  margin: 0;
+}
+
+.payment-methods span {
+  margin-right: 10px;
+}
+
+.payment-methods strong {
+  color: #ffffff;
+  margin-left: 5px;
+}
+
+/* --- RESPONSIVE CHO IPAD & MOBILE --- */
+@media (max-width: 991px) {
+  .footer-grid {
+    grid-template-columns: 1fr 1fr; /* Rớt xuống còn 2 cột trên Tablet */
+  }
+}
+
+@media (max-width: 768px) {
+  .newsletter-content {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .newsletter-form {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .footer-grid {
+    grid-template-columns: 1fr; /* Rớt xuống 1 cột trên Mobile */
+  }
+
+  .bottom-flex {
+    flex-direction: column;
+    text-align: center;
   }
 }
