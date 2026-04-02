@@ -335,9 +335,52 @@ function showSellModal() {
   document.getElementById("sellModal").classList.remove("hidden");
 }
 
+// Hàm hiển thị ảnh xem trước khi upload
+function previewImages(event) {
+  const container = document.getElementById("imagePreviewContainer");
+  container.innerHTML = ""; // Xóa ảnh cũ nếu người dùng chọn lại
+
+  const files = event.target.files;
+
+  // Duyệt qua từng file ảnh được chọn
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i];
+
+    // Chỉ xử lý file ảnh
+    if (!file.type.startsWith("image/")) continue;
+
+    const reader = new FileReader();
+    reader.onload = function (e) {
+      // Tạo thẻ img và nhúng vào container
+      const img = document.createElement("img");
+      img.src = e.target.result;
+      img.className = "img-preview";
+      container.appendChild(img);
+    };
+    reader.readAsDataURL(file);
+  }
+}
+// Hàm mở Modal Đăng Bán
+function showSellModal() {
+  const sellModal = document.getElementById("sellModal");
+  if (sellModal) {
+    sellModal.classList.remove("hidden");
+  }
+}
+
+// Hàm đóng Modal Đăng Bán
 function hideSellModal() {
-  document.getElementById("sellModal").classList.add("hidden");
-  alert("✅ Tin đăng đã được gửi! (Demo - bạn có thể kết nối backend sau)");
+  const sellModal = document.getElementById("sellModal");
+  if (sellModal) {
+    sellModal.classList.add("hidden");
+  }
+}
+// Chặn form submit tải lại trang (chờ viết code PHP xử lý sau)
+function handleSellSubmit(e) {
+  e.preventDefault();
+  alert(
+    "Chức năng đang được hoàn thiện! Sắp tới chúng ta sẽ dùng PHP để lưu dữ liệu này vào Database.",
+  );
 }
 
 // ==================== KHỞI ĐỘNG ====================

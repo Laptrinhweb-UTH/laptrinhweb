@@ -161,7 +161,90 @@ body {
   border-color: var(--primary-light);
   transform: scale(1.05); /* Phóng to nhẹ một chút cho sinh động */
 }
+/* ============ USER DROPDOWN ============ */
+.user-dropdown-wrapper {
+  position: relative;
+  display: inline-block;
+}
 
+/* Khung menu thả xuống */
+.user-dropdown-menu {
+  position: absolute;
+  top: 130%; /* Đẩy menu xuống dưới nút icon */
+  right: 0;
+  background-color: var(--white);
+  min-width: 220px;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--border);
+
+  /* Hiệu ứng ẩn và trượt mượt mà */
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px);
+  transition: all 0.3s ease;
+  z-index: 100;
+}
+
+/* HIỂN THỊ MENU KHI DI CHUỘT VÀO WRAPPER */
+.user-dropdown-wrapper:hover .user-dropdown-menu {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+/* Định dạng các thành phần trong Menu */
+.user-name-display {
+  padding: 16px;
+  font-weight: 700;
+  color: var(--primary);
+  font-size: 15px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dropdown-divider {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 0;
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  color: var(--text-primary);
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+/* Bo góc cho item cuối cùng để không bị lẹm viền */
+.dropdown-item:last-child {
+  border-bottom-left-radius: 12px;
+  border-bottom-right-radius: 12px;
+}
+
+.dropdown-item:hover {
+  background-color: var(--bg);
+}
+
+.dropdown-item i {
+  font-size: 16px;
+  width: 20px;
+  text-align: center;
+}
+
+/* Màu đỏ nổi bật cho nút Đăng xuất */
+.text-danger {
+  color: var(--danger);
+}
+.text-danger:hover {
+  background-color: #fff1f2; /* Nền đỏ nhạt khi di chuột */
+}
 /* ============ MAIN LAYOUT ============ */
 .main-content {
   max-width: 1280px;
@@ -196,57 +279,99 @@ body {
   margin-bottom: 32px;
 }
 
+/* ============ CSS NÂNG CẤP BỘ LỌC ============ */
 .filter-label {
-  display: block;
-  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  color: var(--text-primary);
   margin-bottom: 12px;
-  font-size: 14px;
 }
 
-.filter-buttons {
+.filter-label i {
+  color: var(--primary-light);
+  width: 16px;
+  text-align: center;
+}
+
+/* Nút dạng Tag (Pill shape) */
+.filter-tags {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
 }
 
-.filter-btn,
-.condition-btn {
-  padding: 8px 16px;
+.tag-btn {
+  padding: 8px 14px;
+  background-color: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 20px;
   font-size: 13px;
-  border: 1px solid var(--border);
-  background-color: var(--white);
-  border-radius: 16px;
-  cursor: pointer;
-  transition: all 0.3s;
   font-weight: 500;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
 
-.filter-btn:hover,
-.condition-btn:hover {
+.tag-btn:hover {
   border-color: var(--primary-light);
+  color: var(--primary);
 }
 
-.filter-btn.active,
-.condition-btn.active {
-  background-color: var(--primary);
-  color: var(--white);
-  border-color: var(--primary);
+.tag-btn.active {
+  background-color: #ecfdf5; /* Nền xanh nhạt */
+  border-color: var(--primary-light);
+  color: var(--primary-dark);
+  font-weight: 600;
 }
 
-.filter-select,
-.price-input {
+/* Hộp nhập giá */
+.price-range-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.price-input-modern {
   width: 100%;
-  padding: 12px 16px;
+  padding: 10px 12px;
   border: 1px solid var(--border);
-  border-radius: 16px;
+  border-radius: 10px;
   font-size: 14px;
-  font-family: inherit;
-  transition: border-color 0.3s;
+  outline: none;
+  transition: 0.3s;
+  text-align: center;
 }
 
-.filter-select:focus,
-.price-input:focus {
+.price-input-modern:focus {
+  border-color: var(--primary-light);
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1); /* Hiệu ứng viền sáng */
+}
+
+.price-separator {
+  color: var(--text-secondary);
+  font-weight: bold;
+}
+
+/* Select Box hiện đại */
+.filter-select-modern {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-size: 14px;
   outline: none;
+  cursor: pointer;
+  appearance: none;
+  background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" fill="%236b7280"><path d="M137.4 374.6c12.5 12.5 32.8 12.5 45.3 0l128-128c9.2-9.2 11.9-22.9 6.9-34.9s-16.6-19.8-29.6-19.8L32 192c-12.9 0-24.6 7.8-29.6 19.8s-2.2 25.7 6.9 34.9l128 128z"/></svg>')
+    no-repeat right 14px center;
+  background-size: 12px;
+  background-color: var(--white);
+  transition: 0.3s;
+}
+
+.filter-select-modern:focus {
   border-color: var(--primary-light);
 }
 
@@ -678,7 +803,67 @@ body {
 .btn-submit:hover {
   background-color: var(--accent-hover);
 }
+/* ============ BỔ SUNG CSS FORM ĐĂNG BÁN ============ */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 20px;
+}
 
+.form-label {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--text-primary);
+}
+
+.text-danger {
+  color: var(--danger);
+}
+
+/* Khu vực tải ảnh lên */
+.upload-area {
+  border: 2px dashed #9ca3af;
+  border-radius: 16px;
+  padding: 32px 20px;
+  text-align: center;
+  cursor: pointer;
+  background-color: #f9fafb;
+  transition: all 0.3s ease;
+}
+
+.upload-area:hover {
+  border-color: var(--primary-light);
+  background-color: #ecfdf5; /* Nền xanh nhạt khi hover */
+}
+
+.upload-area i {
+  font-size: 40px;
+  color: var(--primary-light);
+  margin-bottom: 12px;
+}
+
+.upload-hint {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+/* Khu vực hiển thị ảnh xem trước */
+.image-preview-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.img-preview {
+  width: 90px;
+  height: 90px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
 /* ============ RESPONSIVE ============ */
 @media (max-width: 1024px) {
   .main-content {
