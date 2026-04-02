@@ -44,15 +44,33 @@ session_start();
   <!-- NÚT ĐĂNG NHẬP / ĐĂNG KÝ -->
 <div class="auth-buttons">
     <?php if(isset($_SESSION['user_name'])): ?>
+      
       <div style="display: flex; align-items: center; gap: 12px;">
+        
         <span style="font-weight: 600; color: var(--primary); font-size: 16px;">
            <?php echo htmlspecialchars($_SESSION['user_name']); ?>
         </span>
-     <a href="auth/logout.php" onclick="return confirm('Bạn có chắc chắn muốn đăng xuất khỏi Spinbike không?');" class="btn-user-icon" title="Đăng xuất" style="color: var(--danger); border-color: var(--danger);">
-  <i class="fa-solid fa-right-from-bracket"></i>
-</a>
+
+        <div class="user-dropdown-wrapper">
+          <a href="javascript:void(0)" class="btn-user-icon" title="Tài khoản">
+            <i class="fa-solid fa-circle-user"></i>
+          </a>
+          
+          <div class="user-dropdown-menu">
+            <a href="update_profile.php" class="dropdown-item" style="border-top-left-radius: 12px; border-top-right-radius: 12px;">
+              <i class="fa-solid fa-user-pen"></i> Cập nhật thông tin
+            </a>
+            
+            <hr class="dropdown-divider">
+            
+            <a href="auth/logout.php" onclick="return confirm('Bạn có chắc chắn muốn đăng xuất khỏi SpinBike không?');" class="dropdown-item text-danger">
+              <i class="fa-solid fa-right-from-bracket"></i> Đăng xuất
+            </a>
+          </div>
+        </div>
         
       </div>
+
     <?php else: ?>
       <a href="auth/auth.html" class="btn-user-icon" title="Đăng nhập / Đăng ký">
         <i class="fa-solid fa-circle-user"></i>
@@ -66,136 +84,64 @@ session_start();
     <div class="main-content">
       <!-- FILTER SIDEBAR -->
       <aside class="sidebar">
-        <h3 class="sidebar-title">
-          <i class="fa-solid fa-sliders"></i> Bộ lọc nâng cao
-        </h3>
-
-        <!-- Loại xe -->
-        <div class="filter-group">
-          <label class="filter-label">Loại xe</label>
-          <div class="filter-buttons" id="typeFilters">
-            <button
-              onclick="toggleFilter(this)"
-              data-type="Road"
-              class="filter-btn"
-            >
-              Road Bike
-            </button>
-            <button
-              onclick="toggleFilter(this)"
-              data-type="MTB"
-              class="filter-btn"
-            >
-              MTB
-            </button>
-            <button
-              onclick="toggleFilter(this)"
-              data-type="Gravel"
-              class="filter-btn"
-            >
-              Gravel
-            </button>
-            <button
-              onclick="toggleFilter(this)"
-              data-type="Fixed"
-              class="filter-btn"
-            >
-              Fixed Gear
-            </button>
-          </div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+          <h3 class="sidebar-title" style="margin: 0;">
+            <i class="fa-solid fa-filter"></i> Bộ lọc xe
+          </h3>
+          <button onclick="resetFilters()" style="background: none; border: none; color: var(--danger); cursor: pointer; font-size: 13px; font-weight: 600; padding: 0;">
+            <i class="fa-solid fa-rotate-right"></i> Đặt lại
+          </button>
         </div>
-
-        <!-- Size -->
+<div class="filter-group">
+          <label class="filter-label"><i class="fa-solid fa-bicycle"></i> Loại xe</label>
+          <select id="typeFilter" onchange="applyFilters()" class="filter-select-modern">
+            <option value="">Tất cả loại xe</option>
+            <option value="Road">Road Bike (Xe cuộc)</option>
+            <option value="MTB">MTB (Xe địa hình)</option>
+            <option value="Gravel">Gravel Bike</option>
+            <option value="Fixed">Fixed Gear</option>
+            <option value="Touring">Touring</option>
+            <option value="Other">Khác</option>
+          </select>
+        </div>
         <div class="filter-group">
-          <label class="filter-label">Size khung</label>
-          <select
-            id="sizeFilter"
-            onchange="applyFilters()"
-            class="filter-select"
-          >
-            <option value="">Tất cả size</option>
-            <option value="S">S</option>
-            <option value="M">M</option>
-            <option value="L">L</option>
-            <option value="XL">XL</option>
+          <label class="filter-label"><i class="fa-solid fa-ruler"></i> Size khung</label>
+          <select id="sizeFilter" onchange="applyFilters()" class="filter-select-modern">
+            <option value="">Tất cả kích cỡ</option>
+            <option value="XS">XS (Dưới 1m60)</option>
+            <option value="S">S (1m60 - 1m70)</option>
+            <option value="M">M (1m70 - 1m80)</option>
+            <option value="L">L (1m80 - 1m90)</option>
+            <option value="XL">XL (1m90 - 1m95)</option>
+            <option value="XXL">XXL (Trên 1m95)</option>
           </select>
         </div>
 
-        <!-- Giá -->
         <div class="filter-group">
-          <label class="filter-label">Giá (triệu VND)</label>
-          <div class="price-inputs">
-            <input
-              id="priceMin"
-              type="number"
-              value="5"
-              onchange="applyFilters()"
-              class="price-input"
-            />
-            <input
-              id="priceMax"
-              type="number"
-              value="100"
-              onchange="applyFilters()"
-              class="price-input"
-            />
+          <label class="filter-label"><i class="fa-solid fa-money-bill-wave"></i> Mức giá (Triệu VNĐ)</label>
+          <div class="price-range-box">
+            <input id="priceMin" type="number" placeholder="Từ..." onchange="applyFilters()" class="price-input-modern" />
+            <span class="price-separator">-</span>
+            <input id="priceMax" type="number" placeholder="Đến..." onchange="applyFilters()" class="price-input-modern" />
           </div>
         </div>
 
-        <!-- Groupset -->
         <div class="filter-group">
-          <label class="filter-label">Groupset</label>
-          <select
-            id="groupsetFilter"
-            onchange="applyFilters()"
-            class="filter-select"
-          >
-            <option value="">Tất cả</option>
-            <option value="105">Shimano 105</option>
-            <option value="Ultegra">Ultegra</option>
-            <option value="Dura-Ace">Dura-Ace</option>
-            <option value="Rival">SRAM Rival</option>
-          </select>
-        </div>
-
-        <!-- Tình trạng -->
-        <div class="filter-group">
-          <label class="filter-label">Tình trạng</label>
-          <div class="filter-buttons" id="conditionFilters">
-            <button
-              onclick="toggleCondition(this)"
-              data-cond="8/10"
-              class="condition-btn"
-            >
-              8/10
-            </button>
-            <button
-              onclick="toggleCondition(this)"
-              data-cond="9/10"
-              class="condition-btn"
-            >
-              9/10
-            </button>
-            <button
-              onclick="toggleCondition(this)"
-              data-cond="10/10"
-              class="condition-btn"
-            >
-              10/10
-            </button>
+          <label class="filter-label"><i class="fa-solid fa-star"></i> Tình trạng</label>
+          <div class="filter-tags" id="conditionFilters">
+            <button onclick="toggleCondition(this)" data-cond="99" class="tag-btn">Mới 99%</button>
+            <button onclick="toggleCondition(this)" data-cond="95" class="tag-btn">95%</button>
+            <button onclick="toggleCondition(this)" data-cond="90" class="tag-btn">90%</button>
+            <button onclick="toggleCondition(this)" data-cond="80" class="tag-btn">Dưới 90%</button>
           </div>
         </div>
 
-        <!-- Sắp xếp -->
-        <div class="filter-group">
-          <label class="filter-label">Sắp xếp theo</label>
-          <select
-            id="sortFilter"
-            onchange="applyFilters()"
-            class="filter-select"
-          >
-            <option value="price-low">Giá thấp → cao</option>
-            <option value="price-high">Giá cao → thấp</option>
+        <div class="filter-group" style="margin-bottom: 0;">
+          <label class="filter-label"><i class="fa-solid fa-arrow-down-a-z"></i> Sắp xếp kết quả</label>
+          <select id="sortFilter" onchange="applyFilters()" class="filter-select-modern">
+            <option value="newest">Tin mới nhất</option>
+            <option value="price-low">Giá: Thấp đến cao</option>
+            <option value="price-high">Giá: Cao đến thấp</option>
           </select>
         </div>
       </aside>
@@ -235,7 +181,7 @@ session_start();
           </div>
 
           <div class="modal-info">
-            <button onclick="hideDetailModal()" class="modal-close">×</button>
+            <button type="button" onclick="hideSellModal()" class="modal-close" style="position: static;">×</button>
 
             <div id="modalTitle" class="modal-title"></div>
             <div id="modalSubtitle" class="modal-subtitle"></div>
@@ -288,32 +234,102 @@ session_start();
     </div>
 
     <!-- MODAL ĐĂNG BÁN -->
-    <div id="sellModal" class="modal hidden">
+ <div id="sellModal" class="modal hidden">
       <div class="modal-backdrop" onclick="hideSellModal()"></div>
-      <div class="modal-content sell-modal">
-        <h2 class="sell-title">Đăng bán xe của bạn</h2>
-        <p class="sell-subtitle">
-          Thông tin càng đầy đủ, tin càng được tin tưởng
-        </p>
-        <div class="sell-form">
-          <input
-            type="text"
-            id="sellTitle"
-            placeholder="Tên xe (ví dụ: Trek Domane SL 5)"
-            class="form-input"
-          />
-          <div class="form-row">
-            <input type="text" placeholder="Size khung" class="form-input" />
-            <input
-              type="number"
-              placeholder="Giá (triệu VND)"
-              class="form-input"
-            />
-          </div>
+      <div class="modal-content sell-modal" style="max-width: 650px; max-height: 90vh; overflow-y: auto;">
+        
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+          <h2 class="sell-title" style="margin: 0;">Đăng bán xe đạp</h2>
+          <button onclick="hideSellModal()" class="modal-close" style="position: static;">×</button>
         </div>
-        <button onclick="hideSellModal()" class="btn btn-submit">
-          Đăng tin ngay
-        </button>
+        <p class="sell-subtitle">Vui lòng điền đầy đủ thông tin để tin đăng uy tín và dễ bán hơn.</p>
+
+        <form id="sellBikeForm" class="sell-form" onsubmit="handleSellSubmit(event)">
+          
+          <div class="form-group">
+            <label class="form-label">Tên xe <span class="text-danger">*</span></label>
+            <input type="text" placeholder="VD: Trek Domane SL 5 2022" class="form-input" required />
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Loại xe <span class="text-danger">*</span></label>
+              <select class="form-input" required>
+                <option value="">-- Chọn loại xe --</option>
+                <option value="Road">Road Bike (Xe cuộc)</option>
+                <option value="MTB">MTB (Xe địa hình)</option>
+                <option value="Gravel">Gravel Bike</option>
+                <option value="Fixed">Fixed Gear</option>
+                <option value="Touring">Touring</option>
+                <option value="Other">Khác</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Size khung <span class="text-danger">*</span></label>
+              <select class="form-input" required>
+                <option value="">-- Chọn Size --</option>
+                <option value="XS">XS (Dưới 1m60)</option>
+                <option value="S">S (1m60 - 1m70)</option>
+                <option value="M">M (1m70 - 1m80)</option>
+                <option value="L">L (1m80 - 1m90)</option>
+                <option value="XL">XL (1m90 - 1m95)</option>
+                <option value="XXL">XXL (Trên 1m95)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Tình trạng khung <span class="text-danger">*</span></label>
+              <select class="form-input" required>
+                <option value="">-- Đánh giá --</option>
+                <option value="99">Mới 99% (Như mới, không xước)</option>
+                <option value="95">95% (Có xước dăm rất nhẹ)</option>
+                <option value="90">90% (Xước thấy rõ, không móp méo)</option>
+                <option value="80">80% (Cũ theo thời gian, tróc sơn)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Tình trạng phụ tùng</label>
+              <input type="text" placeholder="VD: Groupset nguyên bản 105, sên mới..." class="form-input" />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Mức giá (VNĐ) <span class="text-danger">*</span></label>
+              <input type="number" placeholder="VD: 15000000" class="form-input" required />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Hình thức bán</label>
+              <select class="form-input">
+                <option value="fixed">Giá cố định (Không bớt)</option>
+                <option value="negotiable">Có thương lượng</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Địa chỉ xem xe <span class="text-danger">*</span></label>
+            <input type="text" placeholder="VD: Phường 12, Quận 10, TP.HCM" class="form-input" required />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Hình ảnh thực tế (Tối thiểu 1 ảnh) <span class="text-danger">*</span></label>
+            <div class="upload-area" onclick="document.getElementById('bikeImages').click()">
+              <i class="fa-solid fa-cloud-arrow-up"></i>
+              <p style="font-weight: 600; margin-bottom: 4px;">Nhấn vào đây để tải ảnh lên</p>
+              <span class="upload-hint">(Nên chụp rõ: Toàn cảnh, khung, groupset, lốp, đồng hồ...)</span>
+            </div>
+            <input type="file" id="bikeImages" multiple accept="image/*" style="display: none;" required onchange="previewImages(event)">
+            
+            <div id="imagePreviewContainer" class="image-preview-container"></div>
+          </div>
+
+          <button type="submit" class="btn-submit" style="margin-top: 16px;">
+            <i class="fa-solid fa-paper-plane"></i> Đăng tin bán xe
+          </button>
+        </form>
       </div>
     </div>
 
