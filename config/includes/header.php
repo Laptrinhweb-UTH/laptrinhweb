@@ -13,17 +13,17 @@ if (session_status() === PHP_SESSION_NONE) {
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
     />
-   <link rel="stylesheet" href="assets/style.css" />
+   <link rel="stylesheet" href="/spinbike/assets/style.css" />
   </head>
   <body>
     <header class="header">
       <div class="container header-content">
 
-  <div class="logo">
+<a href="/spinbike/index.php" class="logo" style="text-decoration: none;">
     <i class="fa-solid fa-bicycle"></i>
     <span class="brand-name">SpinBike</span>
     <span class="brand-domain">.vn</span>
-  </div>
+  </a>
 
   <div class="search-box">
     <input
@@ -34,11 +34,10 @@ if (session_status() === PHP_SESSION_NONE) {
     <i class="fa-solid fa-magnifying-glass"></i>
   </div>
 
-  <button class="btn-sell" onclick="showSellModal()">
+<a href="/spinbike/pages/sell.php" class="btn-sell" style="text-decoration: none;">
     <i class="fa-solid fa-plus"></i>
     Đăng bán ngay
-  </button>
-  
+</a>
   <div class="auth-buttons">
     <?php if(isset($_SESSION['user_name'])): ?>
       
