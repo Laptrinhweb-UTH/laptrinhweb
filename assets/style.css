@@ -982,62 +982,6 @@ body {
   padding: 0 20px;
 }
 
-/* --- Phần Newsletter (Màu nhấn) --- */
-.footer-newsletter {
-  background-color: #ff5722; /* Màu cam thể thao, bạn có thể đổi theo màu chủ đạo của web */
-  padding: 30px 0;
-  color: #ffffff;
-}
-
-.newsletter-content {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 20px;
-}
-
-.newsletter-text h3 {
-  margin: 0 0 5px 0;
-  font-size: 24px;
-}
-
-.newsletter-text p {
-  margin: 0;
-  font-size: 14px;
-  opacity: 0.9;
-}
-
-.newsletter-form {
-  display: flex;
-  flex: 1;
-  max-width: 500px;
-}
-
-.newsletter-form input {
-  width: 100%;
-  padding: 12px 15px;
-  border: none;
-  outline: none;
-  font-size: 14px;
-  border-radius: 4px 0 0 4px;
-}
-
-.newsletter-form button {
-  padding: 12px 25px;
-  background-color: #222222;
-  color: #ffffff;
-  border: none;
-  font-weight: bold;
-  cursor: pointer;
-  transition: background 0.3s;
-  border-radius: 0 4px 4px 0;
-}
-
-.newsletter-form button:hover {
-  background-color: #000000;
-}
-
 /* --- Phần Main Footer --- */
 .footer-main {
   padding: 60px 0;
@@ -1193,5 +1137,205 @@ body {
   .bottom-flex {
     flex-direction: column;
     text-align: center;
+  }
+}
+/* ========================================= */
+/* CSS TRANG CHECKOUT (THANH TOÁN ĐẢM BẢO)   */
+/* ========================================= */
+
+.checkout-header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.checkout-header h2 {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 10px;
+}
+
+.checkout-header p {
+  color: var(--text-secondary);
+  font-size: 16px;
+}
+
+.checkout-grid {
+  display: grid;
+  grid-template-columns: 3fr 2fr;
+  gap: 32px;
+}
+
+/* Các hộp chứa nội dung */
+.payment-box,
+.order-summary {
+  background-color: var(--white);
+  border-radius: 20px;
+  padding: 32px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  border: 1px solid var(--border);
+}
+
+.payment-box h3,
+.order-summary h3 {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 24px;
+  border-bottom: 2px solid var(--bg);
+  padding-bottom: 12px;
+}
+
+/* Cảnh báo an toàn */
+.alert-info {
+  background-color: #ecfdf5;
+  color: var(--primary-dark);
+  padding: 16px;
+  border-radius: 12px;
+  font-size: 14px;
+  margin-bottom: 24px;
+  border-left: 4px solid var(--primary-light);
+}
+
+/* Khu vực thông tin chuyển khoản */
+.bank-details-wrapper {
+  display: flex;
+  gap: 24px;
+  margin-bottom: 32px;
+  align-items: center;
+}
+
+.qr-code-box {
+  text-align: center;
+  width: 180px;
+}
+
+.qr-code-box img {
+  width: 100%;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  padding: 8px;
+}
+
+.qr-code-box p {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-top: 8px;
+}
+
+.bank-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.info-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.info-row span {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.info-row strong {
+  font-size: 16px;
+  color: var(--text-primary);
+}
+
+.copy-text {
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.copy-text:hover {
+  color: var(--primary-light);
+}
+
+/* Nút xác nhận chuyển khoản */
+.btn-confirm-payment {
+  width: 100%;
+  padding: 16px;
+  background-color: var(--primary);
+  color: var(--white);
+  border: none;
+  border-radius: 16px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.btn-confirm-payment:hover {
+  background-color: #083c52;
+}
+
+/* Tóm tắt đơn hàng */
+.order-product {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.order-product img {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 12px;
+}
+
+.product-brief h4 {
+  font-size: 16px;
+  margin-bottom: 8px;
+}
+
+.product-brief p {
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.summary-divider {
+  border: none;
+  border-top: 1px dashed var(--border);
+  margin: 16px 0;
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  font-size: 15px;
+}
+
+.total-row {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.total-price {
+  color: var(--accent);
+  font-size: 24px;
+}
+
+.escrow-badge {
+  margin-top: 24px;
+  text-align: center;
+  background-color: #f3f4f6;
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .checkout-grid {
+    grid-template-columns: 1fr;
+  }
+  .bank-details-wrapper {
+    flex-direction: column;
   }
 }
