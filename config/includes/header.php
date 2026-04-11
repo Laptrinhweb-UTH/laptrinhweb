@@ -13,7 +13,7 @@ if (session_status() === PHP_SESSION_NONE) {
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
     />
-   <link rel="stylesheet" href="/spinbike/assets/style.css" />
+<link rel="stylesheet" href="/spinbike/assets/style.css">
   </head>
   <body>
     <header class="header">
