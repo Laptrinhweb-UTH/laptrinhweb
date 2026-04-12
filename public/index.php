@@ -1,4 +1,17 @@
-<?php include 'config/includes/header.php'; ?>
+<?php 
+// Lùi ra 1 cấp để tìm header
+include __DIR__ . '/../app/views/layouts/header.php'; 
+
+// Lùi ra 1 cấp để nhúng Database và Model
+require_once __DIR__ . '/../app/helpers/Database.php';
+require_once __DIR__ . '/../app/models/Product.php';
+$database = new Database();
+$db = $database->getConnection();
+$productModel = new Product($db);
+
+// Lấy danh sách sản phẩm để biến $products có giá trị
+$products = $productModel->getAll();
+?>
 
     <div class="main-content">
       <aside class="sidebar">
@@ -69,11 +82,50 @@
       <div class="products-section">
         <div class="products-header">
           <h1>Danh sách xe đạp</h1>
-          <p id="resultCount">0 sản phẩm</p>
+          <p id="resultCount"><?php echo count($products); ?> sản phẩm</p>
         </div>
 
         <div id="productGrid" class="product-grid">
-          </div>
+  <?php if (!empty($products) && count($products) > 0): ?>
+    <?php foreach ($products as $row): ?>
+      <?php
+        // 1. Định dạng giá tiền cho đẹp (VD: 15.000.000 VNĐ)
+        $formattedPrice = number_format($row['price'], 0, ',', '.') . ' đ';
+        
+        // 2. Lấy link ảnh. Nếu xe chưa có ảnh thì dùng ảnh mặc định tránh bị lỗi giao diện
+        $image = !empty($row['main_image']) ? $row['main_image'] : 'https://via.placeholder.com/300x200?text=No+Image';
+        
+        // 3. Xử lý trường hợp thiếu hãng xe hoặc địa chỉ
+        $brand = !empty($row['brand']) ? $row['brand'] : 'Khác';
+        $location = !empty($row['location']) ? $row['location'] : 'Đang cập nhật';
+      ?>
+      
+      <div class="product-card">
+        <div class="product-image" style="background-image: url('<?php echo htmlspecialchars($image); ?>'); background-size: cover; background-position: center;">
+            <span class="product-tag"><?php echo htmlspecialchars($brand); ?></span>
+        </div>
+        <div class="product-info" style="padding: 16px;">
+            <h3 class="product-title" style="margin: 0 0 8px 0; font-size: 18px; font-weight: 600;"><?php echo htmlspecialchars($row['title']); ?></h3>
+            <div class="product-location" style="color: var(--text-secondary); font-size: 13px; margin-bottom: 8px;">
+                <i class="fa-solid fa-location-dot"></i> <?php echo htmlspecialchars($location); ?>
+            </div>
+            <div class="product-price" style="color: var(--primary); font-size: 18px; font-weight: 700; margin-bottom: 12px;">
+                <?php echo $formattedPrice; ?>
+            </div>
+            <button class="btn-detail" onclick="showDetail(<?php echo $row['id']; ?>)" style="width: 100%; padding: 10px; background: var(--primary-light); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                Xem chi tiết
+            </button>
+        </div>
+      </div>
+      
+    <?php endforeach; ?>
+  <?php else: ?>
+    <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; background: white; border-radius: 16px; border: 1px dashed var(--border);">
+        <i class="fa-solid fa-box-open" style="font-size: 48px; color: #cbd5e1; margin-bottom: 16px;"></i>
+        <p style="color: var(--text-secondary); font-size: 16px;">Chưa có chiếc xe nào được đăng bán. Hãy là người đầu tiên!</p>
+    </div>
+  <?php endif; ?>
+</div>
       </div>
     </div>
 
@@ -238,8 +290,8 @@
       </div>
     </div>
 
-    <?php include 'config/includes/footer.php'; ?>
+<?php include __DIR__ . '/../app/views/layouts/footer.php'; ?>
     
-    <script src="assets/script.js"></script>
+    <script src="config/assets/js/script.js"></script>
   </body>
 </html>

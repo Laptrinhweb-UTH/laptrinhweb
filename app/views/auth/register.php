@@ -2,7 +2,8 @@
 session_start();
 header('Content-Type: application/json');
 
-require_once '../config/config.php';
+// 1. Sửa lại đường dẫn lùi ra 2 cấp để gọi Database Helper
+require_once __DIR__ . '/../../helpers/Database.php';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $name = trim($_POST['fullname']);
@@ -17,6 +18,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 
     try {
+        // 2. Khởi tạo kết nối DB chuẩn MVC
+        $database = new Database();
+        $conn = $database->getConnection();
+
         // Kiểm tra email tồn tại
         $checkEmail = $conn->prepare("SELECT id FROM users WHERE email = :email");
         $checkEmail->bindParam(':email', $email);

@@ -1,19 +1,14 @@
 <?php
-// Thông tin cấu hình Database
-$host = 'localhost';
-$dbname = 'spinbike_db';
-$username = 'root';
-$password = '';
+// Định nghĩa các thông số Database
+define('DB_HOST', 'localhost');
+define('DB_NAME', 'spinbike_db');
+define('DB_USER', 'root');
+define('DB_PASS', '');
 
-try {
-    // Khởi tạo kết nối PDO
-    $conn = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8mb4", $username, $password);
-    
-    // Thiết lập chế độ ném lỗi Exception
-    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-    
-} catch(PDOException $e) {
-    // Nếu kết nối thất bại, báo lỗi và dừng chạy
-    die("Kết nối Database thất bại: " . $e->getMessage());
-}
+// Đường dẫn gốc của web
+define('BASE_URL', 'http://localhost/spinbike/public'); 
+
+// Định nghĩa thông tin Cloudinary của Nam
+define('CLD_CLOUD_NAME', 'dge3u1dzk'); 
+define('CLD_UPLOAD_PRESET', 'spinbike'); 
 ?>

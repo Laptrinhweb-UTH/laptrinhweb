@@ -28,14 +28,14 @@ spinbike/
 │       ├── Router.php
 │       └── Database.php
 ├── config/
-│   ├── config.php (DB connection)
-│   └── assets/
+│   └── config.php (DB connection)
+├── public/
+│   ├── index.php
+│    └── assets/
 │       ├── css/
 │       │   └── style.css
 │       └── js/
 │           └── script.js
-├── public/
-│   └── index.php
 ├── storage/
 │   ├── uploads/
 │   │   └── bikes/

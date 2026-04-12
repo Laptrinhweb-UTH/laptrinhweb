@@ -108,21 +108,20 @@ body {
   color: var(--text-secondary);
   pointer-events: none;
 }
-
 .btn-sell {
   display: flex;
   align-items: center;
   gap: 8px;
-  background-color: var(--accent);
+  background-color: var(--danger); /* Đổi sang màu đỏ */
   color: var(--white);
   border: none;
   padding: 12px 32px;
   border-radius: 24px;
-  font-weight: 600;
+  font-weight: 700; /* In đậm hơn */
   font-size: 16px;
   cursor: pointer;
-  transition: background-color 0.3s;
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(225, 29, 72, 0.4); /* Thêm viền sáng */
 }
 
 .btn-sell:hover {
