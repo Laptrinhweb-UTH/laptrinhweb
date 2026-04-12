@@ -13,13 +13,17 @@ if (session_status() === PHP_SESSION_NONE) {
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
     />
-<link rel="stylesheet" href="/spinbike/assets/style.css">
+<?php require_once __DIR__ . '/../../../config/config.php'; ?>
+
+<link rel="stylesheet" href="<?php echo BASE_URL; ?>/assets/css/bootstrap.min.css">
+
+<link rel="stylesheet" href="<?php echo BASE_URL; ?>/assets/css/style.css">
   </head>
   <body>
     <header class="header">
       <div class="container header-content">
 
-<a href="/spinbike/index.php" class="logo" style="text-decoration: none;">
+<a href="/spinbike/public/index.php" class="logo" style="text-decoration: none;">
     <i class="fa-solid fa-bicycle"></i>
     <span class="brand-name">SpinBike</span>
     <span class="brand-domain">.vn</span>
@@ -34,7 +38,7 @@ if (session_status() === PHP_SESSION_NONE) {
     <i class="fa-solid fa-magnifying-glass"></i>
   </div>
 
-<a href="/spinbike/pages/sell.php" class="btn-sell" style="text-decoration: none;">
+<a href="/spinbike/app/views/products/sell.php" class="btn-sell" style="text-decoration: none;">
     <i class="fa-solid fa-plus"></i>
     Đăng bán ngay
 </a>
@@ -68,7 +72,7 @@ if (session_status() === PHP_SESSION_NONE) {
       </div>
 
     <?php else: ?>
-      <a href="auth/auth.html" class="btn-user-icon" title="Đăng nhập / Đăng ký">
+      <a href="<?php echo BASE_URL; ?>/../app/views/auth/auth.php" class="btn-user-icon" title="Đăng nhập / Đăng ký">
         <i class="fa-solid fa-circle-user"></i>
       </a>
     <?php endif; ?>
