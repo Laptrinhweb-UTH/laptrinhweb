@@ -21,14 +21,19 @@ class Product {
     // ---------------------------------------------------
     // HÀM 0: Lấy tất cả sản phẩm
     // ---------------------------------------------------
-    public function getAll() {
-        $query = "SELECT * FROM " . $this->table_name . " ORDER BY id DESC";
-        
-        $stmt = $this->conn->prepare($query);
-        $stmt->execute();
-        
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    }
+public function getAll() {
+    // Bổ sung thêm lệnh đếm tổng số lượng ảnh (COUNT)
+    $query = "SELECT p.*, 
+              (SELECT image_url FROM product_images WHERE product_id = p.id LIMIT 1) as main_image,
+              (SELECT COUNT(*) FROM product_images WHERE product_id = p.id) as image_count
+              FROM " . $this->table_name . " p 
+              ORDER BY p.id DESC";
+
+    $stmt = $this->conn->prepare($query);
+    $stmt->execute();
+
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
 
     // ---------------------------------------------------
     // HÀM 1: Đăng xe mới
@@ -81,6 +86,23 @@ class Product {
         $stmt->bindParam(":image_url", $image_url);
         
         return $stmt->execute();
+    }
+    // Hàm lấy chi tiết 1 sản phẩm theo ID
+    public function getProductDetail($id) {
+        $query = "SELECT * FROM " . $this->table_name . " WHERE id = ? LIMIT 1";
+        $stmt = $this->conn->prepare($query);
+        $stmt->execute([$id]);
+        $product = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        // Lấy thêm toàn bộ ảnh của xe đó
+        if ($product) {
+            $imgQuery = "SELECT image_url FROM product_images WHERE product_id = ?";
+            $imgStmt = $this->conn->prepare($imgQuery);
+            $imgStmt->execute([$id]);
+            $product['images'] = $imgStmt->fetchAll(PDO::FETCH_COLUMN);
+        }
+
+        return $product;
     }
 }
 ?>
