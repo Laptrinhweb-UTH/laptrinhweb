@@ -1351,3 +1351,103 @@ body {
     flex-direction: column;
   }
 }
+/* ================= ESCROW UI COMPONENTS ================= */
+/* 1. Timeline Đơn hàng (Thanh tiến trình) */
+.order-timeline {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+  padding: 20px 0;
+  margin-bottom: 30px;
+}
+.order-timeline::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: #e2e8f0;
+  z-index: 1;
+  transform: translateY(-50%);
+}
+.timeline-step {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  background: white;
+  padding: 0 10px;
+}
+.timeline-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #e2e8f0;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  margin: 0 auto 8px;
+  border: 4px solid white;
+  transition: all 0.3s;
+}
+.timeline-step.active .timeline-icon {
+  background: #10b981; /* Xanh lá thành công */
+  color: white;
+  box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.2);
+}
+.timeline-step.current .timeline-icon {
+  background: #3b82f6; /* Xanh dương đang xử lý */
+  color: white;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2);
+}
+.timeline-text {
+  font-size: 13px;
+  font-weight: 600;
+  color: #64748b;
+}
+.timeline-step.active .timeline-text {
+  color: #10b981;
+}
+.timeline-step.current .timeline-text {
+  color: #3b82f6;
+}
+
+/* 2. Escrow Security Card (Thẻ bảo đảm) */
+.escrow-card {
+  background: linear-gradient(145deg, #f0fdf4 0%, #ffffff 100%);
+  border: 1px solid #86efac;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 8px 20px rgba(16, 185, 129, 0.05);
+}
+.escrow-icon-wrapper {
+  width: 48px;
+  height: 48px;
+  background: #10b981;
+  color: white;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+}
+
+/* 3. Radio Buttons cho Phương thức thanh toán */
+.payment-method-card {
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 16px;
+  cursor: pointer;
+  transition: 0.2s;
+  background: white;
+}
+.payment-method-card:hover {
+  border-color: #cbd5e1;
+}
+.form-check-input:checked + .payment-method-card {
+  border-color: #3b82f6;
+  background: #eff6ff;
+}
