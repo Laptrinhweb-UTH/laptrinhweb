@@ -1,17 +1,18 @@
 <?php 
 session_start();
+require_once __DIR__ . '/../../../config/config.php';
 require_once __DIR__ . '/../../helpers/Database.php';
 require_once __DIR__ . '/../../models/Product.php';
 
 // 1. Kiểm tra đăng nhập
 if (!isset($_SESSION['user_id'])) {
-    header("Location: /spinbike/app/views/auth/auth.php");
+    header("Location: " . app_url('app/views/auth/auth.php'));
     exit;
 }
 
 // 2. Kiểm tra ID sản phẩm truyền vào
 if (!isset($_GET['product_id']) || empty($_GET['product_id'])) {
-    echo "<script>alert('Lỗi: Không tìm thấy sản phẩm!'); window.location.href='/spinbike/index.php';</script>";
+    echo "<script>alert('Lỗi: Không tìm thấy sản phẩm!'); window.location.href='" . asset_url("index.php") . "';</script>";
     exit;
 }
 
@@ -20,13 +21,13 @@ $productModel = new Product($db);
 $product = $productModel->getProductDetail($_GET['product_id']);
 
 if (!$product) {
-    echo "<script>alert('Sản phẩm không tồn tại hoặc đã bị xóa!'); window.location.href='/spinbike/index.php';</script>";
+    echo "<script>alert('Sản phẩm không tồn tại hoặc đã bị xóa!'); window.location.href='" . asset_url("index.php") . "';</script>";
     exit;
 }
 
 // Chống gian lận: Không cho tự mua hàng của mình
 if ($product['seller_id'] == $_SESSION['user_id']) {
-    echo "<script>alert('Bạn không thể tự mua xe của chính mình!'); window.location.href='/spinbike/index.php';</script>";
+    echo "<script>alert('Bạn không thể tự mua xe của chính mình!'); window.location.href='" . asset_url("index.php") . "';</script>";
     exit;
 }
 

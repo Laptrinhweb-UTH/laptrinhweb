@@ -1,9 +1,10 @@
 <?php
 session_start();
+require_once __DIR__ . '/../../../config/config.php';
 
 // 1. KIỂM TRA ĐĂNG NHẬP
 if (!isset($_SESSION['user_id'])) {
-    header("Location: /spinbike/app/views/auth/auth.php");
+    header("Location: " . app_url('app/views/auth/auth.php'));
     exit;
 }
 
@@ -27,8 +28,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     // Xử lý Upload Avatar
     if (isset($_FILES['avatar']) && $_FILES['avatar']['error'] === 0) {
-        $upload_dir = __DIR__ . '/../../../public/assets/uploads/';
+        $upload_dir = public_file_path('assets/uploads');
         if (!is_dir($upload_dir)) mkdir($upload_dir, 0777, true);
+        $upload_dir = rtrim($upload_dir, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
 
         $file_ext = strtolower(pathinfo($_FILES['avatar']['name'], PATHINFO_EXTENSION));
         $allowed_exts = ['jpg', 'jpeg', 'png'];
@@ -38,7 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $destination = $upload_dir . $new_file_name;
 
             if (move_uploaded_file($_FILES['avatar']['tmp_name'], $destination)) {
-                $avatar_url = '/spinbike/public/assets/uploads/' . $new_file_name;
+                $avatar_url = asset_url('assets/uploads/' . $new_file_name);
             }
         }
     }
@@ -100,7 +102,7 @@ include __DIR__ . '/../layouts/header.php';
                     <a href="#" class="profile-nav-link">
                         <i class="fa-solid fa-lock"></i> Đổi mật khẩu
                     </a>
-                    <a href="/spinbike/app/views/account/orders.php" class="profile-nav-link">
+                    <a href="#" class="profile-nav-link">
                         <i class="fa-solid fa-box"></i> Đơn hàng mua
                     </a>
                     <a href="#" class="profile-nav-link">

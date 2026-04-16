@@ -2,6 +2,8 @@
 if (session_status() === PHP_SESSION_NONE) {
     session_start(); 
 }
+
+require_once __DIR__ . '/../../../config/config.php';
 ?>
 <!doctype html>
 <html lang="vi">
@@ -13,17 +15,16 @@ if (session_status() === PHP_SESSION_NONE) {
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
     />
-<?php require_once __DIR__ . '/../../../config/config.php'; ?>
 
-<link rel="stylesheet" href="<?php echo BASE_URL; ?>/assets/css/bootstrap.min.css">
+<link rel="stylesheet" href="<?php echo asset_url('assets/css/bootstrap.min.css'); ?>">
 
-<link rel="stylesheet" href="<?php echo BASE_URL; ?>/assets/css/style.css">
+<link rel="stylesheet" href="<?php echo asset_url('assets/css/style.css'); ?>">
   </head>
   <body>
     <header class="header">
       <div class="container header-content">
 
-<a href="/spinbike/public/index.php" class="logo" style="text-decoration: none;">
+<a href="<?php echo asset_url('index.php'); ?>" class="logo" style="text-decoration: none;">
     <i class="fa-solid fa-bicycle"></i>
     <span class="brand-name">SpinBike</span>
     <span class="brand-domain">.vn</span>
@@ -39,11 +40,11 @@ if (session_status() === PHP_SESSION_NONE) {
   </div>
 
 <?php if(isset($_SESSION['user_id'])): ?>
-    <a href="/spinbike/app/views/products/sell.php" class="btn-sell" style="text-decoration: none;">
+    <a href="<?php echo app_url('app/views/products/sell.php'); ?>" class="btn-sell" style="text-decoration: none;">
         <i class="fa-solid fa-plus"></i> Đăng bán ngay
     </a>
 <?php else: ?>
-    <a href="/spinbike/app/views/auth/auth.php" class="btn-sell" style="text-decoration: none;">
+    <a href="<?php echo app_url('app/views/auth/auth.php'); ?>" class="btn-sell" style="text-decoration: none;">
         <i class="fa-solid fa-plus"></i> Đăng bán ngay
     </a>
 <?php endif; ?>
@@ -62,7 +63,7 @@ if (session_status() === PHP_SESSION_NONE) {
           </a>
           
           <div class="user-dropdown-menu">
-         <a href="/spinbike/app/views/auth/profile.php" class="dropdown-item" style="border-top-left-radius: 12px; border-top-right-radius: 12px;">
+         <a href="<?php echo app_url('app/views/auth/profile.php'); ?>" class="dropdown-item" style="border-top-left-radius: 12px; border-top-right-radius: 12px;">
               <i class="fa-solid fa-user-pen"></i> Cập nhật thông tin
             </a>
             
@@ -77,7 +78,7 @@ if (session_status() === PHP_SESSION_NONE) {
       </div>
 
     <?php else: ?>
-      <a href="<?php echo BASE_URL; ?>/../app/views/auth/auth.php" class="btn-user-icon" title="Đăng nhập / Đăng ký">
+      <a href="<?php echo app_url('app/views/auth/auth.php'); ?>" class="btn-user-icon" title="Đăng nhập / Đăng ký">
         <i class="fa-solid fa-circle-user"></i>
       </a>
     <?php endif; ?>
@@ -100,7 +101,7 @@ if (session_status() === PHP_SESSION_NONE) {
             <button onclick="hideLogoutModal()" style="flex: 1; padding: 12px; border-radius: 12px; border: 1px solid var(--border); background: var(--white); color: var(--text-primary); font-weight: 600; font-size: 15px; cursor: pointer; transition: 0.2s;">
                 Hủy
             </button>
-            <a href="/spinbike/app/views/auth/logout.php" style="flex: 1; padding: 12px; border-radius: 12px; border: none; background: var(--danger); color: white; font-weight: 600; font-size: 15px; text-decoration: none; display: flex; justify-content: center; align-items: center; transition: 0.2s; box-shadow: 0 4px 12px rgba(225, 29, 72, 0.3);">
+            <a href="<?php echo app_url('app/views/auth/logout.php'); ?>" style="flex: 1; padding: 12px; border-radius: 12px; border: none; background: var(--danger); color: white; font-weight: 600; font-size: 15px; text-decoration: none; display: flex; justify-content: center; align-items: center; transition: 0.2s; box-shadow: 0 4px 12px rgba(225, 29, 72, 0.3);">
                 Đăng xuất
             </a>
         </div>

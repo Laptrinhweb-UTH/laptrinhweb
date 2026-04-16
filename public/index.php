@@ -236,6 +236,6 @@ $products = $productModel->getAll();
 
 <?php include __DIR__ . '/../app/views/layouts/footer.php'; ?>
     
-    <script src="<?php echo BASE_URL; ?>/assets/js/script.js"></script>
+    <script src="<?php echo asset_url('assets/js/script.js'); ?>"></script>
   </body>
 </html>

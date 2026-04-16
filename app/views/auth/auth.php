@@ -256,7 +256,7 @@
       <button type="submit" class="btn-submit">Tạo tài khoản</button>
     </form>
 
-    <a href="<?php echo BASE_URL; ?>/index.php" class="back-home">
+    <a href="<?php echo asset_url('index.php'); ?>" class="back-home">
       <i class="fa-solid fa-arrow-left"></i> Quay lại trang chủ
     </a>
   </div>
@@ -343,7 +343,7 @@
           messageBox.innerHTML = data.message;
 
           setTimeout(() => {
-            window.location.href = "<?php echo BASE_URL; ?>/index.php";
+            window.location.href = "<?php echo asset_url('index.php'); ?>";
           }, 1000);
         } else {
           messageBox.style.color = "#e11d48";

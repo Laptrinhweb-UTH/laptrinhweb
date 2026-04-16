@@ -205,7 +205,7 @@ include __DIR__ . '/../app/views/layouts/header.php';
         // Kiểm tra đăng nhập (PHP render logic)
         <?php if(!isset($_SESSION['user_id'])): ?>
             alert("Bạn cần đăng nhập để thực hiện chức năng mua hàng!");
-            window.location.href = '/spinbike/app/views/auth/auth.php';
+            window.location.href = '<?php echo app_url('app/views/auth/auth.php'); ?>';
             return;
         <?php endif; ?>
         
@@ -223,7 +223,7 @@ include __DIR__ . '/../app/views/layouts/header.php';
     }
 
     function processEscrowCheckout() {
-        window.location.href = '/spinbike/app/views/orders/checkout.php?product_id=<?php echo $id; ?>';
+        window.location.href = '<?php echo app_url('app/views/orders/checkout.php'); ?>?product_id=<?php echo $id; ?>';
     }
 
     function processDirectCheckout() {

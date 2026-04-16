@@ -1,10 +1,11 @@
 <?php
 session_start();
+require_once __DIR__ . '/../../../config/config.php';
 require_once __DIR__ . '/../../helpers/Database.php';
 
 // Bảo vệ file: Phải đăng nhập và đi vào bằng nút "Submit" mới được
 if (!isset($_SESSION['user_id']) || $_SERVER['REQUEST_METHOD'] !== 'POST') {
-    header("Location: /spinbike/index.php");
+    header("Location: " . asset_url('index.php'));
     exit;
 }
 
@@ -45,7 +46,7 @@ try {
     // Đẩy người dùng sang trang Theo dõi đơn hàng (Kèm theo thông báo xịn)
     echo "<script>
             alert('Thanh toán thành công! Tiền của bạn đang được SpinBike giữ an toàn.');
-            window.location.href = '/spinbike/app/views/orders/detail.php?id=" . $order_id . "';
+            window.location.href = '" . app_url("app/views/orders/detail.php") . "?id=" . $order_id . "';
           </script>";
     exit;
 
