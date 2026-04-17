@@ -13,13 +13,13 @@ $productModel = new Product($db);
 $products = $productModel->getAll();
 ?>
 
-    <div class="main-content">
+    <div class="main-content home-page-layout">
       <aside class="sidebar">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-          <h3 class="sidebar-title" style="margin: 0;">
+        <div class="sidebar-header">
+          <h3 class="sidebar-title sidebar-title-compact">
             <i class="fa-solid fa-filter"></i> Lọc kết quả
           </h3>
-          <button onclick="resetFilters()" style="background: none; border: none; color: var(--danger); cursor: pointer; font-size: 13px; font-weight: 600; padding: 0;">
+          <button onclick="resetFilters()" class="sidebar-reset-btn">
             <i class="fa-solid fa-rotate-right"></i> Đặt lại
           </button>
         </div>
@@ -46,7 +46,7 @@ $products = $productModel->getAll();
           </div>
         </div>
 
-        <div class="filter-group" style="margin-bottom: 0;">
+        <div class="filter-group filter-group-last">
           <label class="filter-label"><i class="fa-solid fa-arrow-down-a-z"></i> Sắp xếp</label>
           <select id="sortFilter" onchange="applyFilters()" class="filter-select-modern">
             <option value="newest">Tin mới nhất</option>
@@ -112,23 +112,23 @@ $products = $productModel->getAll();
                     <h3 class="product-title"><?php echo htmlspecialchars($row['title']); ?></h3>
                     <div class="product-price"><?php echo $formattedPrice; ?></div>
                     
-                    <div class="product-location" style="margin-bottom: 16px;">
-                        <i class="fa-solid fa-location-dot" style="margin-top: 3px;"></i> 
+                    <div class="product-location product-location-spaced">
+                        <i class="fa-solid fa-location-dot product-location-icon"></i> 
                         <span><?php echo htmlspecialchars($location); ?></span>
                     </div>
                     
-                    <div style="flex-grow: 1;"></div>
+                    <div class="product-spacer"></div>
                     
-                    <a href="detail.php?id=<?php echo $row['id']; ?>" class="btn-detail" style="display: block; text-align: center; text-decoration: none; box-sizing: border-box;">
+                    <a href="detail.php?id=<?php echo $row['id']; ?>" class="btn-detail product-detail-link">
                         Xem chi tiết
                     </a>
                 </div>
               </div>
             <?php endforeach; ?>
           <?php else: ?>
-            <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; background: white; border-radius: 16px; border: 1px dashed var(--border);">
-                <i class="fa-solid fa-box-open" style="font-size: 48px; color: #cbd5e1; margin-bottom: 16px;"></i>
-                <p style="color: var(--text-secondary); font-size: 16px;">Chưa có chiếc xe nào được đăng bán. Hãy là người đầu tiên!</p>
+            <div class="empty-state-card">
+                <i class="fa-solid fa-box-open empty-state-icon"></i>
+                <p class="empty-state-text">Chưa có chiếc xe nào được đăng bán. Hãy là người đầu tiên!</p>
             </div>
           <?php endif; ?>
         </div>

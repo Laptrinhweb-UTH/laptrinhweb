@@ -105,69 +105,69 @@ $display_avatar = !empty($user['avatar']) ? $user['avatar'] : "https://ui-avatar
 include __DIR__ . '/../layouts/header.php'; 
 ?>
 
-<div class="main-content" style="background-color: #f8fafc; min-height: calc(100vh - 100px); padding-bottom: 40px;">
-    <div class="profile-container" style="max-width: 1200px; margin: 0 auto; padding: 40px 20px;">
+<div class="main-content profile-page-shell">
+    <div class="profile-container profile-page-container">
         <div class="row g-5">
             
             <div class="col-lg-3">
-                <div class="profile-sidebar" style="background: #fff; border-radius: 16px; border: 1px solid var(--border); overflow: hidden;">
-                    <a href="profile.php" class="profile-nav-link active" style="display: flex; align-items: center; padding: 16px 20px; color: #10b981; background: #ecfdf5; text-decoration: none; font-weight: 600; border-left: 3px solid #10b981;">
-                        <i class="fa-regular fa-user" style="width: 24px; margin-right: 12px;"></i> Hồ sơ của tôi
+                <div class="profile-sidebar">
+                    <a href="profile.php" class="profile-nav-link active">
+                        <i class="fa-regular fa-user"></i> Hồ sơ của tôi
                     </a>
-                    <a href="#" class="profile-nav-link" style="display: flex; align-items: center; padding: 16px 20px; color: #475569; text-decoration: none; font-weight: 600;">
-                        <i class="fa-solid fa-lock" style="width: 24px; margin-right: 12px;"></i> Đổi mật khẩu
+                    <a href="#" class="profile-nav-link">
+                        <i class="fa-solid fa-lock"></i> Đổi mật khẩu
                     </a>
-                    <a href="#" class="profile-nav-link" style="display: flex; align-items: center; padding: 16px 20px; color: #475569; text-decoration: none; font-weight: 600;">
-                        <i class="fa-solid fa-box" style="width: 24px; margin-right: 12px;"></i> Đơn hàng mua
+                    <a href="#" class="profile-nav-link">
+                        <i class="fa-solid fa-box"></i> Đơn hàng mua
                     </a>
-                    <a href="#" class="profile-nav-link" style="display: flex; align-items: center; padding: 16px 20px; color: #475569; text-decoration: none; font-weight: 600;">
-                        <i class="fa-solid fa-shop" style="width: 24px; margin-right: 12px;"></i> Quản lý bán hàng
+                    <a href="#" class="profile-nav-link">
+                        <i class="fa-solid fa-shop"></i> Quản lý bán hàng
                     </a>
                 </div>
             </div>
 
             <div class="col-lg-9">
-                <div class="profile-card" style="background: #fff; border-radius: 16px; border: 1px solid var(--border); padding: 40px;">
-                    <h2 style="font-size: 24px; font-weight: 700; margin-bottom: 8px;">Thông tin cá nhân</h2>
-                    <p style="color: #64748b; font-size: 15px; margin-bottom: 32px;">Cập nhật thông tin cá nhân và ảnh đại diện của bạn.</p>
+                <div class="profile-card">
+                    <h2 class="profile-page-title">Thông tin cá nhân</h2>
+                    <p class="profile-page-subtitle">Cập nhật thông tin cá nhân và ảnh đại diện của bạn.</p>
 
                     <form action="" method="POST" enctype="multipart/form-data">
                         
-                        <div style="display: flex; align-items: center; gap: 24px; margin-bottom: 32px;">
-                            <img src="<?= $display_avatar ?>" alt="Avatar" id="avatarPreview" style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 4px solid #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+                        <div class="profile-avatar-section">
+                            <img src="<?= $display_avatar ?>" alt="Avatar" id="avatarPreview" class="profile-avatar-image">
                             
                             <div>
-                                <label for="avatarInput" style="background: #fff; border: 1px solid #cbd5e1; padding: 8px 16px; border-radius: 8px; font-weight: 600; color: #334155; cursor: pointer; transition: 0.2s; display: inline-block; margin-bottom: 8px;">
+                                <label for="avatarInput" class="btn-upload profile-upload-label">
                                     Thay đổi ảnh đại diện
                                 </label>
-                                <input type="file" id="avatarInput" name="avatar" accept="image/*" style="display: none;" onchange="previewAvatar(event)">
-                                <p style="font-size: 13px; color: #94a3b8; margin: 0;">Định dạng: JPG, PNG. Tối đa 2MB.</p>
+                                <input type="file" id="avatarInput" name="avatar" accept="image/*" class="visually-hidden-input" onchange="previewAvatar(event)">
+                                <p class="profile-upload-hint">Định dạng: JPG, PNG. Tối đa 2MB.</p>
                             </div>
                         </div>
 
-                        <hr style="border-color: #e2e8f0; margin-bottom: 32px;">
+                        <hr class="profile-divider">
 
                         <div class="row g-4">
                             <div class="col-md-6">
-                                <label style="font-weight: 600; font-size: 14px; margin-bottom: 8px;">Họ và tên <span class="text-danger">*</span></label>
-                                <input type="text" name="fullname" class="form-control" value="<?= htmlspecialchars($user['name'] ?? '') ?>" required style="padding: 12px 16px; border-radius: 10px;">
+                                <label class="profile-field-label">Họ và tên <span class="text-danger">*</span></label>
+                                <input type="text" name="fullname" class="form-control profile-field-input" value="<?= htmlspecialchars($user['name'] ?? '') ?>" required>
                             </div>
                             <div class="col-md-6">
-                                <label style="font-weight: 600; font-size: 14px; margin-bottom: 8px;">Số điện thoại</label>
-                                <input type="tel" name="phone" class="form-control" value="<?= htmlspecialchars($user['phone'] ?? '') ?>" style="padding: 12px 16px; border-radius: 10px;">
+                                <label class="profile-field-label">Số điện thoại</label>
+                                <input type="tel" name="phone" class="form-control profile-field-input" value="<?= htmlspecialchars($user['phone'] ?? '') ?>">
                             </div>
                             <div class="col-md-12">
-                                <label style="font-weight: 600; font-size: 14px; margin-bottom: 8px;">Địa chỉ Email</label>
-                                <input type="email" name="email" class="form-control" value="<?= htmlspecialchars($user['email'] ?? '') ?>" readonly style="padding: 12px 16px; border-radius: 10px; background-color: #f1f5f9; color: #64748b; cursor: not-allowed;">
+                                <label class="profile-field-label">Địa chỉ Email</label>
+                                <input type="email" name="email" class="form-control profile-field-input profile-field-readonly" value="<?= htmlspecialchars($user['email'] ?? '') ?>" readonly>
                             </div>
                             <div class="col-md-12">
-                                <label style="font-weight: 600; font-size: 14px; margin-bottom: 8px;">Địa chỉ (Tỉnh/Thành phố)</label>
-                                <input type="text" name="address" class="form-control" value="Chưa hỗ trợ lưu địa chỉ" readonly style="padding: 12px 16px; border-radius: 10px; background-color: #f1f5f9; color: #94a3b8; cursor: not-allowed;">
+                                <label class="profile-field-label">Địa chỉ (Tỉnh/Thành phố)</label>
+                                <input type="text" name="address" class="form-control profile-field-input profile-field-readonly profile-field-placeholder" value="Chưa hỗ trợ lưu địa chỉ" readonly>
                             </div>
                         </div>
 
                         <div class="mt-5 text-end">
-                            <button type="submit" style="background: #10b981; color: white; padding: 12px 32px; border: none; border-radius: 10px; font-weight: 600;">
+                            <button type="submit" class="btn-save">
                                 Lưu thay đổi
                             </button>
                         </div>

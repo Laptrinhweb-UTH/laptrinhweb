@@ -1,195 +1,10 @@
 <?php include __DIR__ . '/../layouts/header.php'; ?>
 
-<style>
-  /* Căn giữa hộp đăng nhập */
-  .auth-page-wrapper {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: calc(100vh - 150px);
-    background-color: var(--bg);
-    padding: 40px 20px;
-  }
-
-  /* Nền hộp xám nhạt để làm nổi bật ô nhập liệu màu trắng */
-  .auth-container {
-    background: #f8fafc; /* Nền xám nhạt y hệt ảnh */
-    width: 100%;
-    max-width: 420px;
-    border-radius: 24px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
-    overflow: hidden;
-    padding: 32px;
-    border: 1px solid var(--border);
-  }
-
-  .auth-header {
-    text-align: center;
-    margin-bottom: 24px;
-  }
-
-  .auth-header i {
-    font-size: 40px;
-    color: var(--primary-light);
-    margin-bottom: 10px;
-  }
-
-  /* Tabs Đăng nhập / Đăng ký */
-  .auth-tabs {
-    display: flex;
-    background: #e2e8f0;
-    border-radius: 12px;
-    margin-bottom: 32px;
-    padding: 4px;
-  }
-
-  .tab-btn {
-    flex: 1;
-    padding: 12px;
-    text-align: center;
-    border: none;
-    background: transparent;
-    border-radius: 8px;
-    font-weight: 600;
-    color: #64748b;
-    cursor: pointer;
-    transition: 0.3s;
-    font-size: 15px;
-  }
-
-  .tab-btn.active {
-    background: var(--white);
-    color: var(--primary);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-  }
-
-  .auth-form {
-    display: none;
-    flex-direction: column;
-    gap: 20px; /* Khoảng cách giữa các cụm input rộng rãi hơn */
-  }
-
-  .auth-form.active {
-    display: flex;
-    animation: fadeIn 0.4s ease;
-  }
-
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
-  /* CHUẨN STYLE THEO ẢNH: Label nằm trên, Input không viền */
-  .input-group {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  .input-group label {
-    font-size: 15px;
-    font-weight: 500;
-    color: #0f172a;
-  }
-
-  .input-wrapper {
-    position: relative;
-  }
-
-  .input-wrapper input {
-    width: 100%;
-    padding: 16px 48px 16px 16px; /* Để chỗ cho icon con mắt bên phải */
-    border: none; /* Bỏ viền */
-    border-radius: 12px;
-    font-size: 15px;
-    background-color: #ffffff; /* Nền ô trắng tinh */
-    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
-    box-sizing: border-box;
-    outline: none;
-    transition: all 0.3s ease;
-  }
-
-  .input-wrapper input::placeholder {
-    color: #94a3b8;
-  }
-
-  .input-wrapper input:focus {
-    box-shadow: 0 0 0 2px var(--primary-light);
-  }
-
-  /* Nút con mắt ẩn/hiện mật khẩu */
-  .toggle-password {
-    position: absolute;
-    right: 16px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: #94a3b8;
-    cursor: pointer;
-    font-size: 18px;
-    transition: color 0.2s;
-  }
-
-  .toggle-password:hover {
-    color: var(--primary);
-  }
-
-  /* Link Quên mật khẩu */
-  .forgot-password {
-    text-align: right;
-    display: block;
-    color: #2563eb; /* Màu xanh biển */
-    font-size: 14px;
-    text-decoration: none;
-    font-weight: 500;
-    margin-top: -8px; /* Kéo lên gần ô mật khẩu 1 chút */
-  }
-
-  .forgot-password:hover {
-    text-decoration: underline;
-  }
-
-.btn-submit {
-    width: 100%;
-    background: #10b981; /* Màu xanh lá chuẩn của SpinBike */
-    color: #ffffff;
-    padding: 16px;
-    border: none;
-    border-radius: 12px;
-    font-weight: 600;
-    font-size: 16px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    margin-top: 8px;
-    box-shadow: 0 4px 14px rgba(16, 185, 129, 0.25); /* Bóng đổ phát sáng màu xanh lá nhẹ */
-  }
-
-  .btn-submit:hover {
-    background: #059669; /* Xanh lá đậm hơn 1 tông khi rê chuột */
-    transform: translateY(-2px); /* Hiệu ứng nảy lên 1 chút xíu */
-    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.35); /* Bóng đổ to hơn khi rê chuột */
-  }
-
-
-  .back-home {
-    display: block;
-    text-align: center;
-    margin-top: 24px;
-    color: #64748b;
-    text-decoration: none;
-    font-size: 14px;
-    font-weight: 500;
-  }
-
-  .back-home:hover {
-    color: var(--primary);
-  }
-</style>
-
 <main class="auth-page-wrapper">
   <div class="auth-container">
     <div class="auth-header">
       <i class="fa-solid fa-bicycle"></i>
-      <h2 style="margin: 0; color: #0a4d68">SpinBike</h2>
+      <h2 class="auth-brand-title">SpinBike</h2>
     </div>
 
     <div class="auth-tabs">
@@ -215,9 +30,9 @@
       
       <a href="#" class="forgot-password">Quên mật khẩu?</a>
 
-      <div id="loginMessage" style="text-align: center; font-size: 14px; font-weight: 500;"></div>
+      <div id="loginMessage" class="auth-message"></div>
 
-      <button type="submit" class="btn-submit">Đăng nhập</button>
+      <button type="submit" class="btn-submit auth-submit-btn">Đăng nhập</button>
     </form>
 
     <form id="registerForm" class="auth-form">
@@ -251,9 +66,9 @@
         </div>
       </div>
 
-      <div id="registerMessage" style="text-align: center; font-size: 14px; font-weight: 500;"></div>
+      <div id="registerMessage" class="auth-message"></div>
 
-      <button type="submit" class="btn-submit">Tạo tài khoản</button>
+      <button type="submit" class="btn-submit auth-submit-btn">Tạo tài khoản</button>
     </form>
 
     <a href="<?php echo asset_url('index.php'); ?>" class="back-home">

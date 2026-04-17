@@ -1,84 +1,86 @@
 <?php include __DIR__ . '/../layouts/header.php'; ?>
 
-<main class="main-content" style="max-width: 800px; margin: 40px auto; background: var(--white); padding: 40px; border-radius: 24px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); border: 1px solid var(--border);">
+<main class="main-content sell-page-shell">
     
-    <div style="margin-bottom: 32px; border-bottom: 1px solid var(--border); padding-bottom: 20px;">
-        <h1 style="font-size: 28px; font-weight: 700; margin-bottom: 8px;">Đăng bán xe đạp</h1>
-        <p style="color: var(--text-secondary);">Vui lòng điền thông tin để đăng bán xe của bạn.</p>
-    </div>
+    <div class="sell-page-card">
+        <div class="sell-page-header">
+            <h1 class="sell-page-title">Đăng bán xe đạp</h1>
+            <p class="sell-page-subtitle">Vui lòng điền thông tin để đăng bán xe của bạn.</p>
+        </div>
 
-    <form id="sellBikeForm" class="sell-form" action="<?php echo asset_url('process_sell.php'); ?>" method="POST" enctype="multipart/form-data">
+        <form id="sellBikeForm" class="sell-form" action="<?php echo asset_url('process_sell.php'); ?>" method="POST" enctype="multipart/form-data">
         
-        <div class="form-group">
-            <label class="form-label">Tên xe <span class="text-danger">*</span></label>
-            <input type="text" name="title" placeholder="VD: Trek Domane SL 5 2022" class="form-input" required />
-        </div>
-
-        <div class="form-row">
-          <div class="form-group">
-    <label class="form-label">Hãng xe <span class="text-danger">*</span></label>
-    
-    <select id="brandSelect" class="form-input" onchange="toggleCustomBrand()" required>
-        <option value="">-- Chọn hãng xe --</option>
-        <option value="Giant">Giant</option>
-        <option value="Trek">Trek</option>
-        <option value="Trinx">Trinx</option>
-        <option value="Asama">Asama</option>
-        <option value="Martin 107">Martin 107</option>
-        <option value="Thống Nhất">Thống Nhất</option>
-        <option value="OTHER">Hãng khác</option>
-    </select>
-
-    <input type="text" id="customBrandInput" placeholder="Nhập tên hãng xe của bạn..." class="form-input" style="display: none; margin-top: 8px;" />
-    
-    <input type="hidden" name="brand" id="finalBrandValue" />
-</div>
-            
             <div class="form-group">
-                <label class="form-label">Mức giá (VNĐ) <span class="text-danger">*</span></label>
-                <input type="text" id="priceDisplay" placeholder="VD: 2.500.000" class="form-input" required />
-                <input type="hidden" name="price" id="priceReal" required />
+                <label class="form-label">Tên xe <span class="text-danger">*</span></label>
+                <input type="text" name="title" placeholder="VD: Trek Domane SL 5 2022" class="form-input" required />
             </div>
-        </div> 
-    <div class="form-group">
-            <label class="form-label">Địa chỉ xem xe <span class="text-danger">*</span></label>
-            
-            <div class="form-row" style="margin-bottom: 12px;">
-                <select id="province" class="form-input" required>
-                    <option value="">-- Chọn Tỉnh/Thành --</option>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Hãng xe <span class="text-danger">*</span></label>
+    
+                <select id="brandSelect" class="form-input" onchange="toggleCustomBrand()" required>
+                    <option value="">-- Chọn hãng xe --</option>
+                    <option value="Giant">Giant</option>
+                    <option value="Trek">Trek</option>
+                    <option value="Trinx">Trinx</option>
+                    <option value="Asama">Asama</option>
+                    <option value="Martin 107">Martin 107</option>
+                    <option value="Thống Nhất">Thống Nhất</option>
+                    <option value="OTHER">Hãng khác</option>
                 </select>
-                <select id="district" class="form-input" required disabled>
-                    <option value="">-- Chọn Quận/Huyện --</option>
-                </select>
-                <select id="ward" class="form-input" required disabled>
-                    <option value="">-- Chọn Phường/Xã --</option>
-                </select>
+
+                <input type="text" id="customBrandInput" placeholder="Nhập tên hãng xe của bạn..." class="form-input sell-custom-brand-input" style="display: none;" />
+    
+                <input type="hidden" name="brand" id="finalBrandValue" />
             </div>
             
-            <input type="text" id="street" placeholder="Số nhà, tên đường..." class="form-input" required />
+                <div class="form-group">
+                    <label class="form-label">Mức giá (VNĐ) <span class="text-danger">*</span></label>
+                    <input type="text" id="priceDisplay" placeholder="VD: 2.500.000" class="form-input" required />
+                    <input type="hidden" name="price" id="priceReal" required />
+                </div>
+            </div> 
+            <div class="form-group">
+                <label class="form-label">Địa chỉ xem xe <span class="text-danger">*</span></label>
             
-            <input type="hidden" name="location" id="fullLocation" />
-        </div>
-
-        <div class="form-group" style="margin-bottom: 16px;">
-            <label class="form-label">Mô tả chi tiết</label>
-            <textarea name="description" rows="5" class="form-input" style="resize: vertical; font-family: inherit;" placeholder="Mô tả tình trạng xe, thời gian sử dụng..."></textarea>
-        </div>
-
-        <div class="form-group">
-            <label class="form-label">Hình ảnh thực tế (Tối thiểu 1 ảnh) <span class="text-danger">*</span></label>
-            <div class="upload-area" onclick="document.getElementById('bikeImages').click()">
-                <i class="fa-solid fa-cloud-arrow-up"></i>
-                <p style="font-weight: 600; margin-bottom: 4px;">Nhấn vào đây để tải ảnh lên</p>
+                <div class="form-row sell-location-row">
+                    <select id="province" class="form-input" required>
+                        <option value="">-- Chọn Tỉnh/Thành --</option>
+                    </select>
+                    <select id="district" class="form-input" required disabled>
+                        <option value="">-- Chọn Quận/Huyện --</option>
+                    </select>
+                    <select id="ward" class="form-input" required disabled>
+                        <option value="">-- Chọn Phường/Xã --</option>
+                    </select>
+                </div>
+            
+                <input type="text" id="street" placeholder="Số nhà, tên đường..." class="form-input" required />
+            
+                <input type="hidden" name="location" id="fullLocation" />
             </div>
-            <input type="file" id="bikeImages" name="images[]" multiple accept="image/*" style="display: none;" required onchange="previewImages(event)">
-            <div id="imagePreviewContainer" class="image-preview-container"></div>
-        </div>
 
-        <button type="submit" class="btn-submit" style="margin-top: 24px;">
-            <i class="fa-solid fa-paper-plane"></i> Đăng tin bán xe
-        </button>
-    </form>
+            <div class="form-group sell-description-group">
+                <label class="form-label">Mô tả chi tiết</label>
+                <textarea name="description" rows="5" class="form-input sell-description-input" placeholder="Mô tả tình trạng xe, thời gian sử dụng..."></textarea>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Hình ảnh thực tế (Tối thiểu 1 ảnh) <span class="text-danger">*</span></label>
+                <div class="upload-area" onclick="document.getElementById('bikeImages').click()">
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                    <p class="sell-upload-title">Nhấn vào đây để tải ảnh lên</p>
+                </div>
+                <input type="file" id="bikeImages" name="images[]" multiple accept="image/*" style="display: none;" required onchange="previewImages(event)">
+                <div id="imagePreviewContainer" class="image-preview-container"></div>
+            </div>
+
+            <button type="submit" class="btn-submit sell-submit-btn">
+                <i class="fa-solid fa-paper-plane"></i> Đăng tin bán xe
+            </button>
+        </form>
+    </div>
 </main>
 
 <script>
