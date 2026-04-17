@@ -11,7 +11,7 @@ if (!isset($_SESSION['user_id'])) {
 function order_list_status_label(string $status): string {
     return match ($status) {
         'pending' => 'Chờ thanh toán',
-        'paid' => 'Đã thanh toán',
+        'paid' => 'Đã tạo đơn',
         'shipping' => 'Đang giao xe',
         'completed' => 'Hoàn tất',
         'cancelled' => 'Đã hủy',
@@ -21,10 +21,10 @@ function order_list_status_label(string $status): string {
 
 function order_list_escrow_label(string $status): string {
     return match ($status) {
-        'holding' => 'Đang giữ tiền',
-        'released' => 'Đã giải phóng',
-        'refunded' => 'Đã hoàn tiền',
-        'disputed' => 'Đang khiếu nại',
+        'holding' => 'SpinBike đang giữ tiền',
+        'released' => 'Đã giải phóng cho người bán',
+        'refunded' => 'Đã hoàn tiền cho người mua',
+        'disputed' => 'Đang xử lý khiếu nại',
         default => 'Đang cập nhật',
     };
 }
@@ -214,6 +214,11 @@ include __DIR__ . '/../layouts/header.php';
                 ? date('d/m/Y H:i', strtotime((string) $order['order_created_at']))
                 : 'Đang cập nhật';
             $productImage = $order['product_image'] ?? 'https://via.placeholder.com/96x96?text=SpinBike';
+            $statusGuide = ($order['order_status'] ?? '') === 'completed'
+                ? 'Đơn đã hoàn tất.'
+                : (($order['escrow_status'] ?? '') === 'holding'
+                    ? 'Tiền vẫn đang được hệ thống giữ an toàn.'
+                    : 'Đơn đang được theo dõi và cập nhật trạng thái.');
             ?>
 
             <div class="profile-card order-list-card">
@@ -233,13 +238,21 @@ include __DIR__ . '/../layouts/header.php';
                         </div>
 
                         <div class="d-flex gap-2 flex-wrap mb-3">
-                            <span class="badge <?php echo order_list_badge_class((string) ($order['order_status'] ?? '')); ?> rounded-pill px-3 py-2">
-                                <?php echo htmlspecialchars(order_list_status_label((string) ($order['order_status'] ?? ''))); ?>
-                            </span>
-                            <span class="badge <?php echo order_list_badge_class((string) ($order['escrow_status'] ?? '')); ?> rounded-pill px-3 py-2">
-                                <?php echo htmlspecialchars(order_list_escrow_label((string) ($order['escrow_status'] ?? ''))); ?>
-                            </span>
+                            <div class="order-status-group">
+                                <span class="order-status-label">Đơn hàng</span>
+                                <span class="badge <?php echo order_list_badge_class((string) ($order['order_status'] ?? '')); ?> rounded-pill px-3 py-2">
+                                    <?php echo htmlspecialchars(order_list_status_label((string) ($order['order_status'] ?? ''))); ?>
+                                </span>
+                            </div>
+                            <div class="order-status-group">
+                                <span class="order-status-label">Giữ tiền</span>
+                                <span class="badge <?php echo order_list_badge_class((string) ($order['escrow_status'] ?? '')); ?> rounded-pill px-3 py-2">
+                                    <?php echo htmlspecialchars(order_list_escrow_label((string) ($order['escrow_status'] ?? ''))); ?>
+                                </span>
+                            </div>
                         </div>
+
+                        <p class="order-list-guide mb-3"><?php echo htmlspecialchars($statusGuide); ?></p>
 
                         <div class="order-list-meta">
                             <span>

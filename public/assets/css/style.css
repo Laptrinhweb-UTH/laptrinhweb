@@ -2119,10 +2119,38 @@ img {
   margin-bottom: 6px;
 }
 
+.order-status-group {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.order-status-label {
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.order-status-note {
+  background: #f8fafc;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 16px 18px;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
 .order-list-meta {
   display: flex;
   gap: 16px;
   flex-wrap: wrap;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.order-list-guide {
   color: var(--text-secondary);
   font-size: 14px;
 }

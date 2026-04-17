@@ -11,7 +11,7 @@ if (!isset($_SESSION['user_id'])) {
 function format_order_status_label(string $status): string {
     return match ($status) {
         'pending' => 'Chờ thanh toán',
-        'paid' => 'Đã thanh toán',
+        'paid' => 'Đã tạo đơn',
         'shipping' => 'Đang giao xe',
         'completed' => 'Hoàn tất',
         'cancelled' => 'Đã hủy',
@@ -21,10 +21,10 @@ function format_order_status_label(string $status): string {
 
 function format_escrow_status_label(string $status): string {
     return match ($status) {
-        'holding' => 'Đang giữ tiền',
-        'released' => 'Đã giải phóng',
-        'refunded' => 'Đã hoàn tiền',
-        'disputed' => 'Đang khiếu nại',
+        'holding' => 'SpinBike đang giữ tiền',
+        'released' => 'Đã giải phóng cho người bán',
+        'refunded' => 'Đã hoàn tiền cho người mua',
+        'disputed' => 'Đang xử lý khiếu nại',
         default => 'Đang cập nhật',
     };
 }
@@ -182,6 +182,21 @@ $formattedFeeAmount = number_format($feeAmount, 0, ',', '.') . ' đ';
 $formattedSellerReceives = number_format($sellerReceives, 0, ',', '.') . ' đ';
 $formattedOrderDate = !empty($order['order_created_at']) ? date('d/m/Y H:i', strtotime((string) $order['order_created_at'])) : 'Đang cập nhật';
 $formattedReleaseDate = !empty($order['released_at']) ? date('d/m/Y H:i', strtotime((string) $order['released_at'])) : 'Chưa giải phóng';
+$statusGuideText = match ($orderStatus) {
+    'pending' => 'Đơn hàng đã được tạo nhưng vẫn đang chờ hoàn tất thanh toán.',
+    'paid' => 'Người mua đã thanh toán. Hệ thống đang giữ tiền an toàn cho đơn này.',
+    'shipping' => 'Đơn hàng đang trong quá trình giao nhận giữa hai bên.',
+    'completed' => 'Đơn hàng đã hoàn tất và tiền đã được giải phóng cho người bán.',
+    'cancelled' => 'Đơn hàng đã bị hủy hoặc dừng xử lý.',
+    default => 'Trạng thái đơn hàng đang được cập nhật.',
+};
+$escrowGuideText = match ($escrowStatus) {
+    'holding' => 'Khoản tiền vẫn đang được SpinBike giữ để bảo vệ giao dịch.',
+    'released' => 'Khoản tiền đã được chuyển cho người bán sau khi đơn hoàn tất.',
+    'refunded' => 'Khoản tiền đã được hoàn lại cho người mua.',
+    'disputed' => 'Khoản tiền đang được giữ để chờ xử lý khiếu nại.',
+    default => 'Trạng thái giữ tiền đang được cập nhật.',
+};
 
 $statusBadgeClass = match ($orderStatus) {
     'completed' => 'bg-success',
@@ -234,13 +249,24 @@ include __DIR__ . '/../layouts/header.php';
             <p class="text-muted mb-0">Tạo lúc <?php echo htmlspecialchars($formattedOrderDate); ?></p>
         </div>
         <div class="d-flex gap-2 flex-wrap">
-            <span class="badge <?php echo $statusBadgeClass; ?> text-white p-2 px-3 rounded-pill fs-6">
-                <?php echo htmlspecialchars(format_order_status_label($orderStatus)); ?>
-            </span>
-            <span class="badge <?php echo $escrowBadgeClass; ?> p-2 px-3 rounded-pill fs-6">
-                <?php echo htmlspecialchars(format_escrow_status_label($escrowStatus)); ?>
-            </span>
+            <div class="order-status-group">
+                <span class="order-status-label">Đơn hàng</span>
+                <span class="badge <?php echo $statusBadgeClass; ?> text-white p-2 px-3 rounded-pill fs-6">
+                    <?php echo htmlspecialchars(format_order_status_label($orderStatus)); ?>
+                </span>
+            </div>
+            <div class="order-status-group">
+                <span class="order-status-label">Giữ tiền</span>
+                <span class="badge <?php echo $escrowBadgeClass; ?> p-2 px-3 rounded-pill fs-6">
+                    <?php echo htmlspecialchars(format_escrow_status_label($escrowStatus)); ?>
+                </span>
+            </div>
         </div>
+    </div>
+
+    <div class="order-status-note mb-4">
+        <p class="mb-1"><strong>Trạng thái đơn:</strong> <?php echo htmlspecialchars($statusGuideText); ?></p>
+        <p class="mb-0"><strong>Trạng thái giữ tiền:</strong> <?php echo htmlspecialchars($escrowGuideText); ?></p>
     </div>
 
     <div class="card shadow-sm border-0 rounded-4 p-4 mb-4">
@@ -248,7 +274,7 @@ include __DIR__ . '/../layouts/header.php';
             <?php
             $timelineSteps = [
                 ['icon' => 'fa-solid fa-check', 'text' => 'Đã đặt hàng'],
-                ['icon' => 'fa-solid fa-wallet', 'text' => 'Đã thanh toán'],
+                ['icon' => 'fa-solid fa-wallet', 'text' => 'Đơn đã được tạo'],
                 ['icon' => 'fa-solid fa-truck-fast', 'text' => 'Đang giao xe'],
                 ['icon' => 'fa-solid fa-box-open', 'text' => 'Hoàn tất'],
             ];
@@ -377,7 +403,7 @@ include __DIR__ . '/../layouts/header.php';
         <?php endif; ?>
 
         <button class="btn btn-outline-danger py-3 px-4 rounded-3 fw-bold shadow-sm" disabled>
-            <i class="fa-solid fa-triangle-exclamation"></i> Khiếu nại sẽ mở ở phase tiếp theo
+            <i class="fa-solid fa-triangle-exclamation"></i> Tính năng khiếu nại đang được cập nhật
         </button>
     </div>
     <?php endif; ?>
