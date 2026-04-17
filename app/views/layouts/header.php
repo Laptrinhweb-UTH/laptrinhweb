@@ -4,6 +4,32 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 require_once __DIR__ . '/../../../config/config.php';
+
+// ==========================================
+// LẤY AVATAR TỪ DATABASE CHO HEADER
+// ==========================================
+$header_avatar_url = '';
+if (isset($_SESSION['user_id'])) {
+    require_once __DIR__ . '/../../helpers/Database.php';
+    try {
+        // Dùng biến $header_db để không đụng chạm với biến $db ở các file khác
+        $header_db = (new Database())->getConnection();
+        $stmt = $header_db->prepare("SELECT avatar, name FROM users WHERE id = ?");
+        $stmt->execute([$_SESSION['user_id']]);
+        $header_user = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        if (!empty($header_user['avatar'])) {
+            $header_avatar_url = $header_user['avatar'];
+        } else {
+            // Nếu chưa có avatar thì tạo ảnh mặc định chứa chữ cái tên
+            $display_name = urlencode($header_user['name'] ?? $_SESSION['user_name'] ?? 'U');
+            $header_avatar_url = "https://ui-avatars.com/api/?name={$display_name}&background=10b981&color=fff&rounded=true&bold=true";
+        }
+    } catch (Exception $e) {
+        $display_name = urlencode($_SESSION['user_name'] ?? 'U');
+        $header_avatar_url = "https://ui-avatars.com/api/?name={$display_name}&background=10b981&color=fff&rounded=true&bold=true";
+    }
+}
 ?>
 <!doctype html>
 <html lang="vi">
@@ -58,8 +84,8 @@ require_once __DIR__ . '/../../../config/config.php';
         </span>
 
         <div class="user-dropdown-wrapper">
-          <a href="javascript:void(0)" class="btn-user-icon" title="Tài khoản">
-            <i class="fa-solid fa-circle-user"></i>
+          <a href="javascript:void(0)" class="btn-user-icon" title="Tài khoản" style="display: flex; align-items: center; justify-content: center; padding: 0; border: none; background: transparent;">
+            <img src="<?php echo $header_avatar_url; ?>" alt="Avatar" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary); box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
           </a>
           
           <div class="user-dropdown-menu">

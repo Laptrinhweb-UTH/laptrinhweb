@@ -242,3 +242,21 @@ window.addEventListener("load", () => {
     .getElementById("searchInput")
     .addEventListener("keyup", applyFilters);
 });
+// ================= XỬ LÝ PREVIEW ẢNH AVATAR =================
+document.addEventListener("DOMContentLoaded", function () {
+  const avatarInput = document.getElementById("avatarInput");
+
+  // Chỉ chạy code nếu trang hiện tại có ID là avatarInput
+  if (avatarInput) {
+    avatarInput.addEventListener("change", function (e) {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          document.getElementById("avatarPreview").src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+  }
+});

@@ -70,7 +70,7 @@ include __DIR__ . '/../app/views/layouts/header.php';
             <div class="detail-info">
                 <h1 style="font-size: 26px; font-weight: 700; margin: 0 0 16px 0; color: var(--text-primary);"><?php echo htmlspecialchars($product['title']); ?></h1>
                 
-                <div style="font-size: 32px; font-weight: 800; color: #10b981; margin-bottom: 24px;"><?php echo $formattedPrice; ?></div>
+               <div style="font-size: 32px; font-weight: 800; color: #3b82f6; margin-bottom: 24px;"><?php echo $formattedPrice; ?></div>
                 
                 <div style="padding: 24px; background: #f8fafc; border-radius: 20px; margin-bottom: 32px; border: 1px solid var(--border);">
                     

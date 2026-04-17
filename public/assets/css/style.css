@@ -1451,3 +1451,110 @@ body {
   border-color: #3b82f6;
   background: #eff6ff;
 }
+/* ================= TRANG CẬP NHẬT HỒ SƠ (PROFILE) ================= */
+.profile-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px 20px;
+}
+.profile-sidebar {
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid var(--border, #e2e8f0);
+  overflow: hidden;
+}
+.profile-nav-link {
+  display: flex;
+  align-items: center;
+  padding: 16px 20px;
+  color: #475569;
+  text-decoration: none;
+  font-weight: 600;
+  transition: all 0.2s;
+  border-left: 3px solid transparent;
+  font-size: 15px;
+}
+.profile-nav-link:hover {
+  background: #f8fafc;
+  color: #10b981;
+}
+.profile-nav-link.active {
+  background: #ecfdf5;
+  color: #10b981;
+  border-left-color: #10b981;
+}
+.profile-nav-link i {
+  width: 24px;
+  font-size: 18px;
+  margin-right: 12px;
+  color: inherit;
+}
+.profile-card {
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid var(--border, #e2e8f0);
+  padding: 40px;
+}
+.avatar-section {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  margin-bottom: 32px;
+}
+.avatar-img {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 4px solid #fff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+.form-label {
+  font-weight: 600;
+  font-size: 14px;
+  color: #334155;
+  margin-bottom: 8px;
+}
+.form-control-custom {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  font-size: 15px;
+  transition: all 0.2s;
+  box-sizing: border-box;
+}
+.form-control-custom:focus {
+  outline: none;
+  border-color: #10b981;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+}
+.btn-save {
+  background: #10b981;
+  color: white;
+  padding: 12px 32px;
+  border: none;
+  border-radius: 10px;
+  font-weight: 600;
+  transition: 0.3s;
+}
+.btn-save:hover {
+  background: #059669;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+}
+.btn-upload {
+  background: #fff;
+  border: 1px solid #cbd5e1;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  color: #334155;
+  cursor: pointer;
+  transition: 0.2s;
+  font-size: 14px;
+}
+.btn-upload:hover {
+  background: #f8fafc;
+  border-color: #94a3b8;
+}
