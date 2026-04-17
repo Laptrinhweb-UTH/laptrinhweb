@@ -9,7 +9,12 @@ if (!isset($_GET['id']) || empty($_GET['id'])) {
     exit;
 }
 
-$id = $_GET['id'];
+$id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+if ($id === false || $id === null) {
+    header("Location: index.php");
+    exit;
+}
+
 $database = new Database();
 $db = $database->getConnectionOrNull();
 $detailError = null;

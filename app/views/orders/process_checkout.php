@@ -10,18 +10,47 @@ if (!isset($_SESSION['user_id']) || $_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 $buyer_id = $_SESSION['user_id'];
-$product_id = $_POST['product_id'];
-$seller_id = $_POST['seller_id'];
-$amount = $_POST['amount'];
-$payment_method = $_POST['payment_method'];
+$product_id = filter_input(INPUT_POST, 'product_id', FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+$payment_method = $_POST['payment_method'] ?? '';
+$allowedPaymentMethods = ['vnpay', 'momo'];
+
+if ($product_id === false || $product_id === null || !in_array($payment_method, $allowedPaymentMethods, true)) {
+    echo "<script>alert('Dữ liệu thanh toán không hợp lệ. Vui lòng thử lại.'); window.location.href='" . asset_url('index.php') . "';</script>";
+    exit;
+}
 
 // TẠI ĐÂY MÔ PHỎNG VIỆC GỌI API VNPAY/MOMO THÀNH CÔNG
 // Nếu tích hợp thật, code VNPAY sẽ redirect người dùng sang app ngân hàng ở đây.
 // Vì đang test, ta coi như thanh toán auto thành công.
 
-$db = (new Database())->getConnection();
+$database = new Database();
+$db = $database->getConnectionOrNull();
+
+if (!$db) {
+    echo "<script>alert('Không thể kết nối dữ liệu để xử lý thanh toán. Vui lòng thử lại sau.'); window.history.back();</script>";
+    exit;
+}
 
 try {
+    $productStmt = $db->prepare("SELECT id, seller_id, price FROM products WHERE id = ? LIMIT 1");
+    $productStmt->execute([$product_id]);
+    $product = $productStmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!$product) {
+        throw new Exception("Sản phẩm không tồn tại hoặc đã bị xóa.");
+    }
+
+    if ((int)$product['seller_id'] === (int)$buyer_id) {
+        throw new Exception("Bạn không thể tự mua xe của chính mình.");
+    }
+
+    $seller_id = (int)$product['seller_id'];
+    $amount = $product['price'];
+
+    if (!is_numeric($amount) || (float)$amount <= 0) {
+        throw new Exception("Giá sản phẩm không hợp lệ để thanh toán.");
+    }
+
     // Mở Transaction: Đảm bảo viết vào Orders và Escrows cùng lúc, nếu lỗi thì hủy tất cả
     $db->beginTransaction();
 
@@ -52,7 +81,9 @@ try {
 
 } catch (Exception $e) {
     // Nếu có lỗi CSDL, hủy bỏ lệnh
-    $db->rollBack();
+    if ($db->inTransaction()) {
+        $db->rollBack();
+    }
     echo "<script>alert('Lỗi hệ thống: " . $e->getMessage() . "'); window.history.back();</script>";
 }
 ?>

@@ -11,34 +11,55 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 // 2. Kiểm tra ID sản phẩm truyền vào
-if (!isset($_GET['product_id']) || empty($_GET['product_id'])) {
-    echo "<script>alert('Lỗi: Không tìm thấy sản phẩm!'); window.location.href='" . asset_url("index.php") . "';</script>";
-    exit;
+$productId = filter_input(INPUT_GET, 'product_id', FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+$checkoutError = null;
+$product = null;
+
+if ($productId === false || $productId === null) {
+    $checkoutError = 'Không tìm thấy sản phẩm hợp lệ để thanh toán.';
 }
 
-$db = (new Database())->getConnection();
-$productModel = new Product($db);
-$product = $productModel->getProductDetail($_GET['product_id']);
+$database = new Database();
+$db = $checkoutError === null ? $database->getConnectionOrNull() : null;
 
-if (!$product) {
-    echo "<script>alert('Sản phẩm không tồn tại hoặc đã bị xóa!'); window.location.href='" . asset_url("index.php") . "';</script>";
-    exit;
+if ($checkoutError === null && !$db) {
+    $checkoutError = 'Thanh toán hiện chưa sẵn sàng vì kết nối dữ liệu đang gặp sự cố.';
 }
 
-// Chống gian lận: Không cho tự mua hàng của mình
-if ($product['seller_id'] == $_SESSION['user_id']) {
-    echo "<script>alert('Bạn không thể tự mua xe của chính mình!'); window.location.href='" . asset_url("index.php") . "';</script>";
-    exit;
+if ($checkoutError === null) {
+    try {
+        $productModel = new Product($db);
+        $product = $productModel->getProductDetail($productId);
+
+        if (!$product) {
+            $checkoutError = 'Sản phẩm không tồn tại hoặc đã bị xóa.';
+        } elseif (($product['seller_id'] ?? null) == $_SESSION['user_id']) {
+            $checkoutError = 'Bạn không thể tự mua xe của chính mình.';
+        }
+    } catch (Throwable $exception) {
+        $checkoutError = 'Không thể tải thông tin thanh toán lúc này. Vui lòng thử lại sau.';
+    }
 }
 
 // Xử lý dữ liệu hiển thị
-$formattedPrice = number_format($product['price'], 0, ',', '.') . ' đ';
+$formattedPrice = is_numeric($product['price'] ?? null) ? number_format((float)$product['price'], 0, ',', '.') . ' đ' : 'Liên hệ để báo giá';
 $mainImage = (!empty($product['images'])) ? $product['images'][0] : 'https://via.placeholder.com/80';
+$productTitle = trim((string)($product['title'] ?? ''));
+if ($productTitle === '') {
+    $productTitle = 'Xe đạp đang cập nhật tên';
+}
 
 include __DIR__ . '/../layouts/header.php'; 
 ?>
 
 <div class="container py-5" style="max-width: 1000px;">
+    <?php if ($checkoutError !== null): ?>
+    <div class="empty-state-card">
+        <i class="fa-solid fa-circle-exclamation empty-state-icon"></i>
+        <p class="empty-state-text"><?php echo htmlspecialchars($checkoutError); ?></p>
+        <a href="<?php echo asset_url('index.php'); ?>" class="btn-detail product-detail-link">Quay lại trang chủ</a>
+    </div>
+    <?php else: ?>
     <h2 class="fw-bold mb-4">Thanh toán an toàn</h2>
 
     <div class="row g-4">
@@ -62,8 +83,6 @@ include __DIR__ . '/../layouts/header.php';
                 
                 <form action="process_checkout.php" method="POST">
                     <input type="hidden" name="product_id" value="<?php echo $product['id']; ?>">
-                    <input type="hidden" name="seller_id" value="<?php echo $product['seller_id']; ?>">
-                    <input type="hidden" name="amount" value="<?php echo $product['price']; ?>">
                     
                     <label class="d-block mb-3">
                         <input type="radio" name="payment_method" value="vnpay" class="form-check-input d-none" checked>
@@ -94,7 +113,7 @@ include __DIR__ . '/../layouts/header.php';
                 <div class="d-flex gap-3 mb-4">
                     <img src="<?php echo $mainImage; ?>" class="rounded-3" style="width: 80px; height: 80px; object-fit: cover; border: 1px solid var(--border);">
                     <div>
-                        <h6 class="fw-bold text-dark mb-1" style="line-height: 1.4;"><?php echo htmlspecialchars($product['title']); ?></h6>
+                        <h6 class="fw-bold text-dark mb-1" style="line-height: 1.4;"><?php echo htmlspecialchars($productTitle); ?></h6>
                         <span class="badge bg-light text-dark border mt-1"><i class="fa-solid fa-user"></i> Người bán: ID <?php echo $product['seller_id']; ?></span>
                     </div>
                 </div>
@@ -114,6 +133,7 @@ include __DIR__ . '/../layouts/header.php';
             </div>
         </div>
     </div>
+    <?php endif; ?>
 </div>
 
 <?php include __DIR__ . '/../layouts/footer.php'; ?>
