@@ -48,7 +48,9 @@ class EscrowService {
 
         } catch (Exception $e) {
             // CÓ LỖI -> QUAY XE, KHÔNG TRỪ/CỘNG TIỀN GÌ HẾT
-            $this->conn->rollBack();
+            if ($this->conn->inTransaction()) {
+                $this->conn->rollBack();
+            }
             return ['status' => 'error', 'message' => $e->getMessage()];
         }
     }
@@ -76,7 +78,9 @@ class EscrowService {
             return ['status' => 'success', 'message' => 'Đã hoàn tiền cho người mua!'];
 
         } catch (Exception $e) {
-            $this->conn->rollBack();
+            if ($this->conn->inTransaction()) {
+                $this->conn->rollBack();
+            }
             return ['status' => 'error', 'message' => $e->getMessage()];
         }
     }

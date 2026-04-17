@@ -12,12 +12,27 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['order_id'])) {
-    $db = (new Database())->getConnection();
+    $orderId = filter_input(INPUT_POST, 'order_id', FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+    if ($orderId === false || $orderId === null) {
+        echo json_encode(['status' => 'error', 'message' => 'Mã đơn hàng không hợp lệ.']);
+        exit;
+    }
+
+    $database = new Database();
+    $db = $database->getConnectionOrNull();
+    if (!$db) {
+        echo json_encode(['status' => 'error', 'message' => 'Không thể kết nối dữ liệu để xử lý yêu cầu.']);
+        exit;
+    }
+
     $escrowService = new EscrowService($db);
     
     // Gọi hàm ReleaseFunds, truyền ID đơn hàng và ID người đang đăng nhập (Người mua)
-    $result = $escrowService->releaseFunds($_POST['order_id'], $_SESSION['user_id']);
+    $result = $escrowService->releaseFunds($orderId, $_SESSION['user_id']);
     
     echo json_encode($result);
+    exit;
 }
+
+echo json_encode(['status' => 'error', 'message' => 'Yêu cầu không hợp lệ.']);
 ?>

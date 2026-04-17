@@ -1,56 +1,330 @@
-<?php include __DIR__ . '/../layouts/header.php'; ?>
+<?php
+session_start();
+require_once __DIR__ . '/../../../config/config.php';
+require_once __DIR__ . '/../../helpers/Database.php';
 
-<div class="container py-5" style="max-width: 900px;">
-    
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h3 class="fw-bold m-0">Chi tiết đơn hàng #999</h3>
-        <span class="badge bg-primary text-white p-2 px-3 rounded-pill fs-6">Đang giao hàng</span>
+if (!isset($_SESSION['user_id'])) {
+    header('Location: ' . app_url('app/views/auth/auth.php'));
+    exit;
+}
+
+function format_order_status_label(string $status): string {
+    return match ($status) {
+        'pending' => 'Chờ thanh toán',
+        'paid' => 'Đã tạo đơn',
+        'shipping' => 'Đang giao xe',
+        'completed' => 'Hoàn tất',
+        'cancelled' => 'Đã hủy',
+        default => 'Đang cập nhật',
+    };
+}
+
+function format_escrow_status_label(string $status): string {
+    return match ($status) {
+        'holding' => 'SpinBike đang giữ tiền',
+        'released' => 'Đã giải phóng cho người bán',
+        'refunded' => 'Đã hoàn tiền cho người mua',
+        'disputed' => 'Đang xử lý khiếu nại',
+        default => 'Đang cập nhật',
+    };
+}
+
+function timeline_step_state(int $stepIndex, int $currentStep, bool $isCancelled): string {
+    if ($isCancelled) {
+        return $stepIndex <= 1 ? 'active' : '';
+    }
+
+    if ($stepIndex < $currentStep) {
+        return 'active';
+    }
+
+    if ($stepIndex === $currentStep) {
+        return 'current';
+    }
+
+    return '';
+}
+
+$currentUserId = (int) $_SESSION['user_id'];
+$currentUserRole = $_SESSION['role'] ?? 'user';
+$orderId = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+$orderError = null;
+$order = null;
+$orderNotice = trim((string) ($_GET['message'] ?? ''));
+$orderNoticeStatus = $_GET['status'] ?? '';
+$noticeClass = $orderNoticeStatus === 'success' ? 'auth-message auth-message-success' : 'auth-message auth-message-error';
+
+if ($orderId === false || $orderId === null) {
+    $orderError = 'Không tìm thấy đơn hàng hợp lệ để hiển thị.';
+}
+
+$database = new Database();
+$db = $orderError === null ? $database->getConnectionOrNull() : null;
+
+if ($orderError === null && !$db) {
+    $orderError = 'Chi tiết đơn hàng hiện chưa thể tải vì kết nối dữ liệu đang gặp sự cố.';
+}
+
+if ($orderError === null) {
+    try {
+        $query = "
+            SELECT
+                o.id,
+                o.buyer_id,
+                o.seller_id,
+                o.product_id,
+                o.amount,
+                o.status AS order_status,
+                o.created_at AS order_created_at,
+                e.status AS escrow_status,
+                e.amount AS escrow_amount,
+                e.created_at AS escrow_created_at,
+                e.released_at,
+                p.title AS product_title,
+                p.brand AS product_brand,
+                p.location AS product_location,
+                buyer.name AS buyer_name,
+                buyer.email AS buyer_email,
+                buyer.phone AS buyer_phone,
+                seller.name AS seller_name,
+                seller.email AS seller_email,
+                seller.phone AS seller_phone,
+                (
+                    SELECT image_url
+                    FROM product_images
+                    WHERE product_id = o.product_id
+                    ORDER BY id ASC
+                    LIMIT 1
+                ) AS product_image
+            FROM orders o
+            LEFT JOIN escrows e ON e.order_id = o.id
+            LEFT JOIN products p ON p.id = o.product_id
+            LEFT JOIN users buyer ON buyer.id = o.buyer_id
+            LEFT JOIN users seller ON seller.id = o.seller_id
+            WHERE o.id = ?
+            LIMIT 1
+        ";
+
+        $stmt = $db->prepare($query);
+        $stmt->execute([$orderId]);
+        $order = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$order) {
+            $orderError = 'Không tìm thấy đơn hàng bạn đang tìm hoặc dữ liệu đã thay đổi.';
+        } else {
+            $canViewOrder = $currentUserRole === 'admin'
+                || (int) $order['buyer_id'] === $currentUserId
+                || (int) $order['seller_id'] === $currentUserId;
+
+            if (!$canViewOrder) {
+                $orderError = 'Bạn không có quyền xem chi tiết đơn hàng này.';
+                $order = null;
+            }
+        }
+    } catch (Throwable $exception) {
+        $orderError = 'Chi tiết đơn hàng hiện chưa thể tải. Vui lòng thử lại sau.';
+    }
+}
+
+$orderStatus = $order['order_status'] ?? 'pending';
+$escrowStatus = $order['escrow_status'] ?? 'holding';
+$productTitle = trim((string) ($order['product_title'] ?? ''));
+if ($productTitle === '') {
+    $productTitle = 'Xe đạp đang cập nhật tên';
+}
+
+$productBrand = trim((string) ($order['product_brand'] ?? ''));
+if ($productBrand === '') {
+    $productBrand = 'Đang cập nhật hãng xe';
+}
+
+$productLocation = trim((string) ($order['product_location'] ?? ''));
+if ($productLocation === '') {
+    $productLocation = 'Đang cập nhật vị trí';
+}
+
+$productImage = $order['product_image'] ?? 'https://via.placeholder.com/120x120?text=SpinBike';
+$buyerName = trim((string) ($order['buyer_name'] ?? ''));
+if ($buyerName === '') {
+    $buyerName = 'Người mua đang cập nhật';
+}
+
+$sellerName = trim((string) ($order['seller_name'] ?? ''));
+if ($sellerName === '') {
+    $sellerName = 'Người bán đang cập nhật';
+}
+
+$buyerPhone = trim((string) ($order['buyer_phone'] ?? ''));
+if ($buyerPhone === '') {
+    $buyerPhone = 'Chưa cập nhật số điện thoại';
+}
+
+$sellerPhone = trim((string) ($order['seller_phone'] ?? ''));
+if ($sellerPhone === '') {
+    $sellerPhone = 'Chưa cập nhật số điện thoại';
+}
+
+$buyerEmail = trim((string) ($order['buyer_email'] ?? ''));
+if ($buyerEmail === '') {
+    $buyerEmail = 'Chưa cập nhật email';
+}
+
+$sellerEmail = trim((string) ($order['seller_email'] ?? ''));
+if ($sellerEmail === '') {
+    $sellerEmail = 'Chưa cập nhật email';
+}
+
+$paidAmount = is_numeric($order['amount'] ?? null) ? (float) $order['amount'] : 0.0;
+$feeAmount = $paidAmount * 0.05;
+$sellerReceives = max($paidAmount - $feeAmount, 0);
+$formattedPaidAmount = number_format($paidAmount, 0, ',', '.') . ' đ';
+$formattedFeeAmount = number_format($feeAmount, 0, ',', '.') . ' đ';
+$formattedSellerReceives = number_format($sellerReceives, 0, ',', '.') . ' đ';
+$formattedOrderDate = !empty($order['order_created_at']) ? date('d/m/Y H:i', strtotime((string) $order['order_created_at'])) : 'Đang cập nhật';
+$formattedReleaseDate = !empty($order['released_at']) ? date('d/m/Y H:i', strtotime((string) $order['released_at'])) : 'Chưa giải phóng';
+$statusGuideText = match ($orderStatus) {
+    'pending' => 'Đơn hàng đã được tạo nhưng vẫn đang chờ hoàn tất thanh toán.',
+    'paid' => 'Người mua đã thanh toán. Hệ thống đang giữ tiền an toàn cho đơn này.',
+    'shipping' => 'Đơn hàng đang trong quá trình giao nhận giữa hai bên.',
+    'completed' => 'Đơn hàng đã hoàn tất và tiền đã được giải phóng cho người bán.',
+    'cancelled' => 'Đơn hàng đã bị hủy hoặc dừng xử lý.',
+    default => 'Trạng thái đơn hàng đang được cập nhật.',
+};
+$escrowGuideText = match ($escrowStatus) {
+    'holding' => 'Khoản tiền vẫn đang được SpinBike giữ để bảo vệ giao dịch.',
+    'released' => 'Khoản tiền đã được chuyển cho người bán sau khi đơn hoàn tất.',
+    'refunded' => 'Khoản tiền đã được hoàn lại cho người mua.',
+    'disputed' => 'Khoản tiền đang được giữ để chờ xử lý khiếu nại.',
+    default => 'Trạng thái giữ tiền đang được cập nhật.',
+};
+
+$statusBadgeClass = match ($orderStatus) {
+    'completed' => 'bg-success',
+    'shipping', 'paid' => 'bg-primary',
+    'cancelled' => 'bg-danger',
+    default => 'bg-secondary',
+};
+
+$escrowBadgeClass = match ($escrowStatus) {
+    'released' => 'bg-success',
+    'holding' => 'bg-warning text-dark',
+    'refunded', 'disputed' => 'bg-danger',
+    default => 'bg-secondary',
+};
+
+$timelineCurrentStep = match ($orderStatus) {
+    'pending' => 0,
+    'paid' => 1,
+    'shipping' => 2,
+    'completed' => 3,
+    default => 1,
+};
+
+$isCancelledOrder = $orderStatus === 'cancelled' || $escrowStatus === 'refunded';
+$isBuyerView = $order !== null && (int) $order['buyer_id'] === $currentUserId;
+$canConfirmReceipt = $isBuyerView && in_array($orderStatus, ['paid', 'shipping'], true) && $escrowStatus === 'holding';
+$orderDetailUrl = app_url('app/views/orders/detail.php');
+$confirmOrderUrl = app_url('app/controllers/ConfirmOrderController.php');
+
+include __DIR__ . '/../layouts/header.php';
+?>
+
+<div class="container py-5" style="max-width: 960px;">
+    <?php if ($orderNotice !== ''): ?>
+    <div class="<?php echo $noticeClass; ?>">
+        <?php echo htmlspecialchars($orderNotice); ?>
+    </div>
+    <?php endif; ?>
+
+    <?php if ($orderError !== null): ?>
+    <div class="empty-state-card">
+        <i class="fa-solid fa-circle-exclamation empty-state-icon"></i>
+        <p class="empty-state-text"><?php echo htmlspecialchars($orderError); ?></p>
+        <a href="<?php echo asset_url('index.php'); ?>" class="btn-detail product-detail-link">Quay lại trang chủ</a>
+    </div>
+    <?php else: ?>
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+        <div>
+            <h3 class="fw-bold m-0">Chi tiết đơn hàng #<?php echo (int) $order['id']; ?></h3>
+            <p class="text-muted mb-0">Tạo lúc <?php echo htmlspecialchars($formattedOrderDate); ?></p>
+        </div>
+        <div class="d-flex gap-2 flex-wrap">
+            <div class="order-status-group">
+                <span class="order-status-label">Đơn hàng</span>
+                <span class="badge <?php echo $statusBadgeClass; ?> text-white p-2 px-3 rounded-pill fs-6">
+                    <?php echo htmlspecialchars(format_order_status_label($orderStatus)); ?>
+                </span>
+            </div>
+            <div class="order-status-group">
+                <span class="order-status-label">Giữ tiền</span>
+                <span class="badge <?php echo $escrowBadgeClass; ?> p-2 px-3 rounded-pill fs-6">
+                    <?php echo htmlspecialchars(format_escrow_status_label($escrowStatus)); ?>
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <div class="order-status-note mb-4">
+        <p class="mb-1"><strong>Trạng thái đơn:</strong> <?php echo htmlspecialchars($statusGuideText); ?></p>
+        <p class="mb-0"><strong>Trạng thái giữ tiền:</strong> <?php echo htmlspecialchars($escrowGuideText); ?></p>
     </div>
 
     <div class="card shadow-sm border-0 rounded-4 p-4 mb-4">
         <div class="order-timeline">
-            <div class="timeline-step active">
-                <div class="timeline-icon"><i class="fa-solid fa-check"></i></div>
-                <div class="timeline-text">Đã đặt hàng</div>
-            </div>
-            <div class="timeline-step active">
-                <div class="timeline-icon"><i class="fa-solid fa-wallet"></i></div>
-                <div class="timeline-text">Đã thanh toán</div>
-            </div>
-            <div class="timeline-step current">
-                <div class="timeline-icon"><i class="fa-solid fa-truck-fast"></i></div>
-                <div class="timeline-text">Đang giao xe</div>
-            </div>
-            <div class="timeline-step">
-                <div class="timeline-icon"><i class="fa-solid fa-box-open"></i></div>
-                <div class="timeline-text">Đã nhận</div>
-            </div>
+            <?php
+            $timelineSteps = [
+                ['icon' => 'fa-solid fa-check', 'text' => 'Đã đặt hàng'],
+                ['icon' => 'fa-solid fa-wallet', 'text' => 'Đơn đã được tạo'],
+                ['icon' => 'fa-solid fa-truck-fast', 'text' => 'Đang giao xe'],
+                ['icon' => 'fa-solid fa-box-open', 'text' => 'Hoàn tất'],
+            ];
+            ?>
+            <?php foreach ($timelineSteps as $stepIndex => $step): ?>
+                <?php $stepClass = timeline_step_state($stepIndex, $timelineCurrentStep, $isCancelledOrder); ?>
+                <div class="timeline-step <?php echo $stepClass; ?>">
+                    <div class="timeline-icon"><i class="<?php echo $step['icon']; ?>"></i></div>
+                    <div class="timeline-text"><?php echo $step['text']; ?></div>
+                </div>
+            <?php endforeach; ?>
         </div>
+        <?php if ($isCancelledOrder): ?>
+        <p class="text-danger fw-semibold mb-0 text-center">Đơn hàng này đã bị hủy hoặc hoàn tiền. Dòng thời gian được dừng tại bước thanh toán.</p>
+        <?php endif; ?>
     </div>
 
     <div class="card shadow-sm border-0 rounded-4 mb-4" style="background: #f8fafc; border: 1px solid #e2e8f0 !important;">
         <div class="card-body p-4">
             <div class="d-flex align-items-start gap-3">
-                <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 48px; height: 48px; font-size: 20px;">
+                <div class="escrow-icon-wrapper flex-shrink-0">
                     <i class="fa-solid fa-lock"></i>
                 </div>
                 <div class="flex-grow-1">
-                    <h5 class="fw-bold text-primary mb-1">SpinBike đang giữ 3.000.000 đ</h5>
-                    <p class="text-muted mb-3" style="font-size: 14px;">Khoản tiền này sẽ chỉ được chuyển cho người bán khi bạn xác nhận đã nhận xe an toàn.</p>
-                    
+                    <h5 class="fw-bold text-primary mb-1">SpinBike đang quản lý khoản tiền <?php echo htmlspecialchars($formattedPaidAmount); ?></h5>
+                    <p class="text-muted mb-3" style="font-size: 14px;">
+                        <?php if ($escrowStatus === 'holding'): ?>
+                        Khoản tiền này sẽ được giữ an toàn cho đến khi người mua xác nhận đã nhận xe đúng mô tả.
+                        <?php elseif ($escrowStatus === 'released'): ?>
+                        Khoản tiền này đã được giải phóng cho người bán vào <?php echo htmlspecialchars($formattedReleaseDate); ?>.
+                        <?php elseif ($escrowStatus === 'refunded'): ?>
+                        Khoản tiền này đã được hoàn về cho người mua.
+                        <?php else: ?>
+                        Khoản tiền này đang được hệ thống theo dõi và xử lý.
+                        <?php endif; ?>
+                    </p>
+
                     <div class="bg-white p-3 rounded-3 border">
                         <div class="d-flex justify-content-between mb-2" style="font-size: 14px;">
-                            <span class="text-muted">Tổng tiền bạn đã trả:</span>
-                            <span class="fw-bold">3.000.000 đ</span>
+                            <span class="text-muted">Tổng tiền đơn hàng</span>
+                            <span class="fw-bold"><?php echo htmlspecialchars($formattedPaidAmount); ?></span>
                         </div>
                         <div class="d-flex justify-content-between mb-2" style="font-size: 14px;">
-                            <span class="text-danger">Phí sàn (Trừ vào người bán - 5%):</span>
-                            <span>- 150.000 đ</span>
+                            <span class="text-danger">Phí nền tảng (5%)</span>
+                            <span>- <?php echo htmlspecialchars($formattedFeeAmount); ?></span>
                         </div>
                         <hr class="my-2">
                         <div class="d-flex justify-content-between" style="font-size: 15px;">
-                            <span class="text-success fw-bold">Người bán sẽ nhận:</span>
-                            <span class="fw-bold text-success">2.850.000 đ</span>
+                            <span class="text-success fw-bold">Người bán dự kiến nhận</span>
+                            <span class="fw-bold text-success"><?php echo htmlspecialchars($formattedSellerReceives); ?></span>
                         </div>
                     </div>
                 </div>
@@ -58,57 +332,119 @@
         </div>
     </div>
 
-    <div class="d-flex gap-3 mb-5">
-        <button class="btn btn-success flex-grow-1 py-3 rounded-3 fw-bold fs-6 shadow-sm" onclick="confirmReceived()">
-            <i class="fa-solid fa-check-circle me-2"></i> TÔI ĐÃ NHẬN ĐƯỢC XE
-        </button>
-        <button class="btn btn-outline-danger py-3 px-4 rounded-3 fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#disputeModal">
-            <i class="fa-solid fa-triangle-exclamation"></i> Gửi khiếu nại
-        </button>
+    <div class="row g-4 mb-4">
+        <div class="col-lg-7">
+            <div class="card shadow-sm border-0 rounded-4 h-100">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-3">Sản phẩm trong đơn</h5>
+                    <div class="d-flex gap-3">
+                        <img src="<?php echo htmlspecialchars($productImage); ?>" alt="Sản phẩm" class="rounded-3" style="width: 120px; height: 120px; object-fit: cover; border: 1px solid var(--border);">
+                        <div class="flex-grow-1">
+                            <h6 class="fw-bold mb-2"><?php echo htmlspecialchars($productTitle); ?></h6>
+                            <div class="text-muted mb-2"><?php echo htmlspecialchars($productBrand); ?></div>
+                            <div class="text-muted mb-2"><i class="fa-solid fa-location-dot"></i> <?php echo htmlspecialchars($productLocation); ?></div>
+                            <div class="fw-bold text-primary fs-5"><?php echo htmlspecialchars($formattedPaidAmount); ?></div>
+                            <a href="<?php echo asset_url('detail.php'); ?>?id=<?php echo (int) $order['product_id']; ?>" class="btn-detail product-detail-link mt-3">Xem lại sản phẩm</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-5">
+            <div class="card shadow-sm border-0 rounded-4 h-100">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-3">Thông tin giao dịch</h5>
+                    <div class="mb-3">
+                        <div class="text-muted small mb-1">Người mua</div>
+                        <div class="fw-semibold"><?php echo htmlspecialchars($buyerName); ?></div>
+                        <div class="text-muted small"><?php echo htmlspecialchars($buyerEmail); ?></div>
+                        <div class="text-muted small"><?php echo htmlspecialchars($buyerPhone); ?></div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="text-muted small mb-1">Người bán</div>
+                        <div class="fw-semibold"><?php echo htmlspecialchars($sellerName); ?></div>
+                        <div class="text-muted small"><?php echo htmlspecialchars($sellerEmail); ?></div>
+                        <div class="text-muted small"><?php echo htmlspecialchars($sellerPhone); ?></div>
+                    </div>
+                    <div class="pt-3 border-top">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Mã đơn hàng</span>
+                            <span class="fw-semibold">#<?php echo (int) $order['id']; ?></span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Mã sản phẩm</span>
+                            <span class="fw-semibold">#<?php echo (int) $order['product_id']; ?></span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span class="text-muted">Ngày giải phóng</span>
+                            <span class="fw-semibold"><?php echo htmlspecialchars($formattedReleaseDate); ?></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
-</div>
+    <div class="d-flex gap-3 mb-5 flex-wrap">
+        <?php if ($canConfirmReceipt): ?>
+        <button
+            type="button"
+            id="confirmReceiptButton"
+            class="btn btn-success flex-grow-1 py-3 rounded-3 fw-bold fs-6 shadow-sm"
+            onclick="confirmReceipt()"
+        >
+            <i class="fa-solid fa-check-circle me-2"></i> Tôi đã nhận được xe
+        </button>
+        <?php else: ?>
+        <button class="btn btn-outline-secondary flex-grow-1 py-3 rounded-3 fw-bold fs-6 shadow-sm" disabled>
+            <i class="fa-solid fa-check-circle me-2"></i> Chưa có thao tác xác nhận ở trạng thái này
+        </button>
+        <?php endif; ?>
 
-<div class="modal fade" id="disputeModal" tabindex="-1">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content rounded-4 border-0 shadow">
-      <div class="modal-header border-bottom-0 pb-0">
-        <h5 class="modal-title fw-bold text-danger"><i class="fa-solid fa-triangle-exclamation"></i> Yêu cầu Hoàn tiền / Khiếu nại</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body">
-        <p class="text-muted" style="font-size: 14px;">Hệ thống sẽ đóng băng số tiền này. Quản trị viên SpinBike sẽ vào cuộc xử lý.</p>
-        <form>
-            <div class="mb-3">
-                <label class="form-label fw-bold">Lý do khiếu nại</label>
-                <select class="form-select rounded-3">
-                    <option>Xe bị xước xát/hỏng hóc so với mô tả</option>
-                    <option>Người bán giao sai xe</option>
-                    <option>Chưa nhận được xe quá thời hạn</option>
-                </select>
-            </div>
-            <div class="mb-3">
-                <label class="form-label fw-bold">Mô tả chi tiết</label>
-                <textarea class="form-control rounded-3" rows="3" placeholder="Vui lòng mô tả rõ vấn đề bạn gặp phải..."></textarea>
-            </div>
-            <div class="mb-4">
-                <label class="form-label fw-bold">Hình ảnh bằng chứng (Tùy chọn)</label>
-                <input type="file" class="form-control rounded-3" multiple>
-            </div>
-            <button type="submit" class="btn btn-danger w-100 py-2 rounded-3 fw-bold">Gửi khiếu nại lên Admin</button>
-        </form>
-      </div>
+        <button class="btn btn-outline-danger py-3 px-4 rounded-3 fw-bold shadow-sm" disabled>
+            <i class="fa-solid fa-triangle-exclamation"></i> Tính năng khiếu nại đang được cập nhật
+        </button>
     </div>
-  </div>
+    <?php endif; ?>
 </div>
 
+<?php if ($canConfirmReceipt): ?>
 <script>
-    function confirmReceived() {
-        if(confirm('Xác nhận: Bạn đã kiểm tra xe và đồng ý giải phóng 3.000.000đ cho người bán? Hành động này không thể hoàn tác.')) {
-            // Chỗ này gọi AJAX tới file PHP xử lý Escrow mà anh em mình bàn ở tin nhắn trước
-            alert('Đã giải phóng tiền cho người bán!');
+    async function confirmReceipt() {
+        const confirmMessage = 'Xác nhận bạn đã kiểm tra xe và đồng ý giải phóng tiền cho người bán? Hành động này không thể hoàn tác.';
+        if (!window.confirm(confirmMessage)) {
+            return;
+        }
+
+        const button = document.getElementById('confirmReceiptButton');
+        const originalHtml = button.innerHTML;
+        button.disabled = true;
+        button.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i> Đang xác nhận...';
+
+        try {
+            const response = await fetch('<?php echo $confirmOrderUrl; ?>', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                },
+                body: new URLSearchParams({
+                    order_id: '<?php echo (int) $order['id']; ?>',
+                }),
+            });
+
+            const result = await response.json();
+            const status = result.status === 'success' ? 'success' : 'error';
+            const message = result.message || 'Không thể xác nhận nhận hàng lúc này.';
+            window.location.href = '<?php echo $orderDetailUrl; ?>?id=<?php echo (int) $order['id']; ?>&status=' + encodeURIComponent(status) + '&message=' + encodeURIComponent(message);
+        } catch (error) {
+            window.location.href = '<?php echo $orderDetailUrl; ?>?id=<?php echo (int) $order['id']; ?>&status=error&message=' + encodeURIComponent('Không thể gửi yêu cầu xác nhận lúc này. Vui lòng thử lại sau.');
+        } finally {
+            button.disabled = false;
+            button.innerHTML = originalHtml;
         }
     }
 </script>
+<?php endif; ?>
 
 <?php include __DIR__ . '/../layouts/footer.php'; ?>
