@@ -14,6 +14,9 @@ if (!isset($_SESSION['user_id'])) {
 $productId = filter_input(INPUT_GET, 'product_id', FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
 $checkoutError = null;
 $product = null;
+$checkoutStatus = $_GET['status'] ?? '';
+$checkoutMessage = trim((string)($_GET['message'] ?? ''));
+$checkoutNoticeClass = $checkoutStatus === 'success' ? 'auth-message auth-message-success' : 'auth-message auth-message-error';
 
 if ($productId === false || $productId === null) {
     $checkoutError = 'Không tìm thấy sản phẩm hợp lệ để thanh toán.';
@@ -53,6 +56,12 @@ include __DIR__ . '/../layouts/header.php';
 ?>
 
 <div class="container py-5" style="max-width: 1000px;">
+    <?php if ($checkoutMessage !== ''): ?>
+    <div class="<?php echo $checkoutNoticeClass; ?>">
+        <?php echo htmlspecialchars($checkoutMessage); ?>
+    </div>
+    <?php endif; ?>
+
     <?php if ($checkoutError !== null): ?>
     <div class="empty-state-card">
         <i class="fa-solid fa-circle-exclamation empty-state-icon"></i>

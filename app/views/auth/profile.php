@@ -15,6 +15,9 @@ $db = $database->getConnectionOrNull();
 $user_id = $_SESSION['user_id'];
 $profileError = null;
 $user = null;
+$profileStatus = $_GET['status'] ?? '';
+$profileMessage = trim((string)($_GET['message'] ?? ''));
+$profileNoticeClass = $profileStatus === 'success' ? 'auth-message auth-message-success' : 'auth-message auth-message-error';
 
 if (!$db) {
     $profileError = 'Thông tin tài khoản hiện chưa thể tải. Vui lòng kiểm tra kết nối dữ liệu và thử lại sau.';
@@ -29,76 +32,81 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && $db) {
     // Bỏ qua biến $address vì Database không có cột này
     
     if (empty($name)) {
-        die("<script>alert('Lỗi: Tên không được để trống!'); window.history.back();</script>");
+        $profileError = 'Tên hiển thị không được để trống.';
     }
 
-    // Lấy thông tin cũ
-    $stmt_old = $db->prepare("SELECT avatar FROM users WHERE id = ?");
-    $stmt_old->execute([$user_id]);
-    $old_user = $stmt_old->fetch(PDO::FETCH_ASSOC);
-    $avatar_url = $old_user['avatar'] ?? null;
+    if ($profileError === null) {
+        // Lấy thông tin cũ
+        $stmt_old = $db->prepare("SELECT avatar FROM users WHERE id = ?");
+        $stmt_old->execute([$user_id]);
+        $old_user = $stmt_old->fetch(PDO::FETCH_ASSOC);
+        $avatar_url = $old_user['avatar'] ?? null;
+    }
 
     // ==========================================
     // ĐẨY ẢNH LÊN CLOUDINARY
     // ==========================================
-    if (isset($_FILES['avatar']) && $_FILES['avatar']['name'] !== '') {
+    if ($profileError === null && isset($_FILES['avatar']) && $_FILES['avatar']['name'] !== '') {
         if ($_FILES['avatar']['error'] !== 0) {
-            die("<script>alert('Lỗi file từ máy tính (Mã: " . $_FILES['avatar']['error'] . ")'); window.history.back();</script>");
+            $profileError = 'Tệp ảnh tải lên đang gặp sự cố. Vui lòng chọn lại ảnh khác.';
         }
 
-        $file_ext = strtolower(pathinfo($_FILES['avatar']['name'], PATHINFO_EXTENSION));
-        $allowed_exts = ['jpg', 'jpeg', 'png', 'webp'];
+        if ($profileError === null) {
+            $file_ext = strtolower(pathinfo($_FILES['avatar']['name'], PATHINFO_EXTENSION));
+            $allowed_exts = ['jpg', 'jpeg', 'png', 'webp'];
 
-        if (in_array($file_ext, $allowed_exts)) {
-            $cloud_name = CLD_CLOUD_NAME;
-            $upload_preset = CLD_UPLOAD_PRESET;
-            $file_tmp = $_FILES['avatar']['tmp_name'];
+            if (in_array($file_ext, $allowed_exts)) {
+                $cloud_name = CLD_CLOUD_NAME;
+                $upload_preset = CLD_UPLOAD_PRESET;
+                $file_tmp = $_FILES['avatar']['tmp_name'];
 
-            $ch = curl_init('https://api.cloudinary.com/v1_1/' . $cloud_name . '/image/upload');
-            $cfile = new CURLFile($file_tmp, $_FILES['avatar']['type'], $_FILES['avatar']['name']);
-            
-            $data = [
-                'file' => $cfile,
-                'upload_preset' => $upload_preset
-            ];
+                $ch = curl_init('https://api.cloudinary.com/v1_1/' . $cloud_name . '/image/upload');
+                $cfile = new CURLFile($file_tmp, $_FILES['avatar']['type'], $_FILES['avatar']['name']);
+                
+                $data = [
+                    'file' => $cfile,
+                    'upload_preset' => $upload_preset
+                ];
 
-            curl_setopt($ch, CURLOPT_POST, true);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-            
-            $response = curl_exec($ch);
-            
-            if ($response === false) {
-                die("<script>alert('Lỗi XAMPP cURL: " . addslashes(curl_error($ch)) . "'); window.history.back();</script>");
-            } 
-            
-            $result = json_decode($response, true);
-            if (isset($result['secure_url'])) {
-                $avatar_url = $result['secure_url']; // Lấy link thành công
+                curl_setopt($ch, CURLOPT_POST, true);
+                curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+                
+                $response = curl_exec($ch);
+                
+                if ($response === false) {
+                    $profileError = 'Không thể tải ảnh đại diện lên lúc này. Vui lòng thử lại sau.';
+                } else {
+                    $result = json_decode($response, true);
+                    if (isset($result['secure_url'])) {
+                        $avatar_url = $result['secure_url'];
+                    } else {
+                        $profileError = $result['error']['message'] ?? 'Dịch vụ ảnh đại diện đang từ chối yêu cầu. Vui lòng thử lại sau.';
+                    }
+                }
+
+                curl_close($ch);
             } else {
-                $err_msg = $result['error']['message'] ?? 'Lỗi từ Cloudinary';
-                die("<script>alert('Cloudinary từ chối: " . addslashes($err_msg) . "'); window.history.back();</script>");
+                $profileError = 'Ảnh đại diện chỉ hỗ trợ JPG, JPEG, PNG hoặc WEBP.';
             }
-            curl_close($ch);
-        } else {
-            die("<script>alert('Định dạng ảnh không hợp lệ!'); window.history.back();</script>");
         }
     }
 
     // ==========================================
     // CẬP NHẬT DATABASE (Đã xóa cột address)
     // ==========================================
+    if ($profileError === null) {
     try {
         $query = "UPDATE users SET name = ?, phone = ?, avatar = ? WHERE id = ?";
         $stmt = $db->prepare($query);
         $stmt->execute([$name, $phone, $avatar_url, $user_id]);
         
-        echo "<script>alert('Cập nhật thông tin thành công!'); window.location.href='profile.php';</script>";
+        header('Location: profile.php?status=success&message=' . rawurlencode('Cập nhật thông tin thành công.'));
         exit;
     } catch (Exception $e) {
-        // Nếu có bất kỳ lỗi nào từ DB, nó sẽ in ra màn hình ngay lập tức!
-        die("<script>alert('Lỗi CSDL: " . addslashes($e->getMessage()) . "'); window.history.back();</script>");
+        $profileError = 'Không thể lưu thay đổi lúc này. Vui lòng thử lại sau.';
+    }
     }
 } elseif ($_SERVER['REQUEST_METHOD'] == 'POST' && !$db) {
     $profileError = 'Không thể lưu thay đổi lúc này vì kết nối dữ liệu đang gặp sự cố.';
@@ -164,6 +172,12 @@ include __DIR__ . '/../layouts/header.php';
             <div class="col-lg-9">
                 <div class="profile-card">
                     <h2 class="profile-page-title">Thông tin cá nhân</h2>
+                    <?php if ($profileMessage !== ''): ?>
+                    <div class="<?php echo $profileNoticeClass; ?>">
+                        <?php echo htmlspecialchars($profileMessage); ?>
+                    </div>
+                    <?php endif; ?>
+
                     <p class="profile-page-subtitle">
                         <?php echo $profileError === null ? 'Cập nhật thông tin cá nhân và ảnh đại diện của bạn.' : htmlspecialchars($profileError); ?>
                     </p>

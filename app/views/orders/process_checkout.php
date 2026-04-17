@@ -3,6 +3,12 @@ session_start();
 require_once __DIR__ . '/../../../config/config.php';
 require_once __DIR__ . '/../../helpers/Database.php';
 
+function redirect_with_feedback(string $url, string $message, string $status = 'error'): never {
+    $separator = str_contains($url, '?') ? '&' : '?';
+    header('Location: ' . $url . $separator . 'status=' . rawurlencode($status) . '&message=' . rawurlencode($message));
+    exit;
+}
+
 // Bảo vệ file: Phải đăng nhập và đi vào bằng nút "Submit" mới được
 if (!isset($_SESSION['user_id']) || $_SERVER['REQUEST_METHOD'] !== 'POST') {
     header("Location: " . asset_url('index.php'));
@@ -13,10 +19,10 @@ $buyer_id = $_SESSION['user_id'];
 $product_id = filter_input(INPUT_POST, 'product_id', FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
 $payment_method = $_POST['payment_method'] ?? '';
 $allowedPaymentMethods = ['vnpay', 'momo'];
+$checkoutUrl = app_url('app/views/orders/checkout.php') . '?product_id=' . ($product_id ?: '');
 
 if ($product_id === false || $product_id === null || !in_array($payment_method, $allowedPaymentMethods, true)) {
-    echo "<script>alert('Dữ liệu thanh toán không hợp lệ. Vui lòng thử lại.'); window.location.href='" . asset_url('index.php') . "';</script>";
-    exit;
+    redirect_with_feedback(asset_url('index.php'), 'Dữ liệu thanh toán không hợp lệ. Vui lòng thử lại.');
 }
 
 // TẠI ĐÂY MÔ PHỎNG VIỆC GỌI API VNPAY/MOMO THÀNH CÔNG
@@ -27,8 +33,7 @@ $database = new Database();
 $db = $database->getConnectionOrNull();
 
 if (!$db) {
-    echo "<script>alert('Không thể kết nối dữ liệu để xử lý thanh toán. Vui lòng thử lại sau.'); window.history.back();</script>";
-    exit;
+    redirect_with_feedback($checkoutUrl, 'Không thể kết nối dữ liệu để xử lý thanh toán. Vui lòng thử lại sau.');
 }
 
 try {
@@ -72,18 +77,17 @@ try {
     // Xác nhận lưu vào Database
     $db->commit();
 
-    // Đẩy người dùng sang trang Theo dõi đơn hàng (Kèm theo thông báo xịn)
-    echo "<script>
-            alert('Thanh toán thành công! Tiền của bạn đang được SpinBike giữ an toàn.');
-            window.location.href = '" . app_url("app/views/orders/detail.php") . "?id=" . $order_id . "';
-          </script>";
-    exit;
+    redirect_with_feedback(
+        app_url("app/views/orders/detail.php") . "?id=" . $order_id,
+        'Thanh toán thành công. SpinBike đang giữ tiền an toàn cho đơn hàng của bạn.',
+        'success'
+    );
 
 } catch (Exception $e) {
     // Nếu có lỗi CSDL, hủy bỏ lệnh
     if ($db->inTransaction()) {
         $db->rollBack();
     }
-    echo "<script>alert('Lỗi hệ thống: " . $e->getMessage() . "'); window.history.back();</script>";
+    redirect_with_feedback($checkoutUrl, $e->getMessage());
 }
 ?>
