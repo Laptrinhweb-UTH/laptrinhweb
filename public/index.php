@@ -80,8 +80,14 @@ if (!$db) {
           <?php elseif (!empty($products) && count($products) > 0): ?>
             <?php foreach ($products as $row): ?>
               <?php
+                $productTitle = trim((string)($row['title'] ?? ''));
+                if ($productTitle === '') {
+                    $productTitle = 'Xe đạp đang cập nhật tên';
+                }
+
                 // 1. Định dạng giá tiền cho đẹp
-                $formattedPrice = number_format($row['price'], 0, ',', '.') . ' đ';
+                $priceValue = $row['price'] ?? null;
+                $formattedPrice = is_numeric($priceValue) ? number_format((float)$priceValue, 0, ',', '.') . ' đ' : 'Liên hệ để báo giá';
                 
                 // 2. Lấy link ảnh
                 $image = !empty($row['main_image']) ? $row['main_image'] : 'https://via.placeholder.com/400x300?text=Chua+Co+Anh';
@@ -94,18 +100,20 @@ if (!$db) {
                 }
 
                 // 3. TÍNH TOÁN THỜI GIAN ĐĂNG BÀI
-                $createdAt = strtotime($row['created_at']); 
+                $createdAt = !empty($row['created_at']) ? strtotime((string)$row['created_at']) : false;
                 $now = time(); 
-                $diff = $now - $createdAt; 
+                $diff = $createdAt ? ($now - $createdAt) : null;
 
-                if ($diff < 3600) {
+                if ($diff !== null && $diff < 3600) {
                     $mins = floor($diff / 60);
                     $timeAgo = ($mins > 0 ? $mins : 1) . ' phút trước';
-                } elseif ($diff < 86400) {
+                } elseif ($diff !== null && $diff < 86400) {
                     $hours = floor($diff / 3600);
                     $timeAgo = $hours . ' giờ trước';
-                } else {
+                } elseif ($createdAt) {
                     $timeAgo = date('d/m/Y', $createdAt);
+                } else {
+                    $timeAgo = 'Vừa cập nhật';
                 }
 
                 // 4. LẤY SỐ LƯỢNG ẢNH
@@ -123,7 +131,7 @@ if (!$db) {
                 </div>
                 
                 <div class="product-info">
-                    <h3 class="product-title"><?php echo htmlspecialchars($row['title']); ?></h3>
+                    <h3 class="product-title"><?php echo htmlspecialchars($productTitle); ?></h3>
                     <div class="product-price"><?php echo $formattedPrice; ?></div>
                     
                     <div class="product-location product-location-spaced">

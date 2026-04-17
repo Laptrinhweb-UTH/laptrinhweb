@@ -39,6 +39,41 @@ if (!$db) {
     }
 }
 
+$productTitle = trim((string)($product['title'] ?? ''));
+if ($productTitle === '') {
+    $productTitle = 'Xe đạp đang cập nhật tên';
+}
+
+$productBrand = trim((string)($product['brand'] ?? ''));
+if ($productBrand === '') {
+    $productBrand = 'Chưa cập nhật hãng xe';
+}
+
+$productLocation = trim((string)($product['location'] ?? ''));
+if ($productLocation === '') {
+    $productLocation = 'Đang cập nhật vị trí';
+}
+
+$productSize = trim((string)($product['size'] ?? ''));
+if ($productSize === '') {
+    $productSize = 'Đang cập nhật';
+}
+
+$productCondition = $product['condition'] ?? null;
+$productConditionLabel = is_numeric($productCondition) ? rtrim(rtrim(number_format((float)$productCondition, 0, ',', '.'), '0'), ',') . '%' : 'Đang cập nhật';
+
+$productGroupset = trim((string)($product['groupset'] ?? ''));
+if ($productGroupset === '') {
+    $productGroupset = 'Đang cập nhật';
+}
+
+$productDescription = trim((string)($product['description'] ?? ''));
+if ($productDescription === '') {
+    $productDescription = 'Người bán chưa bổ sung mô tả chi tiết cho sản phẩm này.';
+}
+
+$sellerLabel = is_numeric($sellerId) ? 'Người bán (ID: ' . $sellerId . ')' : 'Người bán đang cập nhật';
+
 include __DIR__ . '/../app/views/layouts/header.php';
 ?>
 
@@ -55,9 +90,9 @@ include __DIR__ . '/../app/views/layouts/header.php';
         <div class="detail-breadcrumbs">
             <a href="index.php" class="detail-breadcrumb-link"><i class="fa-solid fa-house"></i> Trang chủ</a> 
             <i class="fa-solid fa-angle-right detail-breadcrumb-separator"></i>
-            <span><?php echo htmlspecialchars($product['brand'] ?? 'Khác'); ?></span>
+            <span><?php echo htmlspecialchars($productBrand); ?></span>
             <i class="fa-solid fa-angle-right detail-breadcrumb-separator"></i>
-            <span class="detail-breadcrumb-current"><?php echo htmlspecialchars($product['title']); ?></span>
+            <span class="detail-breadcrumb-current"><?php echo htmlspecialchars($productTitle); ?></span>
         </div>
 
         <div class="detail-page-card">
@@ -88,7 +123,7 @@ include __DIR__ . '/../app/views/layouts/header.php';
             </div>
 
             <div class="detail-info">
-                <h1 class="detail-page-title"><?php echo htmlspecialchars($product['title']); ?></h1>
+                <h1 class="detail-page-title"><?php echo htmlspecialchars($productTitle); ?></h1>
                 
                <div class="detail-page-price"><?php echo $formattedPrice; ?></div>
                 
@@ -97,9 +132,9 @@ include __DIR__ . '/../app/views/layouts/header.php';
                     <div class="detail-seller-header">
                         <img src="<?php echo $avatarUrl; ?>" alt="Avatar" class="detail-seller-avatar">
                         <div>
-                            <div class="detail-seller-name">Người bán (ID: <?php echo $sellerId; ?>)</div>
+                            <div class="detail-seller-name"><?php echo htmlspecialchars($sellerLabel); ?></div>
                             <div class="detail-seller-location">
-                                <i class="fa-solid fa-location-dot"></i> <?php echo htmlspecialchars($product['location'] ?? 'Đang cập nhật'); ?>
+                                <i class="fa-solid fa-location-dot"></i> <?php echo htmlspecialchars($productLocation); ?>
                             </div>
                         </div>
                     </div>
@@ -121,26 +156,26 @@ include __DIR__ . '/../app/views/layouts/header.php';
                     <table class="detail-specs-table">
                         <tr class="detail-spec-row detail-spec-row-alt">
                             <td class="detail-spec-label">Hãng xe</td>
-                            <td class="detail-spec-value"><?php echo htmlspecialchars($product['brand'] ?? 'Khác'); ?></td>
+                            <td class="detail-spec-value"><?php echo htmlspecialchars($productBrand); ?></td>
                         </tr>
                         <tr class="detail-spec-row">
                             <td class="detail-spec-label">Size khung</td>
-                            <td class="detail-spec-value"><?php echo htmlspecialchars($product['size'] ?? 'Đang cập nhật'); ?></td>
+                            <td class="detail-spec-value"><?php echo htmlspecialchars($productSize); ?></td>
                         </tr>
                         <tr class="detail-spec-row detail-spec-row-alt">
                             <td class="detail-spec-label">Độ mới</td>
-                            <td class="detail-spec-value detail-spec-value-danger"><?php echo htmlspecialchars($product['condition'] ?? 'Đang cập nhật'); ?>%</td>
+                            <td class="detail-spec-value detail-spec-value-danger"><?php echo htmlspecialchars($productConditionLabel); ?></td>
                         </tr>
                         <tr class="detail-spec-row">
                             <td class="detail-spec-label">Groupset</td>
-                            <td class="detail-spec-value"><?php echo htmlspecialchars($product['groupset'] ?? 'Nguyên bản'); ?></td>
+                            <td class="detail-spec-value"><?php echo htmlspecialchars($productGroupset); ?></td>
                         </tr>
                     </table>
                 </div>
 
                 <h3 class="detail-section-title detail-description-title">Mô tả bài đăng</h3>
                 <div class="detail-description-card">
-<?php echo htmlspecialchars($product['description'] ?? 'Không có mô tả.'); ?>
+<?php echo nl2br(htmlspecialchars($productDescription)); ?>
                 </div>
             </div>
         </div>

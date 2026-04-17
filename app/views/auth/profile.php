@@ -121,6 +121,21 @@ if ($db) {
 
 $display_name = htmlspecialchars($user['name'] ?? 'U');
 $display_avatar = !empty($user['avatar']) ? $user['avatar'] : "https://ui-avatars.com/api/?name=" . urlencode($display_name) . "&background=10b981&color=fff&size=120&rounded=true&bold=true";
+$profileName = trim((string)($user['name'] ?? ''));
+$profilePhone = trim((string)($user['phone'] ?? ''));
+$profileEmail = trim((string)($user['email'] ?? ''));
+
+if ($profileName === '') {
+    $profileName = 'Người dùng SpinBike';
+}
+
+if ($profilePhone === '') {
+    $profilePhone = 'Chưa cập nhật số điện thoại';
+}
+
+if ($profileEmail === '') {
+    $profileEmail = 'Chưa cập nhật email';
+}
 
 include __DIR__ . '/../layouts/header.php'; 
 ?>
@@ -174,15 +189,15 @@ include __DIR__ . '/../layouts/header.php';
                         <div class="row g-4">
                             <div class="col-md-6">
                                 <label class="profile-field-label">Họ và tên <span class="text-danger">*</span></label>
-                                <input type="text" name="fullname" class="form-control profile-field-input" value="<?= htmlspecialchars($user['name'] ?? '') ?>" required>
+                                <input type="text" name="fullname" class="form-control profile-field-input" value="<?= htmlspecialchars($profileName) ?>" required>
                             </div>
                             <div class="col-md-6">
                                 <label class="profile-field-label">Số điện thoại</label>
-                                <input type="tel" name="phone" class="form-control profile-field-input" value="<?= htmlspecialchars($user['phone'] ?? '') ?>">
+                                <input type="tel" name="phone" class="form-control profile-field-input" value="<?= htmlspecialchars($profilePhone === 'Chưa cập nhật số điện thoại' ? '' : $profilePhone) ?>" placeholder="Chưa cập nhật số điện thoại">
                             </div>
                             <div class="col-md-12">
                                 <label class="profile-field-label">Địa chỉ Email</label>
-                                <input type="email" name="email" class="form-control profile-field-input profile-field-readonly" value="<?= htmlspecialchars($user['email'] ?? '') ?>" readonly>
+                                <input type="email" name="email" class="form-control profile-field-input profile-field-readonly" value="<?= htmlspecialchars($profileEmail) ?>" readonly>
                             </div>
                             <div class="col-md-12">
                                 <label class="profile-field-label">Địa chỉ (Tỉnh/Thành phố)</label>
