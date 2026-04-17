@@ -132,6 +132,9 @@ $display_avatar = !empty($user['avatar']) ? $user['avatar'] : "https://ui-avatar
 $profileName = trim((string)($user['name'] ?? ''));
 $profilePhone = trim((string)($user['phone'] ?? ''));
 $profileEmail = trim((string)($user['email'] ?? ''));
+$profilePageUrl = app_url('app/views/auth/profile.php');
+$buyerOrdersUrl = app_url('app/views/orders/index.php') . '?view=buyer';
+$sellerOrdersUrl = app_url('app/views/orders/index.php') . '?view=seller';
 
 if ($profileName === '') {
     $profileName = 'Người dùng SpinBike';
@@ -154,16 +157,16 @@ include __DIR__ . '/../layouts/header.php';
             
             <div class="col-lg-3">
                 <div class="profile-sidebar">
-                    <a href="profile.php" class="profile-nav-link active">
+                    <a href="<?php echo $profilePageUrl; ?>" class="profile-nav-link active">
                         <i class="fa-regular fa-user"></i> Hồ sơ của tôi
                     </a>
-                    <a href="#" class="profile-nav-link">
+                    <a href="javascript:void(0)" class="profile-nav-link">
                         <i class="fa-solid fa-lock"></i> Đổi mật khẩu
                     </a>
-                    <a href="#" class="profile-nav-link">
+                    <a href="<?php echo $buyerOrdersUrl; ?>" class="profile-nav-link">
                         <i class="fa-solid fa-box"></i> Đơn hàng mua
                     </a>
-                    <a href="#" class="profile-nav-link">
+                    <a href="<?php echo $sellerOrdersUrl; ?>" class="profile-nav-link">
                         <i class="fa-solid fa-shop"></i> Quản lý bán hàng
                     </a>
                 </div>

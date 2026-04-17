@@ -116,6 +116,7 @@ $pageSubtitle = $view === 'seller'
     : 'Theo dõi các đơn hàng bạn đã mua và tiến trình giữ tiền an toàn.';
 $otherView = $view === 'seller' ? 'buyer' : 'seller';
 $otherViewLabel = $view === 'seller' ? 'Xem đơn hàng mua' : 'Xem quản lý bán hàng';
+$profilePageUrl = app_url('app/views/auth/profile.php');
 
 include __DIR__ . '/../layouts/header.php';
 ?>
@@ -127,6 +128,9 @@ include __DIR__ . '/../layouts/header.php';
             <p class="text-muted mb-0"><?php echo htmlspecialchars($pageSubtitle); ?></p>
         </div>
         <div class="d-flex gap-2 flex-wrap">
+            <a href="<?php echo $profilePageUrl; ?>" class="btn btn-outline-secondary rounded-pill px-4">
+                <i class="fa-regular fa-user me-2"></i>Hồ sơ của tôi
+            </a>
             <a href="<?php echo app_url('app/views/orders/index.php'); ?>?view=buyer" class="btn <?php echo $view === 'buyer' ? 'btn-success' : 'btn-outline-success'; ?> rounded-pill px-4">
                 <i class="fa-solid fa-box me-2"></i>Đơn hàng mua
             </a>
