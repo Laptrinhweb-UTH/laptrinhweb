@@ -6,11 +6,20 @@ include __DIR__ . '/../app/views/layouts/header.php';
 require_once __DIR__ . '/../app/helpers/Database.php';
 require_once __DIR__ . '/../app/models/Product.php';
 $database = new Database();
-$db = $database->getConnection();
-$productModel = new Product($db);
+$db = $database->getConnectionOrNull();
+$products = [];
+$pageError = null;
 
-// Lấy danh sách sản phẩm để biến $products có giá trị
-$products = $productModel->getAll();
+if (!$db) {
+    $pageError = 'Danh sách sản phẩm hiện chưa sẵn sàng. Vui lòng kiểm tra lại kết nối dữ liệu và thử lại sau.';
+} else {
+    try {
+        $productModel = new Product($db);
+        $products = $productModel->getAll();
+    } catch (Throwable $exception) {
+        $pageError = 'Danh sách sản phẩm tạm thời chưa thể tải. Vui lòng thử lại sau.';
+    }
+}
 ?>
 
     <div class="main-content home-page-layout">
@@ -63,11 +72,22 @@ $products = $productModel->getAll();
         </div>
 
         <div id="productGrid" class="product-grid">
-          <?php if (!empty($products) && count($products) > 0): ?>
+          <?php if ($pageError !== null): ?>
+            <div class="empty-state-card">
+                <i class="fa-solid fa-circle-exclamation empty-state-icon"></i>
+                <p class="empty-state-text"><?php echo htmlspecialchars($pageError); ?></p>
+            </div>
+          <?php elseif (!empty($products) && count($products) > 0): ?>
             <?php foreach ($products as $row): ?>
               <?php
+                $productTitle = trim((string)($row['title'] ?? ''));
+                if ($productTitle === '') {
+                    $productTitle = 'Xe đạp đang cập nhật tên';
+                }
+
                 // 1. Định dạng giá tiền cho đẹp
-                $formattedPrice = number_format($row['price'], 0, ',', '.') . ' đ';
+                $priceValue = $row['price'] ?? null;
+                $formattedPrice = is_numeric($priceValue) ? number_format((float)$priceValue, 0, ',', '.') . ' đ' : 'Liên hệ để báo giá';
                 
                 // 2. Lấy link ảnh
                 $image = !empty($row['main_image']) ? $row['main_image'] : 'https://via.placeholder.com/400x300?text=Chua+Co+Anh';
@@ -80,18 +100,20 @@ $products = $productModel->getAll();
                 }
 
                 // 3. TÍNH TOÁN THỜI GIAN ĐĂNG BÀI
-                $createdAt = strtotime($row['created_at']); 
+                $createdAt = !empty($row['created_at']) ? strtotime((string)$row['created_at']) : false;
                 $now = time(); 
-                $diff = $now - $createdAt; 
+                $diff = $createdAt ? ($now - $createdAt) : null;
 
-                if ($diff < 3600) {
+                if ($diff !== null && $diff < 3600) {
                     $mins = floor($diff / 60);
                     $timeAgo = ($mins > 0 ? $mins : 1) . ' phút trước';
-                } elseif ($diff < 86400) {
+                } elseif ($diff !== null && $diff < 86400) {
                     $hours = floor($diff / 3600);
                     $timeAgo = $hours . ' giờ trước';
-                } else {
+                } elseif ($createdAt) {
                     $timeAgo = date('d/m/Y', $createdAt);
+                } else {
+                    $timeAgo = 'Vừa cập nhật';
                 }
 
                 // 4. LẤY SỐ LƯỢNG ẢNH
@@ -109,7 +131,7 @@ $products = $productModel->getAll();
                 </div>
                 
                 <div class="product-info">
-                    <h3 class="product-title"><?php echo htmlspecialchars($row['title']); ?></h3>
+                    <h3 class="product-title"><?php echo htmlspecialchars($productTitle); ?></h3>
                     <div class="product-price"><?php echo $formattedPrice; ?></div>
                     
                     <div class="product-location product-location-spaced">

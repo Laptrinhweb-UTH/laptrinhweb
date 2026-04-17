@@ -19,9 +19,11 @@ $displayUserName = htmlspecialchars($_SESSION['user_name'] ?? '');
 $header_avatar_url = '';
 if ($isLoggedIn) {
     require_once __DIR__ . '/../../helpers/Database.php';
+    $headerDatabase = new Database();
+    $header_db = $headerDatabase->getConnectionOrNull();
+
     try {
-        // Dùng biến $header_db để không đụng chạm với biến $db ở các file khác
-        $header_db = (new Database())->getConnection();
+        if ($header_db) {
         $stmt = $header_db->prepare("SELECT avatar, name FROM users WHERE id = ?");
         $stmt->execute([$_SESSION['user_id']]);
         $header_user = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -33,7 +35,13 @@ if ($isLoggedIn) {
             $display_name = urlencode($header_user['name'] ?? $_SESSION['user_name'] ?? 'U');
             $header_avatar_url = "https://ui-avatars.com/api/?name={$display_name}&background=10b981&color=fff&rounded=true&bold=true";
         }
+        }
     } catch (Exception $e) {
+        $display_name = urlencode($_SESSION['user_name'] ?? 'U');
+        $header_avatar_url = "https://ui-avatars.com/api/?name={$display_name}&background=10b981&color=fff&rounded=true&bold=true";
+    }
+
+    if ($header_avatar_url === '') {
         $display_name = urlencode($_SESSION['user_name'] ?? 'U');
         $header_avatar_url = "https://ui-avatars.com/api/?name={$display_name}&background=10b981&color=fff&rounded=true&bold=true";
     }

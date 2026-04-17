@@ -1909,9 +1909,24 @@ img {
 }
 
 .auth-message {
+  margin-bottom: 20px;
+  padding: 14px 16px;
+  border-radius: var(--radius-md);
   text-align: center;
   font-size: 14px;
   font-weight: 500;
+}
+
+.auth-message-success {
+  background: #ecfdf5;
+  color: #047857;
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.auth-message-error {
+  background: #fff1f2;
+  color: #be123c;
+  border: 1px solid rgba(225, 29, 72, 0.16);
 }
 
 .back-home {

@@ -89,16 +89,21 @@ public function getAll() {
     }
     // Hàm lấy chi tiết 1 sản phẩm theo ID
     public function getProductDetail($id) {
+        $productId = filter_var($id, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+        if ($productId === false) {
+            return null;
+        }
+
         $query = "SELECT * FROM " . $this->table_name . " WHERE id = ? LIMIT 1";
         $stmt = $this->conn->prepare($query);
-        $stmt->execute([$id]);
+        $stmt->execute([$productId]);
         $product = $stmt->fetch(PDO::FETCH_ASSOC);
 
         // Lấy thêm toàn bộ ảnh của xe đó
         if ($product) {
             $imgQuery = "SELECT image_url FROM product_images WHERE product_id = ?";
             $imgStmt = $this->conn->prepare($imgQuery);
-            $imgStmt->execute([$id]);
+            $imgStmt->execute([$productId]);
             $product['images'] = $imgStmt->fetchAll(PDO::FETCH_COLUMN);
         }
 
