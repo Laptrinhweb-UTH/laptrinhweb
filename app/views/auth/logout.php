@@ -1,4 +1,6 @@
 <?php
+require_once __DIR__ . '/../../../config/config.php';
+
 // Bắt buộc phải start session thì mới có cái mà xóa
 session_start();
 
@@ -8,7 +10,7 @@ session_unset();
 // Hủy hoàn toàn phiên làm việc
 session_destroy();
 
-// Đẩy người dùng thẳng về trang chủ bằng đường dẫn tuyệt đối (Không cần gọi config)
-header("Location: /spinbike/public/index.php");
+// Đẩy người dùng về trang chủ theo cấu hình local hiện tại
+header("Location: " . asset_url('index.php'));
 exit;
 ?>

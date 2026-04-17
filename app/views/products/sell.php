@@ -7,7 +7,7 @@
         <p style="color: var(--text-secondary);">Vui lòng điền thông tin để đăng bán xe của bạn.</p>
     </div>
 
-    <form id="sellBikeForm" class="sell-form" action="<?php echo BASE_URL; ?>/process_sell.php" method="POST" enctype="multipart/form-data">
+    <form id="sellBikeForm" class="sell-form" action="<?php echo asset_url('process_sell.php'); ?>" method="POST" enctype="multipart/form-data">
         
         <div class="form-group">
             <label class="form-label">Tên xe <span class="text-danger">*</span></label>
