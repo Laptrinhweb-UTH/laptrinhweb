@@ -4,7 +4,7 @@
   <div class="auth-container">
     <div class="auth-header">
       <i class="fa-solid fa-bicycle"></i>
-      <h2 style="margin: 0; color: #0a4d68">SpinBike</h2>
+      <h2 class="auth-brand-title">SpinBike</h2>
     </div>
 
     <div class="auth-tabs">
@@ -30,7 +30,7 @@
       
       <a href="#" class="forgot-password">Quên mật khẩu?</a>
 
-      <div id="loginMessage" style="text-align: center; font-size: 14px; font-weight: 500;"></div>
+      <div id="loginMessage" class="auth-message"></div>
 
       <button type="submit" class="btn-submit auth-submit-btn">Đăng nhập</button>
     </form>
@@ -66,7 +66,7 @@
         </div>
       </div>
 
-      <div id="registerMessage" style="text-align: center; font-size: 14px; font-weight: 500;"></div>
+      <div id="registerMessage" class="auth-message"></div>
 
       <button type="submit" class="btn-submit auth-submit-btn">Tạo tài khoản</button>
     </form>

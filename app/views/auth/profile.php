@@ -140,7 +140,7 @@ include __DIR__ . '/../layouts/header.php';
                                 <label for="avatarInput" class="btn-upload profile-upload-label">
                                     Thay đổi ảnh đại diện
                                 </label>
-                                <input type="file" id="avatarInput" name="avatar" accept="image/*" style="display: none;" onchange="previewAvatar(event)">
+                                <input type="file" id="avatarInput" name="avatar" accept="image/*" class="visually-hidden-input" onchange="previewAvatar(event)">
                                 <p class="profile-upload-hint">Định dạng: JPG, PNG. Tối đa 2MB.</p>
                             </div>
                         </div>
