@@ -208,6 +208,8 @@ $timelineCurrentStep = match ($orderStatus) {
 $isCancelledOrder = $orderStatus === 'cancelled' || $escrowStatus === 'refunded';
 $isBuyerView = $order !== null && (int) $order['buyer_id'] === $currentUserId;
 $canConfirmReceipt = $isBuyerView && in_array($orderStatus, ['paid', 'shipping'], true) && $escrowStatus === 'holding';
+$orderDetailUrl = app_url('app/views/orders/detail.php');
+$confirmOrderUrl = app_url('app/controllers/ConfirmOrderController.php');
 
 include __DIR__ . '/../layouts/header.php';
 ?>
@@ -360,7 +362,12 @@ include __DIR__ . '/../layouts/header.php';
 
     <div class="d-flex gap-3 mb-5 flex-wrap">
         <?php if ($canConfirmReceipt): ?>
-        <button class="btn btn-success flex-grow-1 py-3 rounded-3 fw-bold fs-6 shadow-sm" disabled>
+        <button
+            type="button"
+            id="confirmReceiptButton"
+            class="btn btn-success flex-grow-1 py-3 rounded-3 fw-bold fs-6 shadow-sm"
+            onclick="confirmReceipt()"
+        >
             <i class="fa-solid fa-check-circle me-2"></i> Tôi đã nhận được xe
         </button>
         <?php else: ?>
@@ -375,5 +382,43 @@ include __DIR__ . '/../layouts/header.php';
     </div>
     <?php endif; ?>
 </div>
+
+<?php if ($canConfirmReceipt): ?>
+<script>
+    async function confirmReceipt() {
+        const confirmMessage = 'Xác nhận bạn đã kiểm tra xe và đồng ý giải phóng tiền cho người bán? Hành động này không thể hoàn tác.';
+        if (!window.confirm(confirmMessage)) {
+            return;
+        }
+
+        const button = document.getElementById('confirmReceiptButton');
+        const originalHtml = button.innerHTML;
+        button.disabled = true;
+        button.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i> Đang xác nhận...';
+
+        try {
+            const response = await fetch('<?php echo $confirmOrderUrl; ?>', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                },
+                body: new URLSearchParams({
+                    order_id: '<?php echo (int) $order['id']; ?>',
+                }),
+            });
+
+            const result = await response.json();
+            const status = result.status === 'success' ? 'success' : 'error';
+            const message = result.message || 'Không thể xác nhận nhận hàng lúc này.';
+            window.location.href = '<?php echo $orderDetailUrl; ?>?id=<?php echo (int) $order['id']; ?>&status=' + encodeURIComponent(status) + '&message=' + encodeURIComponent(message);
+        } catch (error) {
+            window.location.href = '<?php echo $orderDetailUrl; ?>?id=<?php echo (int) $order['id']; ?>&status=error&message=' + encodeURIComponent('Không thể gửi yêu cầu xác nhận lúc này. Vui lòng thử lại sau.');
+        } finally {
+            button.disabled = false;
+            button.innerHTML = originalHtml;
+        }
+    }
+</script>
+<?php endif; ?>
 
 <?php include __DIR__ . '/../layouts/footer.php'; ?>
