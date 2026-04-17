@@ -1,44 +1,66 @@
+<?php
+$footerSupportLinks = [
+    'Hướng dẫn mua bán an toàn',
+    'Mẹo kiểm tra xe đạp cũ',
+    'Quy định đăng tin & kiểm duyệt',
+    'Chính sách giải quyết tranh chấp',
+];
+
+$footerCatalogLinks = [
+    'Xe đạp Road (Cuộc) thanh lý',
+    'Xe đạp MTB (Địa hình) cũ',
+    'Phụ tùng & Phụ kiện qua sử dụng',
+    'Cộng đồng SpinBike',
+];
+
+$footerSocialLinks = [
+    ['title' => 'Facebook', 'icon' => 'fa-brands fa-facebook-f'],
+    ['title' => 'Instagram', 'icon' => 'fa-brands fa-instagram'],
+    ['title' => 'YouTube', 'icon' => 'fa-brands fa-youtube'],
+];
+?>
+
 <footer class="pro-footer">
     <div class="footer-main">
         <div class="container footer-grid">
-            <div class="footer-widget brand-info">
+            <section class="footer-widget brand-info">
                 <h2 class="footer-logo">SPINBIKE<span>.</span></h2>
                 <p>Nền tảng mua bán, ký gửi và trao đổi xe đạp thể thao cũ uy tín. Kết nối an toàn cộng đồng đam mê đạp xe trên toàn quốc.</p>
                 <div class="pro-socials">
-                    <a href="#" title="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
-                    <a href="#" title="Instagram"><i class="fa-brands fa-instagram"></i></a>
-                    <a href="#" title="YouTube"><i class="fa-brands fa-youtube"></i></a>
+                    <?php foreach ($footerSocialLinks as $social): ?>
+                        <a href="#" title="<?php echo $social['title']; ?>">
+                            <i class="<?php echo $social['icon']; ?>"></i>
+                        </a>
+                    <?php endforeach; ?>
                 </div>
-            </div>
+            </section>
 
-            <div class="footer-widget">
+            <nav class="footer-widget" aria-label="Hỗ trợ người dùng">
                 <h4>Hỗ Trợ Người Dùng</h4>
                 <ul>
-                    <li><a href="#">Hướng dẫn mua bán an toàn</a></li>
-                    <li><a href="#">Mẹo kiểm tra xe đạp cũ</a></li>
-                    <li><a href="#">Quy định đăng tin & kiểm duyệt</a></li>
-                    <li><a href="#">Chính sách giải quyết tranh chấp</a></li>
+                    <?php foreach ($footerSupportLinks as $link): ?>
+                        <li><a href="#"><?php echo $link; ?></a></li>
+                    <?php endforeach; ?>
                 </ul>
-            </div>
+            </nav>
 
-            <div class="footer-widget">
+            <nav class="footer-widget" aria-label="Khám phá danh mục">
                 <h4>Khám Phá & Danh Mục</h4>
                 <ul>
-                    <li><a href="#">Xe đạp Road (Cuộc) thanh lý</a></li>
-                    <li><a href="#">Xe đạp MTB (Địa hình) cũ</a></li>
-                    <li><a href="#">Phụ tùng & Phụ kiện qua sử dụng</a></li>
-                    <li><a href="#">Cộng đồng SpinBike</a></li>
+                    <?php foreach ($footerCatalogLinks as $link): ?>
+                        <li><a href="#"><?php echo $link; ?></a></li>
+                    <?php endforeach; ?>
                 </ul>
-            </div>
+            </nav>
 
-            <div class="footer-widget contact-widget">
+            <section class="footer-widget contact-widget">
                 <h4>Liên Hệ Ban Quản Trị</h4>
                 <ul>
                     <li><strong>Văn phòng:</strong> 123 Đường Giao Dịch, Quận 10, TP.HCM</li>
                     <li><strong>Hotline CSKH:</strong> 1900 1234 (8h - 20h)</li>
                     <li><strong>Email:</strong> hotro@spinbike.vn</li>
                 </ul>
-            </div>
+            </section>
         </div>
     </div>
 
