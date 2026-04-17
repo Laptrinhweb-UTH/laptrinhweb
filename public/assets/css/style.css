@@ -1,3 +1,6 @@
+/* =========================================
+   GLOBAL FOUNDATION
+========================================= */
 * {
   margin: 0;
   padding: 0;
@@ -16,6 +19,17 @@
   --border: #e5e7eb;
   --bg: #f9fafb;
   --white: #ffffff;
+  --shadow-sm: 0 4px 6px -1px rgba(15, 23, 42, 0.06);
+  --shadow-md:
+    0 14px 28px -14px rgba(15, 23, 42, 0.18),
+    0 10px 10px -8px rgba(15, 23, 42, 0.08);
+  --shadow-lg:
+    0 24px 48px -24px rgba(15, 23, 42, 0.28),
+    0 18px 22px -18px rgba(15, 23, 42, 0.12);
+  --radius-md: 12px;
+  --radius-lg: 20px;
+  --radius-xl: 24px;
+  --transition-base: 0.25s ease;
 }
 
 html,
@@ -28,6 +42,20 @@ body {
     sans-serif;
   background-color: var(--bg);
   color: var(--text-primary);
+  line-height: 1.5;
+}
+
+body {
+  min-height: 100vh;
+}
+
+a {
+  color: inherit;
+}
+
+img {
+  max-width: 100%;
+  display: block;
 }
 
 .container {
@@ -36,10 +64,14 @@ body {
   padding: 0 24px;
 }
 
+.hidden {
+  display: none !important;
+}
+
 /* ============ HEADER ============ */
 .header {
   background-color: var(--white);
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-sm);
   position: sticky;
   top: 0;
   z-index: 50;
@@ -51,6 +83,13 @@ body {
   justify-content: space-between;
   gap: 32px;
   padding: 16px 24px;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-shrink: 0;
 }
 
 .logo {
@@ -80,9 +119,9 @@ body {
 
 .search-box {
   flex: 1;
-  max-width: 850px; /* Tăng từ 512px lên 750px để thanh tìm kiếm dài ra */
+  max-width: 850px;
   position: relative;
-  margin: 0 40px; /* Thêm khoảng cách hai bên để tạo sự cân đối */
+  margin: 0 40px;
 }
 
 .search-box input {
@@ -92,12 +131,15 @@ body {
   border: 1px solid var(--border);
   border-radius: 24px;
   font-size: 16px;
-  transition: border-color 0.3s;
+  transition:
+    border-color var(--transition-base),
+    box-shadow var(--transition-base);
 }
 
 .search-box input:focus {
   outline: none;
   border-color: var(--primary-light);
+  box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.08);
 }
 
 .search-box i {
@@ -108,92 +150,117 @@ body {
   color: var(--text-secondary);
   pointer-events: none;
 }
+
 .btn-sell {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
-  background-color: var(--danger); /* Đổi sang màu đỏ */
+  background-color: var(--danger);
   color: var(--white);
   border: none;
   padding: 12px 32px;
   border-radius: 24px;
-  font-weight: 700; /* In đậm hơn */
+  font-weight: 700;
   font-size: 16px;
   cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(225, 29, 72, 0.4); /* Thêm viền sáng */
+  transition:
+    transform var(--transition-base),
+    background-color var(--transition-base),
+    box-shadow var(--transition-base);
+  box-shadow: 0 12px 24px -14px rgba(225, 29, 72, 0.55);
 }
 
 .btn-sell:hover {
   background-color: var(--accent-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 16px 30px -18px rgba(234, 88, 12, 0.5);
 }
-.header-content {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
+
 .auth-buttons {
   display: flex;
   align-items: center;
   margin-left: auto;
 }
 
-/* Style cho icon người dùng */
+.header-user-info {
+  min-width: 0;
+}
+
+.header-user-name {
+  white-space: nowrap;
+}
+
 .btn-user-icon {
   display: flex;
   align-items: center;
   justify-content: center;
   width: 44px;
   height: 44px;
-  border-radius: 50%; /* Tạo hình tròn */
-  background-color: var(--bg); /* Dùng màu nền xám nhạt từ biến của bạn */
-  color: var(--primary); /* Dùng màu xanh dương đậm từ biến của bạn */
+  border-radius: 50%;
+  background-color: var(--bg);
+  color: var(--primary);
   text-decoration: none;
   font-size: 24px;
-  transition: all 0.3s ease;
+  transition:
+    transform var(--transition-base),
+    background-color var(--transition-base),
+    color var(--transition-base),
+    border-color var(--transition-base),
+    box-shadow var(--transition-base);
   border: 1px solid var(--border);
 }
 
-/* Hiệu ứng khi di chuột vào */
 .btn-user-icon:hover {
   background-color: var(--primary-light);
   color: var(--white);
   border-color: var(--primary-light);
-  transform: scale(1.05); /* Phóng to nhẹ một chút cho sinh động */
+  transform: translateY(-1px) scale(1.03);
 }
+
+.btn-user-avatar {
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-user-avatar img {
+  width: 100%;
+  height: 100%;
+  transition: transform var(--transition-base);
+}
+
+.btn-user-avatar:hover img {
+  transform: scale(1.04);
+}
+
 /* ============ USER DROPDOWN ============ */
 .user-dropdown-wrapper {
   position: relative;
   display: inline-block;
 }
 
-/* Khung menu thả xuống */
 .user-dropdown-menu {
   position: absolute;
-  top: 130%; /* Đẩy menu xuống dưới nút icon */
+  top: calc(100% + 14px);
   right: 0;
   background-color: var(--white);
   min-width: 220px;
-  border-radius: 12px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
   border: 1px solid var(--border);
-
-  /* Hiệu ứng ẩn và trượt mượt mà */
   opacity: 0;
   visibility: hidden;
   transform: translateY(-10px);
-  transition: all 0.3s ease;
+  transition: all var(--transition-base);
   z-index: 100;
 }
 
-/* HIỂN THỊ MENU KHI DI CHUỘT VÀO WRAPPER */
 .user-dropdown-wrapper:hover .user-dropdown-menu {
   opacity: 1;
   visibility: visible;
   transform: translateY(0);
 }
 
-/* Định dạng các thành phần trong Menu */
 .user-name-display {
   padding: 16px;
   font-weight: 700;
@@ -219,10 +286,11 @@ body {
   text-decoration: none;
   font-size: 14px;
   font-weight: 500;
-  transition: background-color 0.2s;
+  transition:
+    background-color var(--transition-base),
+    color var(--transition-base);
 }
 
-/* Bo góc cho item cuối cùng để không bị lẹm viền */
 .dropdown-item:last-child {
   border-bottom-left-radius: 12px;
   border-bottom-right-radius: 12px;
@@ -238,38 +306,39 @@ body {
   text-align: center;
 }
 
-/* Màu đỏ nổi bật cho nút Đăng xuất */
 .text-danger {
   color: var(--danger);
 }
+
 .text-danger:hover {
-  background-color: #fff1f2; /* Nền đỏ nhạt khi di chuột */
+  background-color: #fff1f2;
 }
+
 /* ============ MAIN LAYOUT ============ */
 .main-content {
   max-width: 1280px;
   margin: 0 auto;
-  padding: 40px 24px; /* Đẩy xuống 1 chút cho thoáng phần đầu */
+  padding: 40px 24px;
   display: flex;
-  gap: 40px; /* Tăng nhẹ khoảng cách giữa Sidebar và Lưới sản phẩm */
+  gap: 40px;
 }
 
 /* ============ SIDEBAR ============ */
 .sidebar {
-  width: 260px; /* Thu hẹp sidebar lại cho đỡ thô */
+  width: 260px;
   min-width: 260px;
   background-color: var(--white);
-  border-radius: 20px;
-  padding: 24px; /* Giảm khoảng trắng thừa bên trong */
-  border: 1px solid var(--border); /* Thêm viền mỏng giống thẻ sản phẩm */
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); /* Bóng đổ nhẹ nhàng, hiện đại hơn */
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
   height: fit-content;
   position: sticky;
   top: 100px;
 }
 
 .sidebar-title {
-  font-size: 18px; /* Chữ tiêu đề nhỏ lại 1 chút cho tinh tế */
+  font-size: 18px;
   font-weight: 700;
   margin-bottom: 24px;
   display: flex;
@@ -278,8 +347,9 @@ body {
 }
 
 .filter-group {
-  margin-bottom: 24px; /* Kéo các bộ lọc lại gần nhau hơn */
+  margin-bottom: 24px;
 }
+
 /* ============ CSS NÂNG CẤP BỘ LỌC ============ */
 .filter-label {
   display: flex;
@@ -296,7 +366,6 @@ body {
   text-align: center;
 }
 
-/* Nút dạng Tag (Pill shape) */
 .filter-tags {
   display: flex;
   flex-wrap: wrap;
@@ -327,7 +396,6 @@ body {
   font-weight: 600;
 }
 
-/* Hộp nhập giá */
 .price-range-box {
   display: flex;
   align-items: center;
@@ -343,11 +411,12 @@ body {
   outline: none;
   transition: 0.3s;
   text-align: center;
+  background-color: var(--white);
 }
 
 .price-input-modern:focus {
   border-color: var(--primary-light);
-  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1); /* Hiệu ứng viền sáng */
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
 }
 
 .price-separator {
@@ -355,7 +424,6 @@ body {
   font-weight: bold;
 }
 
-/* Select Box hiện đại */
 .filter-select-modern {
   width: 100%;
   padding: 12px 14px;
@@ -374,6 +442,7 @@ body {
 
 .filter-select-modern:focus {
   border-color: var(--primary-light);
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.08);
 }
 
 .price-inputs {
@@ -526,15 +595,18 @@ body {
   background-color: var(--primary-light);
   color: var(--white);
   border: none;
-  border-radius: 12px;
+  border-radius: var(--radius-md);
   font-size: 15px;
   font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  transition:
+    background-color var(--transition-base),
+    transform var(--transition-base);
 }
 
 .btn-detail:hover {
   background-color: var(--primary-dark);
+  transform: translateY(-1px);
 }
 
 /* ============ MODALS ============ */
@@ -556,12 +628,14 @@ body {
   inset: 0;
   background-color: rgba(0, 0, 0, 0.7);
   cursor: pointer;
+  backdrop-filter: blur(2px);
 }
 
 .modal-content {
   position: relative;
   z-index: 10;
   animation: modalPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: var(--shadow-lg);
 }
 
 @keyframes modalPop {
@@ -580,7 +654,7 @@ body {
   background-color: var(--white);
   width: 90%;
   max-width: 1024px;
-  border-radius: 24px;
+  border-radius: var(--radius-xl);
   overflow: hidden;
 }
 
@@ -600,7 +674,7 @@ body {
 }
 
 .modal-main-image {
-  border-radius: 24px;
+  border-radius: var(--radius-xl);
   overflow: hidden;
   aspect-ratio: 1;
   background-color: var(--border);
@@ -621,11 +695,11 @@ body {
   flex: 1;
   aspect-ratio: 16/9;
   background-color: #d1d5db;
-  border-radius: 16px;
+  border-radius: var(--radius-md);
   cursor: pointer;
   background-size: cover;
   background-position: center;
-  transition: transform 0.3s;
+  transition: transform var(--transition-base);
 }
 
 .modal-thumb:hover {
@@ -647,7 +721,7 @@ body {
   font-size: 32px;
   color: #9ca3af;
   cursor: pointer;
-  transition: color 0.3s;
+  transition: color var(--transition-base);
 }
 
 .modal-close:hover {
@@ -723,7 +797,11 @@ body {
   font-weight: 600;
   cursor: pointer;
   border: none;
-  transition: all 0.3s;
+  transition:
+    transform var(--transition-base),
+    border-color var(--transition-base),
+    background-color var(--transition-base),
+    color var(--transition-base);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -740,6 +818,7 @@ body {
 
 .btn-wishlist:hover {
   border-color: var(--danger);
+  transform: translateY(-1px);
 }
 
 .btn-chat {
@@ -750,12 +829,13 @@ body {
 
 .btn-chat:hover {
   background-color: var(--primary-dark);
+  transform: translateY(-1px);
 }
 
 /* Sell Modal */
 .sell-modal {
   background-color: var(--white);
-  border-radius: 24px;
+  border-radius: var(--radius-xl);
   max-width: 448px;
   width: 90%;
   padding: 40px;
@@ -916,10 +996,17 @@ body {
     gap: 16px;
   }
 
+  .header-actions {
+    width: 100%;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
   .search-box {
     max-width: 100%;
     order: 3;
     flex-basis: 100%;
+    margin: 0;
   }
 
   .brand-name {
@@ -953,6 +1040,14 @@ body {
   .main-content {
     padding: 16px 12px;
     gap: 16px;
+  }
+
+  .header-actions {
+    flex-wrap: wrap;
+  }
+
+  .header-user-name {
+    display: none;
   }
 
   .sidebar {
@@ -1001,18 +1096,18 @@ body {
 
 .footer-grid {
   display: grid;
-  grid-template-columns: 2fr 1fr 1fr 1.5fr; /* Chia cột theo tỷ lệ */
+  grid-template-columns: 2fr 1fr 1fr 1.5fr;
   gap: 30px;
 }
 
 .footer-widget h4 {
   color: #ffffff;
-  font-size: 15px; /* Giảm từ 18px xuống 15px (hoặc 14px tùy mắt bạn) */
+  font-size: 15px;
   margin-bottom: 25px;
   position: relative;
   text-transform: uppercase;
-  letter-spacing: 0.5px; /* Giảm từ 1px xuống 0.5px để tiết kiệm chiều ngang */
-  white-space: nowrap; /* Thêm thuộc tính này để ép chữ không bao giờ rớt dòng */
+  letter-spacing: 0.5px;
+  white-space: nowrap;
 }
 
 .footer-widget h4::after {
@@ -1022,7 +1117,7 @@ body {
   bottom: -8px;
   width: 40px;
   height: 2px;
-  background-color: #ff5722; /* Màu gạch chân trùng màu cam ở trên */
+  background-color: #ff5722;
 }
 
 .footer-logo {
@@ -1057,12 +1152,14 @@ body {
   color: #a0a0a0;
   text-decoration: none;
   font-size: 14px;
-  transition: all 0.3s ease;
+  transition:
+    color var(--transition-base),
+    padding-left var(--transition-base);
 }
 
 .footer-widget ul li a:hover {
   color: #ff5722;
-  padding-left: 5px; /* Hiệu ứng dịch chuyển nhẹ khi hover */
+  padding-left: 5px;
 }
 
 .contact-widget ul li {
@@ -1089,11 +1186,14 @@ body {
   text-decoration: none;
   font-size: 14px;
   font-weight: bold;
-  transition: background 0.3s;
+  transition:
+    background-color var(--transition-base),
+    transform var(--transition-base);
 }
 
 .pro-socials a:hover {
   background-color: #ff5722;
+  transform: translateY(-2px);
 }
 
 /* --- Phần Bottom --- */
@@ -1459,9 +1559,10 @@ body {
 }
 .profile-sidebar {
   background: #fff;
-  border-radius: 16px;
+  border-radius: var(--radius-md);
   border: 1px solid var(--border, #e2e8f0);
   overflow: hidden;
+  box-shadow: var(--shadow-sm);
 }
 .profile-nav-link {
   display: flex;
@@ -1470,7 +1571,10 @@ body {
   color: #475569;
   text-decoration: none;
   font-weight: 600;
-  transition: all 0.2s;
+  transition:
+    background-color var(--transition-base),
+    color var(--transition-base),
+    border-color var(--transition-base);
   border-left: 3px solid transparent;
   font-size: 15px;
 }
@@ -1491,9 +1595,10 @@ body {
 }
 .profile-card {
   background: #fff;
-  border-radius: 16px;
+  border-radius: var(--radius-md);
   border: 1px solid var(--border, #e2e8f0);
   padding: 40px;
+  box-shadow: var(--shadow-sm);
 }
 .avatar-section {
   display: flex;
@@ -1536,7 +1641,10 @@ body {
   border: none;
   border-radius: 10px;
   font-weight: 600;
-  transition: 0.3s;
+  transition:
+    background-color var(--transition-base),
+    transform var(--transition-base),
+    box-shadow var(--transition-base);
 }
 .btn-save:hover {
   background: #059669;
@@ -1551,7 +1659,9 @@ body {
   font-weight: 600;
   color: #334155;
   cursor: pointer;
-  transition: 0.2s;
+  transition:
+    background-color var(--transition-base),
+    border-color var(--transition-base);
   font-size: 14px;
 }
 .btn-upload:hover {
