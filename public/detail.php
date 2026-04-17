@@ -11,26 +11,46 @@ if (!isset($_GET['id']) || empty($_GET['id'])) {
 
 $id = $_GET['id'];
 $database = new Database();
-$db = $database->getConnection();
-$productModel = new Product($db);
-
-$product = $productModel->getProductDetail($id);
-
-if (!$product) {
-    echo "<script>alert('Chiếc xe này không tồn tại!'); window.location.href='index.php';</script>";
-    exit;
-}
-
-$formattedPrice = number_format($product['price'], 0, ',', '.') . ' đ';
-$images = (!empty($product['images'])) ? $product['images'] : ['https://via.placeholder.com/600x400?text=Chua+Co+Anh'];
-$sellerId = $product['seller_id'] ?? '1';
+$db = $database->getConnectionOrNull();
+$detailError = null;
+$product = null;
+$images = ['https://via.placeholder.com/600x400?text=Chua+Co+Anh'];
+$formattedPrice = 'Đang cập nhật';
+$sellerId = '1';
 $avatarUrl = "https://ui-avatars.com/api/?name=U+{$sellerId}&background=10b981&color=fff&rounded=true&bold=true";
+
+if (!$db) {
+    $detailError = 'Dữ liệu sản phẩm hiện chưa sẵn sàng. Vui lòng kiểm tra kết nối dữ liệu và thử lại sau.';
+} else {
+    try {
+        $productModel = new Product($db);
+        $product = $productModel->getProductDetail($id);
+
+        if (!$product) {
+            $detailError = 'Không tìm thấy chiếc xe bạn đang xem hoặc dữ liệu đã được cập nhật.';
+        } else {
+            $formattedPrice = number_format($product['price'], 0, ',', '.') . ' đ';
+            $images = !empty($product['images']) ? $product['images'] : $images;
+            $sellerId = $product['seller_id'] ?? $sellerId;
+            $avatarUrl = "https://ui-avatars.com/api/?name=U+{$sellerId}&background=10b981&color=fff&rounded=true&bold=true";
+        }
+    } catch (Throwable $exception) {
+        $detailError = 'Thông tin chi tiết sản phẩm tạm thời chưa thể tải. Vui lòng thử lại sau.';
+    }
+}
 
 include __DIR__ . '/../app/views/layouts/header.php';
 ?>
 
 <div class="main-content detail-page-shell">
     <div class="container detail-page-container">
+        <?php if ($detailError !== null): ?>
+        <div class="empty-state-card">
+            <i class="fa-solid fa-circle-exclamation empty-state-icon"></i>
+            <p class="empty-state-text"><?php echo htmlspecialchars($detailError); ?></p>
+            <a href="index.php" class="btn-detail product-detail-link">Quay lại trang chủ</a>
+        </div>
+        <?php else: ?>
         
         <div class="detail-breadcrumbs">
             <a href="index.php" class="detail-breadcrumb-link"><i class="fa-solid fa-house"></i> Trang chủ</a> 
@@ -124,9 +144,11 @@ include __DIR__ . '/../app/views/layouts/header.php';
                 </div>
             </div>
         </div>
+        <?php endif; ?>
     </div>
 </div>
 
+<?php if ($detailError === null): ?>
 <div id="buyOptionsModal" class="modal hidden">
     <div class="modal-backdrop" onclick="hideBuyOptions()"></div>
     <div class="modal-content detail-buy-modal">
@@ -231,5 +253,6 @@ include __DIR__ . '/../app/views/layouts/header.php';
         alert('Vui lòng sử dụng tính năng Nhắn tin trao đổi để thỏa thuận trực tiếp với người bán!');
     }
 </script>
+<?php endif; ?>
 
 <?php include __DIR__ . '/../app/views/layouts/footer.php'; ?>

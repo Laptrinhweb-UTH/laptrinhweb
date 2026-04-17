@@ -10,6 +10,7 @@ class Database {
     private $username = DB_USER;
     private $password = DB_PASS;
     public $conn;
+    private $lastError = null;
 
     public function getConnection() {
         $this->conn = null;
@@ -17,10 +18,28 @@ class Database {
             // Đoạn kết nối PDO y hệt code cũ của bạn
             $this->conn = new PDO("mysql:host=" . $this->host . ";dbname=" . $this->db_name . ";charset=utf8mb4", $this->username, $this->password);
             $this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            $this->lastError = null;
         } catch(PDOException $exception) {
             die("Kết nối Database thất bại: " . $exception->getMessage());
         }
         return $this->conn;
+    }
+
+    public function getConnectionOrNull() {
+        $this->conn = null;
+        try {
+            $this->conn = new PDO("mysql:host=" . $this->host . ";dbname=" . $this->db_name . ";charset=utf8mb4", $this->username, $this->password);
+            $this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            $this->lastError = null;
+        } catch (PDOException $exception) {
+            $this->lastError = $exception->getMessage();
+        }
+
+        return $this->conn;
+    }
+
+    public function getLastError() {
+        return $this->lastError;
     }
 }
 ?>

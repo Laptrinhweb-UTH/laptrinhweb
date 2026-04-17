@@ -10,12 +10,20 @@ if (!isset($_SESSION['user_id'])) {
 
 // 2. KẾT NỐI DATABASE & BẬT CHẾ ĐỘ BÁO LỖI (Kỷ luật thép)
 require_once __DIR__ . '/../../helpers/Database.php';
-$db = (new Database())->getConnection();
-$db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION); // Ép Database phải báo lỗi nếu có
+$database = new Database();
+$db = $database->getConnectionOrNull();
 $user_id = $_SESSION['user_id'];
+$profileError = null;
+$user = null;
+
+if (!$db) {
+    $profileError = 'Thông tin tài khoản hiện chưa thể tải. Vui lòng kiểm tra kết nối dữ liệu và thử lại sau.';
+} else {
+    $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+}
 
 // 3. XỬ LÝ LƯU DỮ LIỆU
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && $db) {
     $name = trim($_POST['fullname'] ?? ''); 
     $phone = trim($_POST['phone'] ?? '');
     // Bỏ qua biến $address vì Database không có cột này
@@ -92,12 +100,24 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         // Nếu có bất kỳ lỗi nào từ DB, nó sẽ in ra màn hình ngay lập tức!
         die("<script>alert('Lỗi CSDL: " . addslashes($e->getMessage()) . "'); window.history.back();</script>");
     }
+} elseif ($_SERVER['REQUEST_METHOD'] == 'POST' && !$db) {
+    $profileError = 'Không thể lưu thay đổi lúc này vì kết nối dữ liệu đang gặp sự cố.';
 }
 
 // 4. LẤY DỮ LIỆU ĐỂ HIỂN THỊ
-$stmt = $db->prepare("SELECT * FROM users WHERE id = ?");
-$stmt->execute([$user_id]);
-$user = $stmt->fetch(PDO::FETCH_ASSOC);
+if ($db) {
+    try {
+        $stmt = $db->prepare("SELECT * FROM users WHERE id = ?");
+        $stmt->execute([$user_id]);
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$user) {
+            $profileError = 'Không tìm thấy thông tin tài khoản của bạn trong hệ thống.';
+        }
+    } catch (Throwable $exception) {
+        $profileError = 'Thông tin tài khoản hiện chưa thể tải. Vui lòng thử lại sau.';
+    }
+}
 
 $display_name = htmlspecialchars($user['name'] ?? 'U');
 $display_avatar = !empty($user['avatar']) ? $user['avatar'] : "https://ui-avatars.com/api/?name=" . urlencode($display_name) . "&background=10b981&color=fff&size=120&rounded=true&bold=true";
@@ -129,7 +149,11 @@ include __DIR__ . '/../layouts/header.php';
             <div class="col-lg-9">
                 <div class="profile-card">
                     <h2 class="profile-page-title">Thông tin cá nhân</h2>
-                    <p class="profile-page-subtitle">Cập nhật thông tin cá nhân và ảnh đại diện của bạn.</p>
+                    <p class="profile-page-subtitle">
+                        <?php echo $profileError === null ? 'Cập nhật thông tin cá nhân và ảnh đại diện của bạn.' : htmlspecialchars($profileError); ?>
+                    </p>
+
+                    <?php if ($profileError === null): ?>
 
                     <form action="" method="POST" enctype="multipart/form-data">
                         
@@ -172,6 +196,14 @@ include __DIR__ . '/../layouts/header.php';
                             </button>
                         </div>
                     </form>
+                    <?php else: ?>
+                    <div class="auth-message auth-message-error">
+                        <?php echo htmlspecialchars($profileError); ?>
+                    </div>
+                    <div class="mt-4">
+                        <a href="<?php echo asset_url('index.php'); ?>" class="btn-detail product-detail-link">Quay lại trang chủ</a>
+                    </div>
+                    <?php endif; ?>
                 </div>
             </div>
 

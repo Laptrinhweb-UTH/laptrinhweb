@@ -6,11 +6,20 @@ include __DIR__ . '/../app/views/layouts/header.php';
 require_once __DIR__ . '/../app/helpers/Database.php';
 require_once __DIR__ . '/../app/models/Product.php';
 $database = new Database();
-$db = $database->getConnection();
-$productModel = new Product($db);
+$db = $database->getConnectionOrNull();
+$products = [];
+$pageError = null;
 
-// Lấy danh sách sản phẩm để biến $products có giá trị
-$products = $productModel->getAll();
+if (!$db) {
+    $pageError = 'Danh sách sản phẩm hiện chưa sẵn sàng. Vui lòng kiểm tra lại kết nối dữ liệu và thử lại sau.';
+} else {
+    try {
+        $productModel = new Product($db);
+        $products = $productModel->getAll();
+    } catch (Throwable $exception) {
+        $pageError = 'Danh sách sản phẩm tạm thời chưa thể tải. Vui lòng thử lại sau.';
+    }
+}
 ?>
 
     <div class="main-content home-page-layout">
@@ -63,7 +72,12 @@ $products = $productModel->getAll();
         </div>
 
         <div id="productGrid" class="product-grid">
-          <?php if (!empty($products) && count($products) > 0): ?>
+          <?php if ($pageError !== null): ?>
+            <div class="empty-state-card">
+                <i class="fa-solid fa-circle-exclamation empty-state-icon"></i>
+                <p class="empty-state-text"><?php echo htmlspecialchars($pageError); ?></p>
+            </div>
+          <?php elseif (!empty($products) && count($products) > 0): ?>
             <?php foreach ($products as $row): ?>
               <?php
                 // 1. Định dạng giá tiền cho đẹp
