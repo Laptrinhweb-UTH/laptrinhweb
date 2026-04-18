@@ -223,8 +223,10 @@ $timelineCurrentStep = match ($orderStatus) {
 $isCancelledOrder = $orderStatus === 'cancelled' || $escrowStatus === 'refunded';
 $isBuyerView = $order !== null && (int) $order['buyer_id'] === $currentUserId;
 $canConfirmReceipt = $isBuyerView && in_array($orderStatus, ['paid', 'shipping'], true) && $escrowStatus === 'holding';
+$canSubmitDispute = $isBuyerView && in_array($orderStatus, ['paid', 'shipping'], true) && $escrowStatus === 'holding';
 $orderDetailUrl = app_url('app/views/orders/detail.php');
 $confirmOrderUrl = app_url('app/controllers/ConfirmOrderController.php');
+$disputeOrderUrl = app_url('app/controllers/DisputeOrderController.php');
 
 include __DIR__ . '/../layouts/header.php';
 ?>
@@ -402,14 +404,60 @@ include __DIR__ . '/../layouts/header.php';
         </button>
         <?php endif; ?>
 
-        <button class="btn btn-outline-danger py-3 px-4 rounded-3 fw-bold shadow-sm" disabled>
-            <i class="fa-solid fa-triangle-exclamation"></i> Tính năng khiếu nại đang được cập nhật
+        <?php if ($canSubmitDispute): ?>
+        <button
+            type="button"
+            class="btn btn-outline-danger py-3 px-4 rounded-3 fw-bold shadow-sm"
+            onclick="showDisputeModal()"
+        >
+            <i class="fa-solid fa-triangle-exclamation"></i> Gửi khiếu nại
         </button>
+        <?php else: ?>
+        <button class="btn btn-outline-danger py-3 px-4 rounded-3 fw-bold shadow-sm" disabled>
+            <i class="fa-solid fa-triangle-exclamation"></i> Không thể khiếu nại ở trạng thái này
+        </button>
+        <?php endif; ?>
     </div>
     <?php endif; ?>
 </div>
 
-<?php if ($canConfirmReceipt): ?>
+<?php if ($canSubmitDispute): ?>
+<div id="disputeOrderModal" class="modal hidden">
+    <div class="modal-backdrop" onclick="hideDisputeModal()"></div>
+    <div class="modal-content detail-buy-modal">
+        <div class="detail-buy-modal-header">
+            <h3 class="detail-buy-modal-title">Gửi khiếu nại cho đơn hàng</h3>
+            <button type="button" class="detail-buy-modal-close" onclick="hideDisputeModal()">&times;</button>
+        </div>
+
+        <div class="p-4">
+            <div class="mb-3">
+                <label for="disputeReason" class="form-label fw-semibold">Lý do khiếu nại</label>
+                <select id="disputeReason" class="form-select rounded-3">
+                    <option value="">Chọn một lý do</option>
+                    <option value="Xe không đúng mô tả">Xe không đúng mô tả</option>
+                    <option value="Sản phẩm bị hỏng hoặc thiếu phụ kiện">Sản phẩm bị hỏng hoặc thiếu phụ kiện</option>
+                    <option value="Chưa nhận được xe đúng hẹn">Chưa nhận được xe đúng hẹn</option>
+                    <option value="Khác">Lý do khác</option>
+                </select>
+            </div>
+
+            <div class="mb-4">
+                <label for="disputeDetail" class="form-label fw-semibold">Mô tả chi tiết</label>
+                <textarea id="disputeDetail" class="form-control rounded-3" rows="4" placeholder="Mô tả rõ vấn đề bạn gặp phải để hệ thống và quản trị viên dễ hỗ trợ hơn."></textarea>
+            </div>
+
+            <div id="disputeNotice" class="auth-message auth-message-error hidden"></div>
+
+            <button type="button" id="submitDisputeButton" class="btn btn-danger w-100 py-3 rounded-3 fw-bold" onclick="submitDispute()">
+                <i class="fa-solid fa-paper-plane me-2"></i>Gửi khiếu nại
+            </button>
+        </div>
+    </div>
+</div>
+<?php endif; ?>
+
+<?php if ($canConfirmReceipt || $canSubmitDispute): ?>
 <script>
     async function confirmReceipt() {
         const confirmMessage = 'Xác nhận bạn đã kiểm tra xe và đồng ý giải phóng tiền cho người bán? Hành động này không thể hoàn tác.';
@@ -439,6 +487,61 @@ include __DIR__ . '/../layouts/header.php';
             window.location.href = '<?php echo $orderDetailUrl; ?>?id=<?php echo (int) $order['id']; ?>&status=' + encodeURIComponent(status) + '&message=' + encodeURIComponent(message);
         } catch (error) {
             window.location.href = '<?php echo $orderDetailUrl; ?>?id=<?php echo (int) $order['id']; ?>&status=error&message=' + encodeURIComponent('Không thể gửi yêu cầu xác nhận lúc này. Vui lòng thử lại sau.');
+        } finally {
+            button.disabled = false;
+            button.innerHTML = originalHtml;
+        }
+    }
+
+    function showDisputeModal() {
+        document.getElementById('disputeOrderModal').classList.remove('hidden');
+    }
+
+    function hideDisputeModal() {
+        document.getElementById('disputeOrderModal').classList.add('hidden');
+        const notice = document.getElementById('disputeNotice');
+        if (notice) {
+            notice.classList.add('hidden');
+            notice.textContent = '';
+        }
+    }
+
+    async function submitDispute() {
+        const disputeReason = document.getElementById('disputeReason').value.trim();
+        const disputeDetail = document.getElementById('disputeDetail').value.trim();
+        const notice = document.getElementById('disputeNotice');
+        const button = document.getElementById('submitDisputeButton');
+
+        if (!disputeReason || !disputeDetail) {
+            notice.textContent = 'Vui lòng chọn lý do và mô tả chi tiết trước khi gửi khiếu nại.';
+            notice.classList.remove('hidden');
+            return;
+        }
+
+        const originalHtml = button.innerHTML;
+        button.disabled = true;
+        button.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i> Đang gửi khiếu nại...';
+
+        try {
+            const response = await fetch('<?php echo $disputeOrderUrl; ?>', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                },
+                body: new URLSearchParams({
+                    order_id: '<?php echo (int) $order['id']; ?>',
+                    dispute_reason: disputeReason,
+                    dispute_detail: disputeDetail,
+                }),
+            });
+
+            const result = await response.json();
+            const status = result.status === 'success' ? 'success' : 'error';
+            const message = result.message || 'Không thể gửi khiếu nại lúc này.';
+            window.location.href = '<?php echo $orderDetailUrl; ?>?id=<?php echo (int) $order['id']; ?>&status=' + encodeURIComponent(status) + '&message=' + encodeURIComponent(message);
+        } catch (error) {
+            notice.textContent = 'Không thể gửi khiếu nại lúc này. Vui lòng thử lại sau.';
+            notice.classList.remove('hidden');
         } finally {
             button.disabled = false;
             button.innerHTML = originalHtml;

@@ -55,6 +55,46 @@ class EscrowService {
         }
     }
 
+    public function markAsDisputed($order_id, $current_user_id, $reason) {
+        try {
+            $this->conn->beginTransaction();
+
+            $stmt = $this->conn->prepare("SELECT o.*, e.status as escrow_status FROM orders o JOIN escrows e ON o.id = e.order_id WHERE o.id = ? FOR UPDATE");
+            $stmt->execute([$order_id]);
+            $order = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if (!$order) {
+                throw new Exception("Không tìm thấy đơn hàng.");
+            }
+
+            if ($order['buyer_id'] != $current_user_id) {
+                throw new Exception("Chỉ người mua mới có quyền gửi khiếu nại cho đơn hàng này.");
+            }
+
+            if ($order['escrow_status'] !== 'holding') {
+                throw new Exception("Đơn hàng này không còn ở trạng thái có thể khiếu nại.");
+            }
+
+            if (!in_array($order['status'], ['paid', 'shipping'], true)) {
+                throw new Exception("Trạng thái đơn hàng hiện tại không hỗ trợ gửi khiếu nại.");
+            }
+
+            $this->conn->prepare("UPDATE escrows SET status = 'disputed' WHERE order_id = ?")->execute([$order_id]);
+
+            $this->conn->commit();
+            return [
+                'status' => 'success',
+                'message' => 'Đã ghi nhận khiếu nại của bạn. SpinBike sẽ tạm giữ tiền để chờ xử lý.',
+                'reason' => $reason,
+            ];
+        } catch (Exception $e) {
+            if ($this->conn->inTransaction()) {
+                $this->conn->rollBack();
+            }
+            return ['status' => 'error', 'message' => $e->getMessage()];
+        }
+    }
+
     // 2. HOÀN TIỀN CHO NGƯỜI MUA (REFUND)
     public function refundBuyer($order_id, $admin_or_seller_id) {
         try {
