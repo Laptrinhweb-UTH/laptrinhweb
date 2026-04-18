@@ -135,6 +135,8 @@ $profileEmail = trim((string)($user['email'] ?? ''));
 $profilePageUrl = app_url('app/views/auth/profile.php');
 $buyerOrdersUrl = app_url('app/views/orders/index.php') . '?view=buyer';
 $sellerOrdersUrl = app_url('app/views/orders/index.php') . '?view=seller';
+$buyerDisputesUrl = app_url('app/views/orders/index.php') . '?view=buyer&filter=disputed';
+$sellerDisputesUrl = app_url('app/views/orders/index.php') . '?view=seller&filter=disputed';
 
 if ($profileName === '') {
     $profileName = 'Người dùng SpinBike';
@@ -168,6 +170,12 @@ include __DIR__ . '/../layouts/header.php';
                     </a>
                     <a href="<?php echo $sellerOrdersUrl; ?>" class="profile-nav-link">
                         <i class="fa-solid fa-shop"></i> Quản lý bán hàng
+                    </a>
+                    <a href="<?php echo $buyerDisputesUrl; ?>" class="profile-nav-link">
+                        <i class="fa-solid fa-triangle-exclamation"></i> Khiếu nại của tôi
+                    </a>
+                    <a href="<?php echo $sellerDisputesUrl; ?>" class="profile-nav-link">
+                        <i class="fa-solid fa-scale-balanced"></i> Xử lý tranh chấp
                     </a>
                 </div>
             </div>
