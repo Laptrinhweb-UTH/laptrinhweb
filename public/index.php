@@ -67,14 +67,14 @@ if (!$db) {
 
       <div class="products-section">
         <div class="products-header">
-          <h1>Xe Dang Mo Ban</h1>
-          <p id="resultCount"><?php echo count($products); ?> tin da duoc duyet va dang hien thi</p>
+          <h1>Xe Đang Mở Bán</h1>
+          <p id="resultCount"><?php echo count($products); ?> tin đã được duyệt và đang hiển thị</p>
         </div>
 
         <div class="profile-card mb-4">
           <div class="d-flex flex-column gap-2">
-            <div class="fw-bold">Quy trinh giao dich tren SpinBike</div>
-            <div class="text-muted">Nguoi mua dat mua an toan, he thong giu tien, nguoi ban giao xe, sau do buyer xac nhan nhan hang hoac gui khieu nai neu co van de.</div>
+            <div class="fw-bold">Quy trình giao dịch trên SpinBike</div>
+            <div class="text-muted">Người mua đặt mua an toàn, hệ thống giữ tiền, người bán giao xe, sau đó buyer xác nhận nhận hàng hoặc gửi khiếu nại nếu có vấn đề.</div>
           </div>
         </div>
 
@@ -157,7 +157,7 @@ if (!$db) {
           <?php else: ?>
             <div class="empty-state-card">
                 <i class="fa-solid fa-box-open empty-state-icon"></i>
-                <p class="empty-state-text">Hien chua co tin nao o trang thai dang ban. Hay tao va cho duyet mot tin moi!</p>
+                <p class="empty-state-text">Hiện chưa có tin nào ở trạng thái đang bán. Hãy tạo và chờ duyệt một tin mới!</p>
             </div>
           <?php endif; ?>
         </div>

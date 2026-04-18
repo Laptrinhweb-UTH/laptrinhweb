@@ -25,7 +25,7 @@ $footerSocialLinks = [
         <div class="container footer-grid">
             <section class="footer-widget brand-info">
                 <h2 class="footer-logo">SPINBIKE<span>.</span></h2>
-                <p>Nen tang ket noi mua ban xe dap the thao cu, ket hop co che giu tien an toan de nguoi mua va nguoi ban giao dich minh bach hon.</p>
+                <p>Nền tảng kết nối mua bán xe đạp thể thao cũ, kết hợp cơ chế giữ tiền an toàn để người mua và người bán giao dịch minh bạch hơn.</p>
                 <div class="pro-socials">
                     <?php foreach ($footerSocialLinks as $social): ?>
                         <a href="#" title="<?php echo $social['title']; ?>">
@@ -66,9 +66,9 @@ $footerSocialLinks = [
 
     <div class="footer-bottom">
         <div class="container bottom-flex">
-            <p>&copy; 2026 SPINBIKE. Do an Lap Trinh Web.</p>
+            <p>&copy; 2026 SPINBIKE. Đồ án Lập Trình Web.</p>
             <div class="payment-methods">
-                <span>Mo phong thanh toan an toan:</span>
+                <span>Mô phỏng thanh toán an toàn:</span>
                 <strong>VNPay</strong> | <strong>MoMo</strong> | <strong>Escrow</strong>
             </div>
         </div>

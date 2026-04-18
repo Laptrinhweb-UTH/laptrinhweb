@@ -112,8 +112,8 @@ if (!$db) {
 
 $pageTitle = $view === 'seller' ? 'Quản lý bán hàng' : 'Đơn hàng mua';
 $pageSubtitle = $view === 'seller'
-    ? 'Theo dõi cac don hang nguoi mua da dat, qua trinh tiep nhan don, giao xe va giai phong tien.'
-    : 'Theo dõi cac don hang ban da dat mua va tien trinh giu tien an toan tren he thong.';
+    ? 'Theo dõi các đơn hàng người mua đã đặt, quá trình tiếp nhận đơn, giao xe và giải phóng tiền.'
+    : 'Theo dõi các đơn hàng bạn đã đặt mua và tiến trình giữ tiền an toàn trên hệ thống.';
 $filterLabel = match ($filter) {
     'disputed' => 'đơn đang tranh chấp',
     'refunded' => 'đơn đã hoàn tiền',
