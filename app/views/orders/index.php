@@ -68,6 +68,10 @@ $view = $_GET['view'] ?? 'buyer';
 if (!in_array($view, ['buyer', 'seller'], true)) {
     $view = 'buyer';
 }
+$filter = $_GET['filter'] ?? 'all';
+if (!in_array($filter, ['all', 'disputed', 'refunded'], true)) {
+    $filter = 'all';
+}
 
 $database = new Database();
 $db = $database->getConnectionOrNull();
@@ -85,6 +89,12 @@ if (!$db) {
 } else {
     try {
         $filterColumn = $view === 'seller' ? 'o.seller_id' : 'o.buyer_id';
+        $extraCondition = '';
+        if ($filter === 'disputed') {
+            $extraCondition = " AND e.status = 'disputed'";
+        } elseif ($filter === 'refunded') {
+            $extraCondition = " AND e.status = 'refunded'";
+        }
         $query = "
             SELECT
                 o.id,
@@ -110,6 +120,7 @@ if (!$db) {
             LEFT JOIN users buyer ON buyer.id = o.buyer_id
             LEFT JOIN users seller ON seller.id = o.seller_id
             WHERE {$filterColumn} = ?
+            {$extraCondition}
             ORDER BY o.created_at DESC, o.id DESC
         ";
 
@@ -138,9 +149,19 @@ $pageTitle = $view === 'seller' ? 'Quản lý bán hàng' : 'Đơn hàng mua';
 $pageSubtitle = $view === 'seller'
     ? 'Theo dõi các đơn hàng mà bạn đang bán và trạng thái giải phóng tiền.'
     : 'Theo dõi các đơn hàng bạn đã mua và tiến trình giữ tiền an toàn.';
+$filterLabel = match ($filter) {
+    'disputed' => 'đơn đang tranh chấp',
+    'refunded' => 'đơn đã hoàn tiền',
+    default => 'tất cả đơn hàng',
+};
 $otherView = $view === 'seller' ? 'buyer' : 'seller';
 $otherViewLabel = $view === 'seller' ? 'Xem đơn hàng mua' : 'Xem quản lý bán hàng';
 $profilePageUrl = app_url('app/views/auth/profile.php');
+$buyerOrdersUrl = app_url('app/views/orders/index.php') . '?view=buyer';
+$sellerOrdersUrl = app_url('app/views/orders/index.php') . '?view=seller';
+$disputedOrdersUrl = app_url('app/views/orders/index.php') . '?view=' . urlencode($view) . '&filter=disputed';
+$refundedOrdersUrl = app_url('app/views/orders/index.php') . '?view=' . urlencode($view) . '&filter=refunded';
+$allOrdersUrl = app_url('app/views/orders/index.php') . '?view=' . urlencode($view) . '&filter=all';
 
 include __DIR__ . '/../layouts/header.php';
 ?>
@@ -150,18 +171,31 @@ include __DIR__ . '/../layouts/header.php';
         <div>
             <h2 class="fw-bold mb-1"><?php echo htmlspecialchars($pageTitle); ?></h2>
             <p class="text-muted mb-0"><?php echo htmlspecialchars($pageSubtitle); ?></p>
+            <p class="order-filter-subtitle mb-0">Đang xem: <?php echo htmlspecialchars($filterLabel); ?></p>
         </div>
         <div class="d-flex gap-2 flex-wrap">
             <a href="<?php echo $profilePageUrl; ?>" class="btn btn-outline-secondary rounded-pill px-4">
                 <i class="fa-regular fa-user me-2"></i>Hồ sơ của tôi
             </a>
-            <a href="<?php echo app_url('app/views/orders/index.php'); ?>?view=buyer" class="btn <?php echo $view === 'buyer' ? 'btn-success' : 'btn-outline-success'; ?> rounded-pill px-4">
+            <a href="<?php echo $buyerOrdersUrl; ?>" class="btn <?php echo $view === 'buyer' ? 'btn-success' : 'btn-outline-success'; ?> rounded-pill px-4">
                 <i class="fa-solid fa-box me-2"></i>Đơn hàng mua
             </a>
-            <a href="<?php echo app_url('app/views/orders/index.php'); ?>?view=seller" class="btn <?php echo $view === 'seller' ? 'btn-success' : 'btn-outline-success'; ?> rounded-pill px-4">
+            <a href="<?php echo $sellerOrdersUrl; ?>" class="btn <?php echo $view === 'seller' ? 'btn-success' : 'btn-outline-success'; ?> rounded-pill px-4">
                 <i class="fa-solid fa-shop me-2"></i>Quản lý bán hàng
             </a>
         </div>
+    </div>
+
+    <div class="order-filter-bar mb-4">
+        <a href="<?php echo $allOrdersUrl; ?>" class="order-filter-chip <?php echo $filter === 'all' ? 'is-active' : ''; ?>">
+            <i class="fa-solid fa-list-ul"></i> Tất cả
+        </a>
+        <a href="<?php echo $disputedOrdersUrl; ?>" class="order-filter-chip <?php echo $filter === 'disputed' ? 'is-active is-danger' : ''; ?>">
+            <i class="fa-solid fa-triangle-exclamation"></i> Đang tranh chấp
+        </a>
+        <a href="<?php echo $refundedOrdersUrl; ?>" class="order-filter-chip <?php echo $filter === 'refunded' ? 'is-active is-success' : ''; ?>">
+            <i class="fa-solid fa-rotate-left"></i> Đã hoàn tiền
+        </a>
     </div>
 
     <?php if ($pageError !== null): ?>
@@ -203,11 +237,15 @@ include __DIR__ . '/../layouts/header.php';
         <i class="fa-solid fa-box-open empty-state-icon"></i>
         <p class="empty-state-text">
             <?php echo $view === 'seller'
-                ? 'Bạn chưa có đơn hàng bán nào. Khi có người mua, đơn hàng sẽ xuất hiện tại đây.'
-                : 'Bạn chưa có đơn hàng mua nào. Khi hoàn tất thanh toán, đơn hàng sẽ xuất hiện tại đây.'; ?>
+                ? ($filter === 'all'
+                    ? 'Bạn chưa có đơn hàng bán nào. Khi có người mua, đơn hàng sẽ xuất hiện tại đây.'
+                    : 'Hiện chưa có đơn bán nào khớp với bộ lọc bạn đang xem.')
+                : ($filter === 'all'
+                    ? 'Bạn chưa có đơn hàng mua nào. Khi hoàn tất thanh toán, đơn hàng sẽ xuất hiện tại đây.'
+                    : 'Hiện chưa có đơn mua nào khớp với bộ lọc bạn đang xem.'); ?>
         </p>
-        <a href="<?php echo app_url('app/views/orders/index.php'); ?>?view=<?php echo htmlspecialchars($otherView); ?>" class="btn-detail product-detail-link">
-            <?php echo htmlspecialchars($otherViewLabel); ?>
+        <a href="<?php echo $filter === 'all' ? app_url('app/views/orders/index.php') . '?view=' . $otherView : $allOrdersUrl; ?>" class="btn-detail product-detail-link">
+            <?php echo htmlspecialchars($filter === 'all' ? $otherViewLabel : 'Xem tất cả đơn hàng'); ?>
         </a>
     </div>
     <?php else: ?>

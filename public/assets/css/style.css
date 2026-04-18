@@ -2209,6 +2209,56 @@ img {
   max-width: 220px;
 }
 
+.order-filter-subtitle {
+  color: var(--text-secondary);
+  font-size: 14px;
+  margin-top: 6px;
+}
+
+.order-filter-bar {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.order-filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: #fff;
+  color: var(--text-secondary);
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.order-filter-chip:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.order-filter-chip.is-active {
+  background: #ecfdf3;
+  border-color: #86efac;
+  color: #15803d;
+}
+
+.order-filter-chip.is-active.is-danger {
+  background: #fff1f2;
+  border-color: #fecdd3;
+  color: #be123c;
+}
+
+.order-filter-chip.is-active.is-success {
+  background: #ecfdf3;
+  border-color: #bbf7d0;
+  color: #15803d;
+}
+
 /* ================= PHASE 3 PAGE POLISH ================= */
 .detail-page-shell {
   background-color: var(--bg);
