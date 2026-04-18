@@ -35,9 +35,47 @@ if (!function_exists('app_path')) {
     }
 }
 
+if (!function_exists('resolve_app_route_path')) {
+    function resolve_app_route_path(string $path = ''): string {
+        $parsedUrl = parse_url($path);
+        $rawPath = $parsedUrl['path'] ?? '';
+        $cleanPath = ltrim($rawPath, '/');
+
+        $routeMap = [
+            '' => '',
+            'public/index.php' => '',
+            'public/detail.php' => 'listing',
+            'public/process_sell.php' => 'sell/process',
+            'app/views/auth/auth.php' => 'auth',
+            'app/views/auth/profile.php' => 'profile',
+            'app/views/auth/logout.php' => 'logout',
+            'app/views/products/sell.php' => 'sell',
+            'app/views/products/manage.php' => 'my-listings',
+            'app/views/orders/index.php' => 'orders',
+            'app/views/orders/detail.php' => 'order',
+            'app/views/orders/checkout.php' => 'checkout',
+            'app/views/orders/process_checkout.php' => 'checkout/process',
+            'app/views/admin/dashboard.php' => 'admin',
+            'app/views/admin/listings.php' => 'admin/listings',
+            'app/views/admin/orders.php' => 'admin/orders',
+            'app/controllers/ListingStatusController.php' => 'listing/action',
+            'app/controllers/ConfirmOrderController.php' => 'order/confirm',
+            'app/controllers/SellerConfirmOrderController.php' => 'order/seller-confirm',
+            'app/controllers/ShipOrderController.php' => 'order/ship',
+            'app/controllers/DisputeOrderController.php' => 'order/dispute',
+            'app/controllers/RefundOrderController.php' => 'order/refund',
+        ];
+
+        $resolvedPath = $routeMap[$cleanPath] ?? $cleanPath;
+        $query = isset($parsedUrl['query']) && $parsedUrl['query'] !== '' ? '?' . $parsedUrl['query'] : '';
+
+        return $resolvedPath . $query;
+    }
+}
+
 if (!function_exists('app_url')) {
     function app_url(string $path = ''): string {
-        return APP_URL . app_path($path);
+        return APP_URL . app_path(resolve_app_route_path($path));
     }
 }
 

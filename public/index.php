@@ -148,7 +148,7 @@ if (!$db) {
                     
                     <div class="product-spacer"></div>
                     
-                    <a href="detail.php?id=<?php echo $row['id']; ?>" class="btn-detail product-detail-link">
+                    <a href="<?php echo asset_url('detail.php?id=' . (int) $row['id']); ?>" class="btn-detail product-detail-link">
                         Xem chi tiết
                     </a>
                 </div>

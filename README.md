@@ -36,7 +36,7 @@ SpinBike là đồ án môn Lập Trình Web theo hướng marketplace mua bán 
 3. Mở phpMyAdmin.
 4. Drop database `spinbike_db` cũ nếu đã tồn tại.
 5. Import file `spinbike_db.sql`.
-6. Truy cập project trên trình duyệt.
+6. Truy cập project trên trình duyệt qua URL gốc của thư mục project, ví dụ `http://localhost/spinbike`.
 
 ## Tài khoản demo
 

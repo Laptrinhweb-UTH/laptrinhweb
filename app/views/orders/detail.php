@@ -335,7 +335,7 @@ include __DIR__ . '/../layouts/header.php';
                             <div class="text-muted mb-2"><?php echo htmlspecialchars($productBrand); ?></div>
                             <div class="text-muted mb-2"><i class="fa-solid fa-location-dot"></i> <?php echo htmlspecialchars($productLocation); ?></div>
                             <div class="fw-bold text-primary fs-5"><?php echo htmlspecialchars($formattedPaidAmount); ?></div>
-                            <a href="<?php echo asset_url('detail.php'); ?>?id=<?php echo (int) $order['product_id']; ?>" class="btn-detail product-detail-link mt-3">Xem lại sản phẩm</a>
+                            <a href="<?php echo asset_url('detail.php?id=' . (int) $order['product_id']); ?>" class="btn-detail product-detail-link mt-3">Xem lại sản phẩm</a>
                         </div>
                     </div>
                 </div>
