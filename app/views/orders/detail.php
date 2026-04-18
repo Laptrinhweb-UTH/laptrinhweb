@@ -195,6 +195,8 @@ $isCancelledOrder = $orderStatus === ProjectFlow::ORDER_CANCELLED || $escrowStat
 $isBuyerView = $order !== null && (int) $order['buyer_id'] === $currentUserId;
 $isSellerView = $order !== null && (int) $order['seller_id'] === $currentUserId;
 $isAdminView = $currentUserRole === 'admin';
+$canSellerConfirmOrder = $isSellerView && ProjectFlow::sellerCanConfirmOrder($orderStatus, $escrowStatus);
+$canSellerMarkShipping = $isSellerView && ProjectFlow::sellerCanMarkShipping($orderStatus, $escrowStatus);
 $canConfirmReceipt = $isBuyerView && ProjectFlow::orderCanBeConfirmedByBuyer($orderStatus, $escrowStatus);
 $canSubmitDispute = $isBuyerView && ProjectFlow::orderCanBeDisputedByBuyer($orderStatus, $escrowStatus);
 $canResolveRefund = $order !== null
@@ -202,6 +204,8 @@ $canResolveRefund = $order !== null
     && ($isSellerView || $isAdminView);
 $orderDetailUrl = app_url('app/views/orders/detail.php');
 $confirmOrderUrl = app_url('app/controllers/ConfirmOrderController.php');
+$sellerConfirmOrderUrl = app_url('app/controllers/SellerConfirmOrderController.php');
+$shipOrderUrl = app_url('app/controllers/ShipOrderController.php');
 $disputeOrderUrl = app_url('app/controllers/DisputeOrderController.php');
 $refundOrderUrl = app_url('app/controllers/RefundOrderController.php');
 
@@ -259,8 +263,9 @@ include __DIR__ . '/../layouts/header.php';
         <div class="order-timeline">
             <?php
             $timelineSteps = [
-                ['icon' => 'fa-solid fa-check', 'text' => 'Đã đặt hàng'],
-                ['icon' => 'fa-solid fa-wallet', 'text' => 'Đơn đã được tạo'],
+                ['icon' => 'fa-solid fa-check', 'text' => 'Đặt mua'],
+                ['icon' => 'fa-solid fa-wallet', 'text' => 'Đã thanh toán'],
+                ['icon' => 'fa-solid fa-handshake', 'text' => 'Người bán xác nhận đơn'],
                 ['icon' => 'fa-solid fa-truck-fast', 'text' => 'Đang giao xe'],
                 ['icon' => 'fa-solid fa-box-open', 'text' => 'Hoàn tất'],
             ];
@@ -274,7 +279,7 @@ include __DIR__ . '/../layouts/header.php';
             <?php endforeach; ?>
         </div>
         <?php if ($isCancelledOrder): ?>
-        <p class="text-danger fw-semibold mb-0 text-center">Đơn hàng này đã bị hủy hoặc hoàn tiền. Dòng thời gian được dừng tại bước thanh toán.</p>
+        <p class="text-danger fw-semibold mb-0 text-center">Đơn hàng này đã bị hủy hoặc hoàn tiền. Dòng thời gian được dừng tại bước xử lý giao dịch.</p>
         <?php endif; ?>
     </div>
 
@@ -373,6 +378,28 @@ include __DIR__ . '/../layouts/header.php';
     </div>
 
     <div class="d-flex gap-3 mb-5 flex-wrap">
+        <?php if ($canSellerConfirmOrder): ?>
+        <button
+            type="button"
+            id="sellerConfirmOrderButton"
+            class="btn btn-primary flex-grow-1 py-3 rounded-3 fw-bold fs-6 shadow-sm"
+            onclick="sellerConfirmOrder()"
+        >
+            <i class="fa-solid fa-handshake me-2"></i> Tôi xác nhận tiếp nhận đơn
+        </button>
+        <?php endif; ?>
+
+        <?php if ($canSellerMarkShipping): ?>
+        <button
+            type="button"
+            id="shipOrderButton"
+            class="btn btn-outline-primary flex-grow-1 py-3 rounded-3 fw-bold fs-6 shadow-sm"
+            onclick="markOrderShipping()"
+        >
+            <i class="fa-solid fa-truck-fast me-2"></i> Cập nhật đang giao xe
+        </button>
+        <?php endif; ?>
+
         <?php if ($canConfirmReceipt): ?>
         <button
             type="button"
@@ -382,9 +409,9 @@ include __DIR__ . '/../layouts/header.php';
         >
             <i class="fa-solid fa-check-circle me-2"></i> Tôi đã nhận được xe
         </button>
-        <?php else: ?>
+        <?php elseif (!$canSellerConfirmOrder && !$canSellerMarkShipping): ?>
         <button class="btn btn-outline-secondary flex-grow-1 py-3 rounded-3 fw-bold fs-6 shadow-sm" disabled>
-            <i class="fa-solid fa-check-circle me-2"></i> Chưa có thao tác xác nhận ở trạng thái này
+            <i class="fa-solid fa-check-circle me-2"></i> Chưa có thao tác tiếp theo ở trạng thái này
         </button>
         <?php endif; ?>
 
@@ -452,8 +479,76 @@ include __DIR__ . '/../layouts/header.php';
 </div>
 <?php endif; ?>
 
-<?php if ($canConfirmReceipt || $canSubmitDispute || $canResolveRefund): ?>
+<?php if ($canSellerConfirmOrder || $canSellerMarkShipping || $canConfirmReceipt || $canSubmitDispute || $canResolveRefund): ?>
 <script>
+    async function sellerConfirmOrder() {
+        const confirmMessage = 'Xác nhận bạn đã tiếp nhận đơn hàng này và sẽ tiến hành chuẩn bị giao xe?';
+        if (!window.confirm(confirmMessage)) {
+            return;
+        }
+
+        const button = document.getElementById('sellerConfirmOrderButton');
+        const originalHtml = button.innerHTML;
+        button.disabled = true;
+        button.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i> Đang xác nhận...';
+
+        try {
+            const response = await fetch('<?php echo $sellerConfirmOrderUrl; ?>', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                },
+                body: new URLSearchParams({
+                    order_id: '<?php echo (int) $order['id']; ?>',
+                }),
+            });
+
+            const result = await response.json();
+            const status = result.status === 'success' ? 'success' : 'error';
+            const message = result.message || 'Không thể xác nhận tiếp nhận đơn hàng lúc này.';
+            window.location.href = '<?php echo $orderDetailUrl; ?>?id=<?php echo (int) $order['id']; ?>&status=' + encodeURIComponent(status) + '&message=' + encodeURIComponent(message);
+        } catch (error) {
+            window.location.href = '<?php echo $orderDetailUrl; ?>?id=<?php echo (int) $order['id']; ?>&status=error&message=' + encodeURIComponent('Không thể cập nhật đơn hàng lúc này. Vui lòng thử lại sau.');
+        } finally {
+            button.disabled = false;
+            button.innerHTML = originalHtml;
+        }
+    }
+
+    async function markOrderShipping() {
+        const confirmMessage = 'Xác nhận chiếc xe đã được giao cho đơn vị vận chuyển hoặc đang trong quá trình bàn giao cho người mua?';
+        if (!window.confirm(confirmMessage)) {
+            return;
+        }
+
+        const button = document.getElementById('shipOrderButton');
+        const originalHtml = button.innerHTML;
+        button.disabled = true;
+        button.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i> Đang cập nhật...';
+
+        try {
+            const response = await fetch('<?php echo $shipOrderUrl; ?>', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                },
+                body: new URLSearchParams({
+                    order_id: '<?php echo (int) $order['id']; ?>',
+                }),
+            });
+
+            const result = await response.json();
+            const status = result.status === 'success' ? 'success' : 'error';
+            const message = result.message || 'Không thể cập nhật trạng thái giao xe lúc này.';
+            window.location.href = '<?php echo $orderDetailUrl; ?>?id=<?php echo (int) $order['id']; ?>&status=' + encodeURIComponent(status) + '&message=' + encodeURIComponent(message);
+        } catch (error) {
+            window.location.href = '<?php echo $orderDetailUrl; ?>?id=<?php echo (int) $order['id']; ?>&status=error&message=' + encodeURIComponent('Không thể cập nhật trạng thái giao xe lúc này. Vui lòng thử lại sau.');
+        } finally {
+            button.disabled = false;
+            button.innerHTML = originalHtml;
+        }
+    }
+
     async function confirmReceipt() {
         const confirmMessage = 'Xác nhận bạn đã kiểm tra xe và đồng ý giải phóng tiền cho người bán? Hành động này không thể hoàn tác.';
         if (!window.confirm(confirmMessage)) {

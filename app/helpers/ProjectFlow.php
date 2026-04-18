@@ -237,6 +237,18 @@ final class ProjectFlow
             && $escrowStatus === self::ESCROW_HOLDING;
     }
 
+    public static function sellerCanConfirmOrder(string $orderStatus, string $escrowStatus): bool
+    {
+        return $orderStatus === self::ORDER_PAID
+            && $escrowStatus === self::ESCROW_HOLDING;
+    }
+
+    public static function sellerCanMarkShipping(string $orderStatus, string $escrowStatus): bool
+    {
+        return $orderStatus === self::ORDER_SELLER_CONFIRMED
+            && $escrowStatus === self::ESCROW_HOLDING;
+    }
+
     public static function orderCanBeDisputedByBuyer(string $orderStatus, string $escrowStatus): bool
     {
         return self::orderCanBeConfirmedByBuyer($orderStatus, $escrowStatus);
@@ -256,8 +268,9 @@ final class ProjectFlow
         return match ($orderStatus) {
             self::ORDER_PENDING_PAYMENT => 0,
             self::ORDER_PAID => 1,
-            self::ORDER_SELLER_CONFIRMED, self::ORDER_SHIPPING => 2,
-            self::ORDER_COMPLETED => 3,
+            self::ORDER_SELLER_CONFIRMED => 2,
+            self::ORDER_SHIPPING => 3,
+            self::ORDER_COMPLETED => 4,
             default => 1,
         };
     }

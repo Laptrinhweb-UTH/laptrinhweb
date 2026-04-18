@@ -35,6 +35,74 @@ class EscrowService {
         ], $extra);
     }
 
+    public function sellerConfirmOrder($order_id, $current_user_id) {
+        try {
+            $orderId = (int) $order_id;
+            $currentUserId = (int) $current_user_id;
+
+            $this->conn->beginTransaction();
+
+            $order = $this->getLockedOrderWithEscrow($orderId);
+
+            if ((int) $order['seller_id'] !== $currentUserId) {
+                throw new Exception("Chỉ người bán mới có quyền xác nhận tiếp nhận đơn hàng.");
+            }
+
+            if (!ProjectFlow::sellerCanConfirmOrder((string) $order['status'], (string) $order['escrow_status'])) {
+                throw new Exception("Đơn hàng hiện không ở trạng thái chờ người bán xác nhận.");
+            }
+
+            $this->conn->prepare("UPDATE orders SET status = ? WHERE id = ?")
+                ->execute([ProjectFlow::ORDER_SELLER_CONFIRMED, $orderId]);
+
+            $this->conn->commit();
+
+            return $this->buildResult('success', 'Người bán đã xác nhận tiếp nhận đơn hàng.', [
+                'order_status' => ProjectFlow::ORDER_SELLER_CONFIRMED,
+                'escrow_status' => $order['escrow_status'],
+            ]);
+        } catch (Exception $e) {
+            if ($this->conn->inTransaction()) {
+                $this->conn->rollBack();
+            }
+            return $this->buildResult('error', $e->getMessage());
+        }
+    }
+
+    public function markOrderShipping($order_id, $current_user_id) {
+        try {
+            $orderId = (int) $order_id;
+            $currentUserId = (int) $current_user_id;
+
+            $this->conn->beginTransaction();
+
+            $order = $this->getLockedOrderWithEscrow($orderId);
+
+            if ((int) $order['seller_id'] !== $currentUserId) {
+                throw new Exception("Chỉ người bán mới có quyền cập nhật đơn hàng sang trạng thái đang giao.");
+            }
+
+            if (!ProjectFlow::sellerCanMarkShipping((string) $order['status'], (string) $order['escrow_status'])) {
+                throw new Exception("Đơn hàng hiện chưa thể chuyển sang trạng thái đang giao.");
+            }
+
+            $this->conn->prepare("UPDATE orders SET status = ? WHERE id = ?")
+                ->execute([ProjectFlow::ORDER_SHIPPING, $orderId]);
+
+            $this->conn->commit();
+
+            return $this->buildResult('success', 'Đơn hàng đã được cập nhật sang trạng thái đang giao xe.', [
+                'order_status' => ProjectFlow::ORDER_SHIPPING,
+                'escrow_status' => $order['escrow_status'],
+            ]);
+        } catch (Exception $e) {
+            if ($this->conn->inTransaction()) {
+                $this->conn->rollBack();
+            }
+            return $this->buildResult('error', $e->getMessage());
+        }
+    }
+
     // 1. NGƯỜI MUA XÁC NHẬN NHẬN HÀNG -> GIẢI PHÓNG TIỀN CHO NGƯỜI BÁN
     public function releaseFunds($order_id, $current_user_id) {
         try {
