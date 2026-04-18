@@ -15,6 +15,7 @@ $disputedOrdersUrl = admin_orders_url('filter=disputed');
 $refundedOrdersUrl = admin_orders_url('filter=refunded');
 $homeUrl = asset_url('index.php');
 $profileUrl = app_url('app/views/auth/profile.php');
+$adminSection = 'dashboard';
 $dashboardError = null;
 $stats = [
     'pending_listings' => 0,
@@ -92,38 +93,42 @@ if (!$db) {
 include __DIR__ . '/../layouts/header.php';
 ?>
 
-<div class="container py-5" style="max-width: 1120px;">
-    <div class="profile-card mb-4">
-        <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
-            <div>
-                <span class="badge bg-dark rounded-pill px-3 py-2 mb-3">Khu vực quản trị</span>
-                <h1 class="fw-bold mb-2">Dashboard Admin</h1>
-                <p class="text-muted mb-0">
-                    Xin chào <?php echo htmlspecialchars($adminName); ?>. Đây là điểm vào dành riêng cho quản trị viên để theo dõi và xử lý các nghiệp vụ nội bộ của SpinBike.
-                </p>
-            </div>
-            <div class="d-flex gap-2 flex-wrap">
-                <a href="<?php echo $reviewListingsUrl; ?>" class="btn btn-success rounded-pill px-4">
-                    <i class="fa-solid fa-shield-halved me-2"></i>Duyệt tin đăng
-                </a>
-                <a href="<?php echo $adminOrdersUrl; ?>" class="btn btn-outline-secondary rounded-pill px-4">
-                    <i class="fa-solid fa-receipt me-2"></i>Quản lý đơn hàng
-                </a>
-                <a href="<?php echo $homeUrl; ?>" class="btn btn-outline-secondary rounded-pill px-4">
-                    <i class="fa-solid fa-globe me-2"></i>Xem website
-                </a>
-            </div>
-        </div>
-    </div>
+<div class="container py-5 admin-layout-shell">
+    <div class="admin-layout-grid">
+        <?php include __DIR__ . '/_sidebar.php'; ?>
 
-    <?php if ($dashboardError !== null): ?>
-    <div class="empty-state-card mb-4">
-        <i class="fa-solid fa-circle-exclamation empty-state-icon"></i>
-        <p class="empty-state-text mb-0"><?php echo htmlspecialchars($dashboardError); ?></p>
-    </div>
-    <?php endif; ?>
+        <main class="admin-main-content">
+            <div class="profile-card mb-4">
+                <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
+                    <div>
+                        <span class="badge bg-dark rounded-pill px-3 py-2 mb-3">Khu vực quản trị</span>
+                        <h1 class="fw-bold mb-2">Dashboard Admin</h1>
+                        <p class="text-muted mb-0">
+                            Xin chào <?php echo htmlspecialchars($adminName); ?>. Đây là điểm vào dành riêng cho quản trị viên để theo dõi và xử lý các nghiệp vụ nội bộ của SpinBike.
+                        </p>
+                    </div>
+                    <div class="d-flex gap-2 flex-wrap">
+                        <a href="<?php echo $reviewListingsUrl; ?>" class="btn btn-success rounded-pill px-4">
+                            <i class="fa-solid fa-shield-halved me-2"></i>Duyệt tin đăng
+                        </a>
+                        <a href="<?php echo $adminOrdersUrl; ?>" class="btn btn-outline-secondary rounded-pill px-4">
+                            <i class="fa-solid fa-receipt me-2"></i>Quản lý đơn hàng
+                        </a>
+                        <a href="<?php echo $homeUrl; ?>" class="btn btn-outline-secondary rounded-pill px-4">
+                            <i class="fa-solid fa-globe me-2"></i>Xem website
+                        </a>
+                    </div>
+                </div>
+            </div>
 
-    <div class="row g-3 mb-4">
+            <?php if ($dashboardError !== null): ?>
+            <div class="empty-state-card mb-4">
+                <i class="fa-solid fa-circle-exclamation empty-state-icon"></i>
+                <p class="empty-state-text mb-0"><?php echo htmlspecialchars($dashboardError); ?></p>
+            </div>
+            <?php endif; ?>
+
+            <div class="row g-3 mb-4">
         <div class="col-md-6 col-xl-3">
             <a href="<?php echo $pendingListingsUrl; ?>" class="text-decoration-none">
                 <div class="profile-card order-summary-card h-100">
@@ -160,9 +165,9 @@ include __DIR__ . '/../layouts/header.php';
                 </div>
             </a>
         </div>
-    </div>
+            </div>
 
-    <div class="row g-4 mb-4">
+            <div class="row g-4 mb-4">
         <div class="col-lg-4">
             <div class="profile-card h-100">
                 <h5 class="fw-bold mb-3">Thao tác nhanh</h5>
@@ -256,14 +261,16 @@ include __DIR__ . '/../layouts/header.php';
                 </div>
             </div>
         </div>
-    </div>
+            </div>
 
-    <div class="profile-card">
-        <h5 class="fw-bold mb-3">Phạm vi phase hiện tại</h5>
-        <div class="order-status-note mb-0">
-            <p class="mb-2"><strong>Đã có:</strong> entry point riêng cho admin, redirect sau login theo role, guard chặn user thường, dashboard tổng quan với số liệu thật từ database, khu quản lý tin đăng và màn quản lý order/dispute riêng cho admin.</p>
-            <p class="mb-0"><strong>Sắp làm tiếp:</strong> hoàn thiện navigation admin và polish lại trải nghiệm khu quản trị cho đồng nhất hơn.</p>
-        </div>
+            <div class="profile-card">
+                <h5 class="fw-bold mb-3">Phạm vi phase hiện tại</h5>
+                <div class="order-status-note mb-0">
+                    <p class="mb-2"><strong>Đã có:</strong> entry point riêng cho admin, redirect sau login theo role, guard chặn user thường, dashboard tổng quan với số liệu thật từ database, khu quản lý tin đăng và màn quản lý order/dispute riêng cho admin.</p>
+                    <p class="mb-0"><strong>Sắp làm tiếp:</strong> hoàn thiện navigation admin và polish lại trải nghiệm khu quản trị cho đồng nhất hơn.</p>
+                </div>
+            </div>
+        </main>
     </div>
 </div>
 

@@ -170,6 +170,20 @@ include __DIR__ . '/../layouts/header.php';
                     <a href="javascript:void(0)" class="profile-nav-link">
                         <i class="fa-solid fa-lock"></i> Đổi mật khẩu
                     </a>
+                    <?php if ($isAdmin): ?>
+                    <a href="<?php echo admin_dashboard_url(); ?>" class="profile-nav-link">
+                        <i class="fa-solid fa-gauge-high"></i> Dashboard Admin
+                    </a>
+                    <a href="<?php echo $reviewListingsUrl; ?>" class="profile-nav-link">
+                        <i class="fa-solid fa-shield-halved"></i> Quản lý tin đăng
+                    </a>
+                    <a href="<?php echo $adminOrdersUrl; ?>" class="profile-nav-link">
+                        <i class="fa-solid fa-receipt"></i> Đơn hàng & tranh chấp
+                    </a>
+                    <a href="<?php echo asset_url('index.php'); ?>" class="profile-nav-link">
+                        <i class="fa-solid fa-globe"></i> Xem website
+                    </a>
+                    <?php else: ?>
                     <a href="<?php echo $myListingsUrl; ?>" class="profile-nav-link">
                         <i class="fa-solid fa-list-check"></i> Tin đăng của tôi
                     </a>
@@ -184,13 +198,6 @@ include __DIR__ . '/../layouts/header.php';
                     </a>
                     <a href="<?php echo $sellerDisputesUrl; ?>" class="profile-nav-link">
                         <i class="fa-solid fa-scale-balanced"></i> Xử lý tranh chấp
-                    </a>
-                    <?php if ($isAdmin): ?>
-                    <a href="<?php echo $reviewListingsUrl; ?>" class="profile-nav-link">
-                        <i class="fa-solid fa-shield-halved"></i> Duyệt tin đăng
-                    </a>
-                    <a href="<?php echo $adminOrdersUrl; ?>" class="profile-nav-link">
-                        <i class="fa-solid fa-receipt"></i> Đơn hàng & tranh chấp
                     </a>
                     <?php endif; ?>
                 </div>

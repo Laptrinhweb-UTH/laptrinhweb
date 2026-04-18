@@ -56,33 +56,38 @@ if (!$db) {
 
 $dashboardUrl = admin_dashboard_url();
 $currentUrl = admin_listings_url('filter=' . urlencode($filter));
+$adminSection = 'listings';
 include __DIR__ . '/../layouts/header.php';
 ?>
 
-<div class="container py-5" style="max-width: 1160px;">
-    <div class="profile-card mb-4">
-        <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
-            <div>
-                <span class="badge bg-dark rounded-pill px-3 py-2 mb-3">Khu vực quản trị</span>
-                <h2 class="fw-bold mb-1">Quản lý tin đăng</h2>
-                <p class="text-muted mb-0">Admin kiểm tra, duyệt, từ chối hoặc ẩn các tin đăng trước khi hiển thị trên hệ thống.</p>
-            </div>
-            <div class="d-flex gap-2 flex-wrap">
-                <a href="<?php echo $dashboardUrl; ?>" class="btn btn-outline-secondary rounded-pill px-4">
-                    <i class="fa-solid fa-gauge-high me-2"></i>Dashboard Admin
-                </a>
-                <span class="badge bg-dark rounded-pill px-4 py-3">Quyền quản trị viên</span>
-            </div>
-        </div>
-    </div>
+<div class="container py-5 admin-layout-shell">
+    <div class="admin-layout-grid">
+        <?php include __DIR__ . '/_sidebar.php'; ?>
 
-    <?php if ($message !== ''): ?>
-    <div class="<?php echo $noticeClass; ?>">
-        <?php echo htmlspecialchars($message); ?>
-    </div>
-    <?php endif; ?>
+        <main class="admin-main-content">
+            <div class="profile-card mb-4">
+                <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
+                    <div>
+                        <span class="badge bg-dark rounded-pill px-3 py-2 mb-3">Khu vực quản trị</span>
+                        <h2 class="fw-bold mb-1">Quản lý tin đăng</h2>
+                        <p class="text-muted mb-0">Admin kiểm tra, duyệt, từ chối hoặc ẩn các tin đăng trước khi hiển thị trên hệ thống.</p>
+                    </div>
+                    <div class="d-flex gap-2 flex-wrap">
+                        <a href="<?php echo $dashboardUrl; ?>" class="btn btn-outline-secondary rounded-pill px-4">
+                            <i class="fa-solid fa-gauge-high me-2"></i>Dashboard Admin
+                        </a>
+                        <span class="badge bg-dark rounded-pill px-4 py-3">Quyền quản trị viên</span>
+                    </div>
+                </div>
+            </div>
 
-    <div class="row g-3 mb-4">
+            <?php if ($message !== ''): ?>
+            <div class="<?php echo $noticeClass; ?>">
+                <?php echo htmlspecialchars($message); ?>
+            </div>
+            <?php endif; ?>
+
+            <div class="row g-3 mb-4">
         <div class="col-md-3">
             <a href="<?php echo admin_listings_url('filter=' . ProjectFlow::LISTING_PENDING); ?>" class="text-decoration-none">
                 <div class="profile-card order-summary-card h-100">
@@ -115,9 +120,9 @@ include __DIR__ . '/../layouts/header.php';
                 </div>
             </a>
         </div>
-    </div>
+            </div>
 
-    <div class="order-filter-bar mb-4">
+            <div class="order-filter-bar mb-4">
         <?php foreach ($allowedFilters as $filterItem): ?>
             <?php
             $label = $filterItem === 'all' ? 'Tất cả' : ProjectFlow::listingLabel($filterItem);
@@ -127,20 +132,20 @@ include __DIR__ . '/../layouts/header.php';
                 <?php echo htmlspecialchars($label); ?>
             </a>
         <?php endforeach; ?>
-    </div>
+            </div>
 
-    <?php if ($pageError !== null): ?>
-    <div class="empty-state-card">
-        <i class="fa-solid fa-circle-exclamation empty-state-icon"></i>
-        <p class="empty-state-text"><?php echo htmlspecialchars($pageError); ?></p>
-    </div>
-    <?php elseif (empty($listings)): ?>
-    <div class="empty-state-card">
-        <i class="fa-solid fa-inbox empty-state-icon"></i>
-        <p class="empty-state-text">Hiện không có tin đăng nào trong nhóm trạng thái này.</p>
-    </div>
-    <?php else: ?>
-    <div class="row g-4">
+            <?php if ($pageError !== null): ?>
+            <div class="empty-state-card">
+                <i class="fa-solid fa-circle-exclamation empty-state-icon"></i>
+                <p class="empty-state-text"><?php echo htmlspecialchars($pageError); ?></p>
+            </div>
+            <?php elseif (empty($listings)): ?>
+            <div class="empty-state-card">
+                <i class="fa-solid fa-inbox empty-state-icon"></i>
+                <p class="empty-state-text">Hiện không có tin đăng nào trong nhóm trạng thái này.</p>
+            </div>
+            <?php else: ?>
+            <div class="row g-4">
         <?php foreach ($listings as $listing): ?>
             <?php
             $image = $listing['main_image'] ?: 'https://via.placeholder.com/600x400?text=SpinBike';
@@ -196,8 +201,10 @@ include __DIR__ . '/../layouts/header.php';
                 </div>
             </div>
         <?php endforeach; ?>
+            </div>
+            <?php endif; ?>
+        </main>
     </div>
-    <?php endif; ?>
 </div>
 
 <?php include __DIR__ . '/../layouts/footer.php'; ?>

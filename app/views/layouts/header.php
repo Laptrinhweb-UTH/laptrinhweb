@@ -16,7 +16,13 @@ $adminOrdersUrl = admin_orders_url();
 $adminDashboardUrl = admin_dashboard_url();
 $isLoggedIn = isset($_SESSION['user_id'], $_SESSION['user_name']);
 $isAdmin = (string) ($_SESSION['role'] ?? 'user') === 'admin';
-$homeUrl = $isAdmin ? $adminDashboardUrl : asset_url('index.php');
+$websiteUrl = asset_url('index.php');
+$currentScript = $_SERVER['SCRIPT_NAME'] ?? '';
+$isAdminArea = $isAdmin && str_contains($currentScript, '/app/views/admin/');
+$isAdminDashboardPage = $isAdminArea && str_contains($currentScript, '/app/views/admin/dashboard.php');
+$isAdminListingsPage = $isAdminArea && str_contains($currentScript, '/app/views/admin/listings.php');
+$isAdminOrdersPage = $isAdminArea && str_contains($currentScript, '/app/views/admin/orders.php');
+$homeUrl = $isAdminArea ? $adminDashboardUrl : asset_url('index.php');
 $displayUserName = htmlspecialchars($_SESSION['user_name'] ?? '');
 
 // ==========================================
@@ -77,6 +83,19 @@ if ($isLoggedIn) {
           <span class="brand-domain">.vn</span>
         </a>
 
+        <?php if ($isAdminArea): ?>
+        <div class="admin-header-nav">
+          <a href="<?php echo $adminDashboardUrl; ?>" class="admin-header-link <?php echo $isAdminDashboardPage ? 'is-active' : ''; ?>">
+            <i class="fa-solid fa-gauge-high"></i> Dashboard
+          </a>
+          <a href="<?php echo $reviewListingsUrl; ?>" class="admin-header-link <?php echo $isAdminListingsPage ? 'is-active' : ''; ?>">
+            <i class="fa-solid fa-shield-halved"></i> Tin đăng
+          </a>
+          <a href="<?php echo $adminOrdersUrl; ?>" class="admin-header-link <?php echo $isAdminOrdersPage ? 'is-active' : ''; ?>">
+            <i class="fa-solid fa-receipt"></i> Đơn hàng
+          </a>
+        </div>
+        <?php else: ?>
         <div class="search-box">
           <input
             id="searchInput"
@@ -85,11 +104,18 @@ if ($isLoggedIn) {
           />
           <i class="fa-solid fa-magnifying-glass"></i>
         </div>
+        <?php endif; ?>
 
         <div class="header-actions">
+          <?php if ($isAdminArea): ?>
+          <a href="<?php echo $websiteUrl; ?>" class="btn-sell header-sell-link admin-back-to-site">
+            <i class="fa-solid fa-globe"></i> Xem website
+          </a>
+          <?php else: ?>
           <a href="<?php echo $isLoggedIn ? $sellUrl : $authUrl; ?>" class="btn-sell header-sell-link">
             <i class="fa-solid fa-plus"></i> Đăng bán ngay
           </a>
+          <?php endif; ?>
 
           <div class="auth-buttons">
             <?php if ($isLoggedIn): ?>

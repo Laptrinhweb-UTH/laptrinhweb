@@ -136,31 +136,36 @@ $filterLabel = match ($filter) {
     'cancelled' => 'đơn đã hủy',
     default => 'tất cả đơn hàng',
 };
+$adminSection = 'orders';
 
 include __DIR__ . '/../layouts/header.php';
 ?>
 
-<div class="container py-5" style="max-width: 1160px;">
-    <div class="profile-card mb-4">
-        <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
-            <div>
-                <span class="badge bg-dark rounded-pill px-3 py-2 mb-3">Khu vực quản trị</span>
-                <h2 class="fw-bold mb-1">Quản lý đơn hàng & tranh chấp</h2>
-                <p class="text-muted mb-0">Admin theo dõi toàn bộ giao dịch giữ tiền, đơn đang tranh chấp và các case hoàn tiền trên hệ thống.</p>
-                <p class="order-filter-subtitle mb-0">Đang xem: <?php echo htmlspecialchars($filterLabel); ?></p>
-            </div>
-            <div class="d-flex gap-2 flex-wrap">
-                <a href="<?php echo $dashboardUrl; ?>" class="btn btn-outline-secondary rounded-pill px-4">
-                    <i class="fa-solid fa-gauge-high me-2"></i>Dashboard Admin
-                </a>
-                <a href="<?php echo $listingsUrl; ?>" class="btn btn-outline-secondary rounded-pill px-4">
-                    <i class="fa-solid fa-list-check me-2"></i>Quản lý tin đăng
-                </a>
-            </div>
-        </div>
-    </div>
+<div class="container py-5 admin-layout-shell">
+    <div class="admin-layout-grid">
+        <?php include __DIR__ . '/_sidebar.php'; ?>
 
-    <div class="row g-3 mb-4">
+        <main class="admin-main-content">
+            <div class="profile-card mb-4">
+                <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
+                    <div>
+                        <span class="badge bg-dark rounded-pill px-3 py-2 mb-3">Khu vực quản trị</span>
+                        <h2 class="fw-bold mb-1">Quản lý đơn hàng & tranh chấp</h2>
+                        <p class="text-muted mb-0">Admin theo dõi toàn bộ giao dịch giữ tiền, đơn đang tranh chấp và các case hoàn tiền trên hệ thống.</p>
+                        <p class="order-filter-subtitle mb-0">Đang xem: <?php echo htmlspecialchars($filterLabel); ?></p>
+                    </div>
+                    <div class="d-flex gap-2 flex-wrap">
+                        <a href="<?php echo $dashboardUrl; ?>" class="btn btn-outline-secondary rounded-pill px-4">
+                            <i class="fa-solid fa-gauge-high me-2"></i>Dashboard Admin
+                        </a>
+                        <a href="<?php echo $listingsUrl; ?>" class="btn btn-outline-secondary rounded-pill px-4">
+                            <i class="fa-solid fa-list-check me-2"></i>Quản lý tin đăng
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-3 mb-4">
         <div class="col-md-4 col-xl-2">
             <a href="<?php echo $allOrdersUrl; ?>" class="text-decoration-none">
                 <div class="profile-card order-summary-card h-100">
@@ -209,9 +214,9 @@ include __DIR__ . '/../layouts/header.php';
                 </div>
             </a>
         </div>
-    </div>
+            </div>
 
-    <div class="order-filter-bar mb-4">
+            <div class="order-filter-bar mb-4">
         <a href="<?php echo $allOrdersUrl; ?>" class="order-filter-chip <?php echo $filter === 'all' ? 'is-active' : ''; ?>">
             <i class="fa-solid fa-list-ul"></i> Tất cả
         </a>
@@ -230,21 +235,21 @@ include __DIR__ . '/../layouts/header.php';
         <a href="<?php echo $cancelledOrdersUrl; ?>" class="order-filter-chip <?php echo $filter === 'cancelled' ? 'is-active' : ''; ?>">
             <i class="fa-solid fa-ban"></i> Đã hủy
         </a>
-    </div>
+            </div>
 
-    <?php if ($pageError !== null): ?>
-    <div class="empty-state-card">
-        <i class="fa-solid fa-circle-exclamation empty-state-icon"></i>
-        <p class="empty-state-text"><?php echo htmlspecialchars($pageError); ?></p>
-    </div>
-    <?php elseif (empty($orders)): ?>
-    <div class="empty-state-card">
-        <i class="fa-solid fa-box-open empty-state-icon"></i>
-        <p class="empty-state-text">Hiện không có đơn hàng nào khớp với bộ lọc admin đang xem.</p>
-        <a href="<?php echo $allOrdersUrl; ?>" class="btn-detail product-detail-link">Xem tất cả đơn hàng</a>
-    </div>
-    <?php else: ?>
-    <div class="order-list">
+            <?php if ($pageError !== null): ?>
+            <div class="empty-state-card">
+                <i class="fa-solid fa-circle-exclamation empty-state-icon"></i>
+                <p class="empty-state-text"><?php echo htmlspecialchars($pageError); ?></p>
+            </div>
+            <?php elseif (empty($orders)): ?>
+            <div class="empty-state-card">
+                <i class="fa-solid fa-box-open empty-state-icon"></i>
+                <p class="empty-state-text">Hiện không có đơn hàng nào khớp với bộ lọc admin đang xem.</p>
+                <a href="<?php echo $allOrdersUrl; ?>" class="btn-detail product-detail-link">Xem tất cả đơn hàng</a>
+            </div>
+            <?php else: ?>
+            <div class="order-list">
         <?php foreach ($orders as $order): ?>
             <?php
             $productTitle = trim((string) ($order['product_title'] ?? ''));
@@ -342,8 +347,10 @@ include __DIR__ . '/../layouts/header.php';
                 </div>
             </div>
         <?php endforeach; ?>
+            </div>
+            <?php endif; ?>
+        </main>
     </div>
-    <?php endif; ?>
 </div>
 
 <?php include __DIR__ . '/../layouts/footer.php'; ?>
