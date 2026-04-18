@@ -39,6 +39,30 @@ function order_list_badge_class(string $status): string {
     };
 }
 
+function order_list_status_guide(string $orderStatus, string $escrowStatus, string $view): string {
+    if ($escrowStatus === 'disputed') {
+        return $view === 'seller'
+            ? 'Đơn đang có khiếu nại và tiền vẫn bị giữ. Bạn cần phối hợp xử lý trước khi giao dịch khép lại.'
+            : 'Bạn đã gửi khiếu nại cho đơn này. SpinBike đang tạm giữ tiền để chờ xử lý.';
+    }
+
+    if ($escrowStatus === 'refunded') {
+        return $view === 'seller'
+            ? 'Đơn đã được đóng theo hướng hoàn tiền cho người mua.'
+            : 'Đơn đã được xử lý hoàn tiền và khép lại.';
+    }
+
+    if ($orderStatus === 'completed') {
+        return 'Đơn đã hoàn tất.';
+    }
+
+    if ($escrowStatus === 'holding') {
+        return 'Tiền vẫn đang được hệ thống giữ an toàn.';
+    }
+
+    return 'Đơn đang được theo dõi và cập nhật trạng thái.';
+}
+
 $currentUserId = (int) $_SESSION['user_id'];
 $view = $_GET['view'] ?? 'buyer';
 if (!in_array($view, ['buyer', 'seller'], true)) {
@@ -214,11 +238,16 @@ include __DIR__ . '/../layouts/header.php';
                 ? date('d/m/Y H:i', strtotime((string) $order['order_created_at']))
                 : 'Đang cập nhật';
             $productImage = $order['product_image'] ?? 'https://via.placeholder.com/96x96?text=SpinBike';
-            $statusGuide = ($order['order_status'] ?? '') === 'completed'
-                ? 'Đơn đã hoàn tất.'
-                : (($order['escrow_status'] ?? '') === 'holding'
-                    ? 'Tiền vẫn đang được hệ thống giữ an toàn.'
-                    : 'Đơn đang được theo dõi và cập nhật trạng thái.');
+            $statusGuide = order_list_status_guide(
+                (string) ($order['order_status'] ?? ''),
+                (string) ($order['escrow_status'] ?? ''),
+                $view
+            );
+            $statusGuideClass = match ((string) ($order['escrow_status'] ?? '')) {
+                'disputed' => 'order-list-guide is-danger',
+                'refunded' => 'order-list-guide is-success',
+                default => 'order-list-guide',
+            };
             ?>
 
             <div class="profile-card order-list-card">
@@ -252,7 +281,7 @@ include __DIR__ . '/../layouts/header.php';
                             </div>
                         </div>
 
-                        <p class="order-list-guide mb-3"><?php echo htmlspecialchars($statusGuide); ?></p>
+                        <p class="<?php echo $statusGuideClass; ?> mb-3"><?php echo htmlspecialchars($statusGuide); ?></p>
 
                         <div class="order-list-meta">
                             <span>

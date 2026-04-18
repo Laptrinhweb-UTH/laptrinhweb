@@ -2153,6 +2153,50 @@ img {
 .order-list-guide {
   color: var(--text-secondary);
   font-size: 14px;
+  background: #f8fafc;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 12px 14px;
+}
+
+.order-list-guide.is-danger {
+  background: #fff1f2;
+  border-color: #fecdd3;
+  color: #be123c;
+}
+
+.order-list-guide.is-success {
+  background: #ecfdf3;
+  border-color: #bbf7d0;
+  color: #15803d;
+}
+
+.order-resolution-banner {
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 16px 18px;
+  background: #f8fafc;
+  color: var(--text-secondary);
+}
+
+.order-resolution-banner.is-danger {
+  background: #fff1f2;
+  border-color: #fecdd3;
+  color: #be123c;
+}
+
+.order-resolution-banner.is-success {
+  background: #ecfdf3;
+  border-color: #bbf7d0;
+  color: #15803d;
+}
+
+.order-resolution-banner-title {
+  font-size: 14px;
+  font-weight: 800;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
 .order-list-meta span {

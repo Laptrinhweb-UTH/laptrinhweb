@@ -197,6 +197,21 @@ $escrowGuideText = match ($escrowStatus) {
     'disputed' => 'Khoản tiền đang được giữ để chờ xử lý khiếu nại.',
     default => 'Trạng thái giữ tiền đang được cập nhật.',
 };
+$resolutionGuideTitle = match ($escrowStatus) {
+    'disputed' => 'Đơn hàng đang ở chế độ tranh chấp',
+    'refunded' => 'Khoản tiền đã được hoàn cho người mua',
+    default => '',
+};
+$resolutionGuideText = match ($escrowStatus) {
+    'disputed' => 'SpinBike đang tiếp tục giữ tiền để chờ người bán hoặc quản trị viên xử lý. Trong giai đoạn này, tiền sẽ không được giải phóng cho người bán.',
+    'refunded' => 'Khiếu nại đã được xử lý theo hướng hoàn tiền. Đơn hàng được đóng lại và khoản tiền đã quay về tài khoản người mua.',
+    default => '',
+};
+$resolutionGuideClass = match ($escrowStatus) {
+    'disputed' => 'order-resolution-banner is-danger',
+    'refunded' => 'order-resolution-banner is-success',
+    default => 'order-resolution-banner',
+};
 
 $statusBadgeClass = match ($orderStatus) {
     'completed' => 'bg-success',
@@ -276,6 +291,13 @@ include __DIR__ . '/../layouts/header.php';
         <p class="mb-1"><strong>Trạng thái đơn:</strong> <?php echo htmlspecialchars($statusGuideText); ?></p>
         <p class="mb-0"><strong>Trạng thái giữ tiền:</strong> <?php echo htmlspecialchars($escrowGuideText); ?></p>
     </div>
+
+    <?php if ($resolutionGuideTitle !== ''): ?>
+    <div class="<?php echo $resolutionGuideClass; ?> mb-4">
+        <div class="order-resolution-banner-title"><?php echo htmlspecialchars($resolutionGuideTitle); ?></div>
+        <p class="mb-0"><?php echo htmlspecialchars($resolutionGuideText); ?></p>
+    </div>
+    <?php endif; ?>
 
     <div class="card shadow-sm border-0 rounded-4 p-4 mb-4">
         <div class="order-timeline">
