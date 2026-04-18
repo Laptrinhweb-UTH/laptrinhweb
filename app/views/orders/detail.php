@@ -222,11 +222,17 @@ $timelineCurrentStep = match ($orderStatus) {
 
 $isCancelledOrder = $orderStatus === 'cancelled' || $escrowStatus === 'refunded';
 $isBuyerView = $order !== null && (int) $order['buyer_id'] === $currentUserId;
+$isSellerView = $order !== null && (int) $order['seller_id'] === $currentUserId;
+$isAdminView = $currentUserRole === 'admin';
 $canConfirmReceipt = $isBuyerView && in_array($orderStatus, ['paid', 'shipping'], true) && $escrowStatus === 'holding';
 $canSubmitDispute = $isBuyerView && in_array($orderStatus, ['paid', 'shipping'], true) && $escrowStatus === 'holding';
+$canResolveRefund = $order !== null
+    && $escrowStatus === 'disputed'
+    && ($isSellerView || $isAdminView);
 $orderDetailUrl = app_url('app/views/orders/detail.php');
 $confirmOrderUrl = app_url('app/controllers/ConfirmOrderController.php');
 $disputeOrderUrl = app_url('app/controllers/DisputeOrderController.php');
+$refundOrderUrl = app_url('app/controllers/RefundOrderController.php');
 
 include __DIR__ . '/../layouts/header.php';
 ?>
@@ -417,6 +423,17 @@ include __DIR__ . '/../layouts/header.php';
             <i class="fa-solid fa-triangle-exclamation"></i> Không thể khiếu nại ở trạng thái này
         </button>
         <?php endif; ?>
+
+        <?php if ($canResolveRefund): ?>
+        <button
+            type="button"
+            id="refundBuyerButton"
+            class="btn btn-danger py-3 px-4 rounded-3 fw-bold shadow-sm"
+            onclick="refundBuyer()"
+        >
+            <i class="fa-solid fa-rotate-left me-2"></i> Hoàn tiền cho người mua
+        </button>
+        <?php endif; ?>
     </div>
     <?php endif; ?>
 </div>
@@ -457,7 +474,7 @@ include __DIR__ . '/../layouts/header.php';
 </div>
 <?php endif; ?>
 
-<?php if ($canConfirmReceipt || $canSubmitDispute): ?>
+<?php if ($canConfirmReceipt || $canSubmitDispute || $canResolveRefund): ?>
 <script>
     async function confirmReceipt() {
         const confirmMessage = 'Xác nhận bạn đã kiểm tra xe và đồng ý giải phóng tiền cho người bán? Hành động này không thể hoàn tác.';
@@ -542,6 +559,40 @@ include __DIR__ . '/../layouts/header.php';
         } catch (error) {
             notice.textContent = 'Không thể gửi khiếu nại lúc này. Vui lòng thử lại sau.';
             notice.classList.remove('hidden');
+        } finally {
+            button.disabled = false;
+            button.innerHTML = originalHtml;
+        }
+    }
+
+    async function refundBuyer() {
+        const confirmMessage = 'Xác nhận hoàn tiền cho người mua? Hành động này sẽ hủy đơn hàng và chuyển khoản tiền giữ sang trạng thái đã hoàn.';
+        if (!window.confirm(confirmMessage)) {
+            return;
+        }
+
+        const button = document.getElementById('refundBuyerButton');
+        const originalHtml = button.innerHTML;
+        button.disabled = true;
+        button.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i> Đang hoàn tiền...';
+
+        try {
+            const response = await fetch('<?php echo $refundOrderUrl; ?>', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                },
+                body: new URLSearchParams({
+                    order_id: '<?php echo (int) $order['id']; ?>',
+                }),
+            });
+
+            const result = await response.json();
+            const status = result.status === 'success' ? 'success' : 'error';
+            const message = result.message || 'Không thể hoàn tiền cho đơn hàng lúc này.';
+            window.location.href = '<?php echo $orderDetailUrl; ?>?id=<?php echo (int) $order['id']; ?>&status=' + encodeURIComponent(status) + '&message=' + encodeURIComponent(message);
+        } catch (error) {
+            window.location.href = '<?php echo $orderDetailUrl; ?>?id=<?php echo (int) $order['id']; ?>&status=error&message=' + encodeURIComponent('Không thể gửi yêu cầu hoàn tiền lúc này. Vui lòng thử lại sau.');
         } finally {
             button.disabled = false;
             button.innerHTML = originalHtml;
