@@ -190,6 +190,16 @@ final class ProjectFlow
         ));
     }
 
+    public static function orderPendingCheckoutStatuses(): array
+    {
+        return [
+            self::ORDER_PENDING_PAYMENT,
+            self::ORDER_PAID,
+            self::ORDER_SELLER_CONFIRMED,
+            self::ORDER_SHIPPING,
+        ];
+    }
+
     public static function orderLabel(string $status): string
     {
         return self::ORDER_BLUEPRINT[$status]['label'] ?? 'Đang cập nhật';

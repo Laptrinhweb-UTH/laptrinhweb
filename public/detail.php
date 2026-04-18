@@ -169,7 +169,7 @@ include __DIR__ . '/../app/views/layouts/header.php';
                     <div class="detail-action-stack">
                         <?php if ($canPurchase): ?>
                         <button onclick="showBuyOptions()" class="detail-buy-btn" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
-                            <i class="fa-solid fa-cart-shopping"></i> MUA NGAY
+                            <i class="fa-solid fa-cart-shopping"></i> ĐẶT MUA AN TOÀN
                         </button>
                         <?php else: ?>
                         <div class="auth-message auth-message-error">
@@ -222,7 +222,7 @@ include __DIR__ . '/../app/views/layouts/header.php';
     <div class="modal-content detail-buy-modal">
         
         <div class="detail-buy-modal-header">
-            <h3 class="detail-buy-modal-title">Chọn phương thức mua hàng</h3>
+            <h3 class="detail-buy-modal-title">Chọn cách tiếp tục</h3>
             <button onclick="hideBuyOptions()" class="detail-buy-modal-close">&times;</button>
         </div>
         
@@ -232,9 +232,9 @@ include __DIR__ . '/../app/views/layouts/header.php';
                     <i class="fa-solid fa-shield-halved"></i>
                 </div>
                 <div>
-                    <h4 class="detail-buy-option-heading detail-buy-option-heading-primary">Mua an toàn qua SpinBike</h4>
+                    <h4 class="detail-buy-option-heading detail-buy-option-heading-primary">Đặt mua an toàn qua SpinBike</h4>
                     <span class="detail-buy-badge">Khuyên dùng</span>
-                    <p class="detail-buy-option-text detail-buy-option-text-primary">SpinBike sẽ làm trung gian giữ tiền. Chỉ khi bạn kiểm tra và nhận xe đúng mô tả, tiền mới được chuyển cho người bán.</p>
+                    <p class="detail-buy-option-text detail-buy-option-text-primary">Bạn sẽ đi tới bước xác nhận đơn hàng và thanh toán an toàn. SpinBike giữ tiền cho tới khi bạn xác nhận đã nhận xe đúng mô tả.</p>
                 </div>
             </div>
         </div>
