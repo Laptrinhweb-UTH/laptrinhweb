@@ -2,21 +2,11 @@
 session_start();
 require_once __DIR__ . '/../../../config/config.php';
 require_once __DIR__ . '/../../helpers/Database.php';
-<<<<<<< ours
-require_once __DIR__ . '/../../helpers/ProjectFlow.php';
-require_once __DIR__ . '/../../models/Product.php';
-
-if (!isset($_SESSION['user_id']) || (string) ($_SESSION['role'] ?? 'user') !== 'admin') {
-    header('Location: ' . asset_url('index.php'));
-    exit;
-}
-=======
 require_once __DIR__ . '/../../helpers/AdminAuth.php';
 require_once __DIR__ . '/../../helpers/ProjectFlow.php';
 require_once __DIR__ . '/../../models/Product.php';
 
 require_admin_session();
->>>>>>> theirs
 
 $filter = $_GET['filter'] ?? 'pending';
 $allowedFilters = ['pending', 'approved', 'rejected', 'hidden', 'sold', 'all'];
@@ -32,6 +22,12 @@ $database = new Database();
 $db = $database->getConnectionOrNull();
 $pageError = null;
 $listings = [];
+$summary = [
+    'pending' => 0,
+    'approved' => 0,
+    'rejected' => 0,
+    'hidden' => 0,
+];
 
 if (!$db) {
     $pageError = 'Không thể tải khu vực duyệt tin lúc này.';
@@ -39,22 +35,45 @@ if (!$db) {
     try {
         $productModel = new Product($db);
         $listings = $productModel->getAdminListings($filter);
+
+        $summaryStmt = $db->query("
+            SELECT
+                SUM(CASE WHEN listing_status = '" . ProjectFlow::LISTING_PENDING . "' THEN 1 ELSE 0 END) AS pending_count,
+                SUM(CASE WHEN listing_status = '" . ProjectFlow::LISTING_APPROVED . "' THEN 1 ELSE 0 END) AS approved_count,
+                SUM(CASE WHEN listing_status = '" . ProjectFlow::LISTING_REJECTED . "' THEN 1 ELSE 0 END) AS rejected_count,
+                SUM(CASE WHEN listing_status = '" . ProjectFlow::LISTING_HIDDEN . "' THEN 1 ELSE 0 END) AS hidden_count
+            FROM products
+        ");
+        $summaryData = $summaryStmt->fetch(PDO::FETCH_ASSOC) ?: [];
+        $summary['pending'] = (int) ($summaryData['pending_count'] ?? 0);
+        $summary['approved'] = (int) ($summaryData['approved_count'] ?? 0);
+        $summary['rejected'] = (int) ($summaryData['rejected_count'] ?? 0);
+        $summary['hidden'] = (int) ($summaryData['hidden_count'] ?? 0);
     } catch (Throwable $exception) {
         $pageError = 'Khu vực duyệt tin hiện chưa thể tải. Vui lòng thử lại sau.';
     }
 }
 
-$currentUrl = app_url('app/views/products/review.php') . '?filter=' . urlencode($filter);
+$dashboardUrl = admin_dashboard_url();
+$currentUrl = admin_listings_url('filter=' . urlencode($filter));
 include __DIR__ . '/../layouts/header.php';
 ?>
 
 <div class="container py-5" style="max-width: 1160px;">
-    <div class="d-flex justify-content-between align-items-center gap-3 flex-wrap mb-4">
-        <div>
-            <h2 class="fw-bold mb-1">Duyệt tin đăng</h2>
-            <p class="text-muted mb-0">Admin kiểm tra, duyệt, từ chối hoặc ẩn các tin đăng trước khi hiển thị trên hệ thống.</p>
+    <div class="profile-card mb-4">
+        <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
+            <div>
+                <span class="badge bg-dark rounded-pill px-3 py-2 mb-3">Khu vực quản trị</span>
+                <h2 class="fw-bold mb-1">Quản lý tin đăng</h2>
+                <p class="text-muted mb-0">Admin kiểm tra, duyệt, từ chối hoặc ẩn các tin đăng trước khi hiển thị trên hệ thống.</p>
+            </div>
+            <div class="d-flex gap-2 flex-wrap">
+                <a href="<?php echo $dashboardUrl; ?>" class="btn btn-outline-secondary rounded-pill px-4">
+                    <i class="fa-solid fa-gauge-high me-2"></i>Dashboard Admin
+                </a>
+                <span class="badge bg-dark rounded-pill px-4 py-3">Quyền quản trị viên</span>
+            </div>
         </div>
-        <span class="badge bg-dark rounded-pill px-4 py-3">Quyền quản trị viên</span>
     </div>
 
     <?php if ($message !== ''): ?>
@@ -63,11 +82,46 @@ include __DIR__ . '/../layouts/header.php';
     </div>
     <?php endif; ?>
 
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <a href="<?php echo admin_listings_url('filter=' . ProjectFlow::LISTING_PENDING); ?>" class="text-decoration-none">
+                <div class="profile-card order-summary-card h-100">
+                    <div class="order-summary-label text-warning-emphasis">Chờ duyệt</div>
+                    <div class="order-summary-value"><?php echo $summary['pending']; ?></div>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-3">
+            <a href="<?php echo admin_listings_url('filter=' . ProjectFlow::LISTING_APPROVED); ?>" class="text-decoration-none">
+                <div class="profile-card order-summary-card h-100">
+                    <div class="order-summary-label text-success-emphasis">Đang hiển thị</div>
+                    <div class="order-summary-value"><?php echo $summary['approved']; ?></div>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-3">
+            <a href="<?php echo admin_listings_url('filter=' . ProjectFlow::LISTING_REJECTED); ?>" class="text-decoration-none">
+                <div class="profile-card order-summary-card h-100">
+                    <div class="order-summary-label text-danger-emphasis">Bị từ chối</div>
+                    <div class="order-summary-value"><?php echo $summary['rejected']; ?></div>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-3">
+            <a href="<?php echo admin_listings_url('filter=' . ProjectFlow::LISTING_HIDDEN); ?>" class="text-decoration-none">
+                <div class="profile-card order-summary-card h-100">
+                    <div class="order-summary-label text-secondary-emphasis">Đã ẩn</div>
+                    <div class="order-summary-value"><?php echo $summary['hidden']; ?></div>
+                </div>
+            </a>
+        </div>
+    </div>
+
     <div class="order-filter-bar mb-4">
         <?php foreach ($allowedFilters as $filterItem): ?>
             <?php
             $label = $filterItem === 'all' ? 'Tất cả' : ProjectFlow::listingLabel($filterItem);
-            $url = app_url('app/views/products/review.php') . '?filter=' . urlencode($filterItem);
+            $url = admin_listings_url('filter=' . urlencode($filterItem));
             ?>
             <a href="<?php echo $url; ?>" class="order-filter-chip <?php echo $filter === $filterItem ? 'is-active' : ''; ?>">
                 <?php echo htmlspecialchars($label); ?>

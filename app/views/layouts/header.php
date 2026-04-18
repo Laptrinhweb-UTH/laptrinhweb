@@ -4,16 +4,18 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 require_once __DIR__ . '/../../../config/config.php';
+require_once __DIR__ . '/../../helpers/AdminAuth.php';
 
-$homeUrl = asset_url('index.php');
 $authUrl = app_url('app/views/auth/auth.php');
 $profileUrl = app_url('app/views/auth/profile.php');
 $logoutUrl = app_url('app/views/auth/logout.php');
 $sellUrl = app_url('app/views/products/sell.php');
 $myListingsUrl = app_url('app/views/products/manage.php');
 $reviewListingsUrl = app_url('app/views/products/review.php');
+$adminDashboardUrl = admin_dashboard_url();
 $isLoggedIn = isset($_SESSION['user_id'], $_SESSION['user_name']);
 $isAdmin = (string) ($_SESSION['role'] ?? 'user') === 'admin';
+$homeUrl = $isAdmin ? $adminDashboardUrl : asset_url('index.php');
 $displayUserName = htmlspecialchars($_SESSION['user_name'] ?? '');
 
 // ==========================================
@@ -116,6 +118,9 @@ if ($isLoggedIn) {
                       <i class="fa-solid fa-list-check"></i> Tin đăng của tôi
                     </a>
                     <?php if ($isAdmin): ?>
+                    <a href="<?php echo $adminDashboardUrl; ?>" class="dropdown-item">
+                      <i class="fa-solid fa-gauge-high"></i> Dashboard Admin
+                    </a>
                     <a href="<?php echo $reviewListingsUrl; ?>" class="dropdown-item">
                       <i class="fa-solid fa-shield-halved"></i> Duyệt tin đăng
                     </a>

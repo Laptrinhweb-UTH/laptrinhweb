@@ -4,6 +4,8 @@ header('Content-Type: application/json');
 
 // 1. Sửa lại đường dẫn lùi ra 2 cấp để gọi Database Helper
 require_once __DIR__ . '/../../helpers/Database.php';
+require_once __DIR__ . '/../../helpers/AdminAuth.php';
+require_once __DIR__ . '/../../../config/config.php';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $email = trim($_POST['email']);
@@ -37,7 +39,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             // Lưu session vào file
             session_write_close();
 
-            echo json_encode(['status' => 'success', 'message' => '✅ Đăng nhập thành công!']);
+            $redirectUrl = (string) $user['role'] === 'admin'
+                ? admin_dashboard_url()
+                : asset_url('index.php');
+
+            echo json_encode([
+                'status' => 'success',
+                'message' => '✅ Đăng nhập thành công!',
+                'redirect_url' => $redirectUrl,
+            ]);
         } else {
             // Sai email hoặc sai mật khẩu
             echo json_encode(['status' => 'error', 'message' => '❌ Email hoặc mật khẩu không chính xác!']);
