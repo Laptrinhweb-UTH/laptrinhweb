@@ -17,6 +17,14 @@ if (!function_exists('admin_listings_url')) {
     }
 }
 
+if (!function_exists('admin_orders_url')) {
+    function admin_orders_url(string $query = ''): string
+    {
+        $url = app_url('app/views/admin/orders.php');
+        return $query !== '' ? $url . '?' . ltrim($query, '?') : $url;
+    }
+}
+
 if (!function_exists('is_admin_session')) {
     function is_admin_session(): bool
     {

@@ -11,7 +11,8 @@ $profileUrl = app_url('app/views/auth/profile.php');
 $logoutUrl = app_url('app/views/auth/logout.php');
 $sellUrl = app_url('app/views/products/sell.php');
 $myListingsUrl = app_url('app/views/products/manage.php');
-$reviewListingsUrl = app_url('app/views/products/review.php');
+$reviewListingsUrl = admin_listings_url();
+$adminOrdersUrl = admin_orders_url();
 $adminDashboardUrl = admin_dashboard_url();
 $isLoggedIn = isset($_SESSION['user_id'], $_SESSION['user_name']);
 $isAdmin = (string) ($_SESSION['role'] ?? 'user') === 'admin';
@@ -123,6 +124,9 @@ if ($isLoggedIn) {
                     </a>
                     <a href="<?php echo $reviewListingsUrl; ?>" class="dropdown-item">
                       <i class="fa-solid fa-shield-halved"></i> Duyệt tin đăng
+                    </a>
+                    <a href="<?php echo $adminOrdersUrl; ?>" class="dropdown-item">
+                      <i class="fa-solid fa-receipt"></i> Đơn hàng & tranh chấp
                     </a>
                     <?php endif; ?>
                     

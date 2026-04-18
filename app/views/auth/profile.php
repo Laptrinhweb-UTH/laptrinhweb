@@ -1,6 +1,7 @@
 <?php
 session_start();
 require_once __DIR__ . '/../../../config/config.php';
+require_once __DIR__ . '/../../helpers/AdminAuth.php';
 
 // 1. KIỂM TRA ĐĂNG NHẬP
 if (!isset($_SESSION['user_id'])) {
@@ -134,7 +135,8 @@ $profilePhone = trim((string)($user['phone'] ?? ''));
 $profileEmail = trim((string)($user['email'] ?? ''));
 $profilePageUrl = app_url('app/views/auth/profile.php');
 $myListingsUrl = app_url('app/views/products/manage.php');
-$reviewListingsUrl = app_url('app/views/products/review.php');
+$reviewListingsUrl = admin_listings_url();
+$adminOrdersUrl = admin_orders_url();
 $buyerOrdersUrl = app_url('app/views/orders/index.php') . '?view=buyer';
 $sellerOrdersUrl = app_url('app/views/orders/index.php') . '?view=seller';
 $buyerDisputesUrl = app_url('app/views/orders/index.php') . '?view=buyer&filter=disputed';
@@ -186,6 +188,9 @@ include __DIR__ . '/../layouts/header.php';
                     <?php if ($isAdmin): ?>
                     <a href="<?php echo $reviewListingsUrl; ?>" class="profile-nav-link">
                         <i class="fa-solid fa-shield-halved"></i> Duyệt tin đăng
+                    </a>
+                    <a href="<?php echo $adminOrdersUrl; ?>" class="profile-nav-link">
+                        <i class="fa-solid fa-receipt"></i> Đơn hàng & tranh chấp
                     </a>
                     <?php endif; ?>
                 </div>

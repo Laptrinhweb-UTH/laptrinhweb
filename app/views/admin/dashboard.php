@@ -7,9 +7,12 @@ require_once __DIR__ . '/../../helpers/ProjectFlow.php';
 require_admin_session();
 
 $adminName = trim((string) ($_SESSION['user_name'] ?? 'Quản trị viên'));
-$reviewListingsUrl = app_url('app/views/products/review.php');
+$reviewListingsUrl = admin_listings_url();
 $pendingListingsUrl = $reviewListingsUrl . '?filter=' . urlencode(ProjectFlow::LISTING_PENDING);
 $allListingsUrl = $reviewListingsUrl . '?filter=all';
+$adminOrdersUrl = admin_orders_url();
+$disputedOrdersUrl = admin_orders_url('filter=disputed');
+$refundedOrdersUrl = admin_orders_url('filter=refunded');
 $homeUrl = asset_url('index.php');
 $profileUrl = app_url('app/views/auth/profile.php');
 $dashboardError = null;
@@ -103,6 +106,9 @@ include __DIR__ . '/../layouts/header.php';
                 <a href="<?php echo $reviewListingsUrl; ?>" class="btn btn-success rounded-pill px-4">
                     <i class="fa-solid fa-shield-halved me-2"></i>Duyệt tin đăng
                 </a>
+                <a href="<?php echo $adminOrdersUrl; ?>" class="btn btn-outline-secondary rounded-pill px-4">
+                    <i class="fa-solid fa-receipt me-2"></i>Quản lý đơn hàng
+                </a>
                 <a href="<?php echo $homeUrl; ?>" class="btn btn-outline-secondary rounded-pill px-4">
                     <i class="fa-solid fa-globe me-2"></i>Xem website
                 </a>
@@ -137,18 +143,22 @@ include __DIR__ . '/../layouts/header.php';
             </a>
         </div>
         <div class="col-md-6 col-xl-3">
-            <div class="profile-card order-summary-card h-100">
-                <div class="order-summary-label text-danger-emphasis">Đơn đang tranh chấp</div>
-                <div class="order-summary-value"><?php echo $stats['disputed_orders']; ?></div>
-                <div class="small text-muted mt-2">Cần bổ sung màn xử lý chi tiết ở phase tiếp theo</div>
-            </div>
+            <a href="<?php echo $disputedOrdersUrl; ?>" class="text-decoration-none">
+                <div class="profile-card order-summary-card h-100">
+                    <div class="order-summary-label text-danger-emphasis">Đơn đang tranh chấp</div>
+                    <div class="order-summary-value"><?php echo $stats['disputed_orders']; ?></div>
+                    <div class="small text-muted mt-2">Mở nhanh khu admin xử lý dispute</div>
+                </div>
+            </a>
         </div>
         <div class="col-md-6 col-xl-3">
-            <div class="profile-card order-summary-card h-100">
-                <div class="order-summary-label text-primary-emphasis">Đơn đã hoàn tiền</div>
-                <div class="order-summary-value"><?php echo $stats['refunded_orders']; ?></div>
-                <div class="small text-muted mt-2">Theo dõi các case đã khép lại theo hướng refund</div>
-            </div>
+            <a href="<?php echo $refundedOrdersUrl; ?>" class="text-decoration-none">
+                <div class="profile-card order-summary-card h-100">
+                    <div class="order-summary-label text-primary-emphasis">Đơn đã hoàn tiền</div>
+                    <div class="order-summary-value"><?php echo $stats['refunded_orders']; ?></div>
+                    <div class="small text-muted mt-2">Theo dõi các case đã khép lại theo hướng refund</div>
+                </div>
+            </a>
         </div>
     </div>
 
@@ -162,6 +172,9 @@ include __DIR__ . '/../layouts/header.php';
                     </a>
                     <a href="<?php echo $allListingsUrl; ?>" class="btn btn-outline-secondary rounded-pill px-4">
                         <i class="fa-solid fa-list-check me-2"></i>Xem toàn bộ tin đăng
+                    </a>
+                    <a href="<?php echo $adminOrdersUrl; ?>" class="btn btn-outline-secondary rounded-pill px-4">
+                        <i class="fa-solid fa-receipt me-2"></i>Quản lý đơn hàng
                     </a>
                     <a href="<?php echo $profileUrl; ?>" class="btn btn-outline-secondary rounded-pill px-4">
                         <i class="fa-solid fa-user-shield me-2"></i>Hồ sơ quản trị viên
@@ -223,16 +236,18 @@ include __DIR__ . '/../layouts/header.php';
                             <?php else: ?>
                             <div class="d-grid gap-2">
                                 <?php foreach ($recentDisputedOrders as $order): ?>
-                                <div class="border rounded-3 px-3 py-2 bg-white">
-                                    <div class="fw-semibold text-dark">Đơn #<?php echo (int) $order['id']; ?> · <?php echo htmlspecialchars((string) ($order['product_title'] ?? 'Xe đạp')); ?></div>
-                                    <div class="small text-muted">
-                                        Buyer: <?php echo htmlspecialchars((string) ($order['buyer_name'] ?? 'Đang cập nhật')); ?> ·
-                                        Seller: <?php echo htmlspecialchars((string) ($order['seller_name'] ?? 'Đang cập nhật')); ?>
+                                <a href="<?php echo app_url('app/views/orders/detail.php'); ?>?id=<?php echo (int) $order['id']; ?>" class="text-decoration-none">
+                                    <div class="border rounded-3 px-3 py-2 bg-white">
+                                        <div class="fw-semibold text-dark">Đơn #<?php echo (int) $order['id']; ?> · <?php echo htmlspecialchars((string) ($order['product_title'] ?? 'Xe đạp')); ?></div>
+                                        <div class="small text-muted">
+                                            Buyer: <?php echo htmlspecialchars((string) ($order['buyer_name'] ?? 'Đang cập nhật')); ?> ·
+                                            Seller: <?php echo htmlspecialchars((string) ($order['seller_name'] ?? 'Đang cập nhật')); ?>
+                                        </div>
+                                        <div class="small text-danger fw-semibold">
+                                            <?php echo is_numeric($order['amount'] ?? null) ? number_format((float) $order['amount'], 0, ',', '.') . ' đ' : 'Đang cập nhật'; ?>
+                                        </div>
                                     </div>
-                                    <div class="small text-danger fw-semibold">
-                                        <?php echo is_numeric($order['amount'] ?? null) ? number_format((float) $order['amount'], 0, ',', '.') . ' đ' : 'Đang cập nhật'; ?>
-                                    </div>
-                                </div>
+                                </a>
                                 <?php endforeach; ?>
                             </div>
                             <?php endif; ?>
@@ -246,8 +261,8 @@ include __DIR__ . '/../layouts/header.php';
     <div class="profile-card">
         <h5 class="fw-bold mb-3">Phạm vi phase hiện tại</h5>
         <div class="order-status-note mb-0">
-            <p class="mb-2"><strong>Đã có:</strong> entry point riêng cho admin, redirect sau login theo role, guard chặn user thường, dashboard tổng quan với số liệu thật từ database và shortcut vào khu duyệt tin.</p>
-            <p class="mb-0"><strong>Sắp làm tiếp:</strong> màn quản lý order/dispute cho admin và navigation admin đầy đủ hơn.</p>
+            <p class="mb-2"><strong>Đã có:</strong> entry point riêng cho admin, redirect sau login theo role, guard chặn user thường, dashboard tổng quan với số liệu thật từ database, khu quản lý tin đăng và màn quản lý order/dispute riêng cho admin.</p>
+            <p class="mb-0"><strong>Sắp làm tiếp:</strong> hoàn thiện navigation admin và polish lại trải nghiệm khu quản trị cho đồng nhất hơn.</p>
         </div>
     </div>
 </div>
