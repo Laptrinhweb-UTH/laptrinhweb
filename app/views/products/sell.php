@@ -41,6 +41,50 @@
                     <input type="hidden" name="price" id="priceReal" required />
                 </div>
             </div> 
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Loại xe</label>
+                    <select name="bike_type" class="form-input">
+                        <option value="">-- Chọn loại xe --</option>
+                        <option value="Road">Road</option>
+                        <option value="MTB">MTB</option>
+                        <option value="Gravel">Gravel</option>
+                        <option value="Touring">Touring</option>
+                        <option value="Fixed">Fixed</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Size khung</label>
+                    <select name="frame_size" class="form-input">
+                        <option value="">-- Chọn size --</option>
+                        <option value="XS">XS</option>
+                        <option value="S">S</option>
+                        <option value="M">M</option>
+                        <option value="L">L</option>
+                        <option value="XL">XL</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Groupset</label>
+                    <input type="text" name="groupset" placeholder="VD: Shimano 105 2x11" class="form-input" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Độ mới (%)</label>
+                    <select name="condition_percent" class="form-input">
+                        <option value="">-- Chọn mức độ --</option>
+                        <option value="95">95%</option>
+                        <option value="90">90%</option>
+                        <option value="85">85%</option>
+                        <option value="80">80%</option>
+                        <option value="75">75%</option>
+                    </select>
+                </div>
+            </div>
+
             <div class="form-group">
                 <label class="form-label">Địa chỉ xem xe <span class="text-danger">*</span></label>
             

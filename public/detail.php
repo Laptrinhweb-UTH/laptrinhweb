@@ -1,6 +1,7 @@
 <?php
 session_start(); // Bắt buộc phải có session_start() để lấy $_SESSION['user_id']
 require_once __DIR__ . '/../app/helpers/Database.php';
+require_once __DIR__ . '/../app/helpers/ProjectFlow.php';
 require_once __DIR__ . '/../app/models/Product.php';
 
 // Kiểm tra ID xe hợp lệ
@@ -22,7 +23,9 @@ $product = null;
 $images = ['https://via.placeholder.com/600x400?text=Chua+Co+Anh'];
 $formattedPrice = 'Đang cập nhật';
 $sellerId = '1';
+$sellerName = '';
 $avatarUrl = "https://ui-avatars.com/api/?name=U+{$sellerId}&background=10b981&color=fff&rounded=true&bold=true";
+$canPurchase = false;
 
 if (!$db) {
     $detailError = 'Dữ liệu sản phẩm hiện chưa sẵn sàng. Vui lòng kiểm tra kết nối dữ liệu và thử lại sau.';
@@ -37,7 +40,15 @@ if (!$db) {
             $formattedPrice = number_format($product['price'], 0, ',', '.') . ' đ';
             $images = !empty($product['images']) ? $product['images'] : $images;
             $sellerId = $product['seller_id'] ?? $sellerId;
-            $avatarUrl = "https://ui-avatars.com/api/?name=U+{$sellerId}&background=10b981&color=fff&rounded=true&bold=true";
+            $sellerName = trim((string) ($product['seller_name'] ?? ''));
+            if ($sellerName !== '') {
+                $avatarUrl = !empty($product['seller_avatar'])
+                    ? $product['seller_avatar']
+                    : "https://ui-avatars.com/api/?name=" . urlencode($sellerName) . "&background=10b981&color=fff&rounded=true&bold=true";
+            } else {
+                $avatarUrl = "https://ui-avatars.com/api/?name=U+{$sellerId}&background=10b981&color=fff&rounded=true&bold=true";
+            }
+            $canPurchase = ($product['listing_status'] ?? '') === ProjectFlow::LISTING_APPROVED;
         }
     } catch (Throwable $exception) {
         $detailError = 'Thông tin chi tiết sản phẩm tạm thời chưa thể tải. Vui lòng thử lại sau.';
@@ -77,7 +88,18 @@ if ($productDescription === '') {
     $productDescription = 'Người bán chưa bổ sung mô tả chi tiết cho sản phẩm này.';
 }
 
-$sellerLabel = is_numeric($sellerId) ? 'Người bán (ID: ' . $sellerId . ')' : 'Người bán đang cập nhật';
+if ($sellerName === '') {
+    $sellerName = is_numeric($sellerId) ? 'Người bán (ID: ' . $sellerId . ')' : 'Người bán đang cập nhật';
+}
+$sellerLabel = $sellerName;
+$listingStatus = (string) ($product['listing_status'] ?? '');
+$listingStatusMessage = match ($listingStatus) {
+    ProjectFlow::LISTING_SOLD => 'Chiếc xe này đã được giữ chỗ hoặc đã chốt giao dịch nên hiện không thể mua thêm.',
+    ProjectFlow::LISTING_PENDING => 'Tin đăng này đang chờ duyệt và chưa mở bán công khai.',
+    ProjectFlow::LISTING_REJECTED => 'Tin đăng này đang được người bán chỉnh sửa lại nên chưa thể giao dịch.',
+    ProjectFlow::LISTING_HIDDEN => 'Tin đăng hiện đang được ẩn tạm thời khỏi hệ thống.',
+    default => '',
+};
 
 include __DIR__ . '/../app/views/layouts/header.php';
 ?>
@@ -145,9 +167,15 @@ include __DIR__ . '/../app/views/layouts/header.php';
                     </div>
                     
                     <div class="detail-action-stack">
+                        <?php if ($canPurchase): ?>
                         <button onclick="showBuyOptions()" class="detail-buy-btn" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
                             <i class="fa-solid fa-cart-shopping"></i> MUA NGAY
                         </button>
+                        <?php else: ?>
+                        <div class="auth-message auth-message-error">
+                            <?php echo htmlspecialchars($listingStatusMessage !== '' ? $listingStatusMessage : 'Tin đăng này hiện chưa thể giao dịch.'); ?>
+                        </div>
+                        <?php endif; ?>
                         
                         <a href="#" onclick="alert('Tính năng nhắn tin đang được phát triển!'); return false;" class="detail-chat-btn" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='#ffffff'">
                             <i class="fa-solid fa-comment-dots detail-chat-icon"></i> Nhắn tin trao đổi
@@ -188,7 +216,7 @@ include __DIR__ . '/../app/views/layouts/header.php';
     </div>
 </div>
 
-<?php if ($detailError === null): ?>
+<?php if ($detailError === null && $canPurchase): ?>
 <div id="buyOptionsModal" class="modal hidden">
     <div class="modal-backdrop" onclick="hideBuyOptions()"></div>
     <div class="modal-content detail-buy-modal">

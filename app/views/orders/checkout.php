@@ -2,6 +2,7 @@
 session_start();
 require_once __DIR__ . '/../../../config/config.php';
 require_once __DIR__ . '/../../helpers/Database.php';
+require_once __DIR__ . '/../../helpers/ProjectFlow.php';
 require_once __DIR__ . '/../../models/Product.php';
 
 // 1. Kiểm tra đăng nhập
@@ -38,6 +39,8 @@ if ($checkoutError === null) {
             $checkoutError = 'Sản phẩm không tồn tại hoặc đã bị xóa.';
         } elseif (($product['seller_id'] ?? null) == $_SESSION['user_id']) {
             $checkoutError = 'Bạn không thể tự mua xe của chính mình.';
+        } elseif (($product['listing_status'] ?? '') !== ProjectFlow::LISTING_APPROVED) {
+            $checkoutError = 'Tin đăng này hiện không còn ở trạng thái có thể đặt mua an toàn.';
         }
     } catch (Throwable $exception) {
         $checkoutError = 'Không thể tải thông tin thanh toán lúc này. Vui lòng thử lại sau.';

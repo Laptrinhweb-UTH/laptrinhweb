@@ -1,6 +1,8 @@
 <?php
 // File: app/models/Product.php
 
+require_once __DIR__ . '/../helpers/ProjectFlow.php';
+
 class Product {
     private $conn;
     private $table_name = "products";
@@ -12,6 +14,11 @@ class Product {
     public $price;
     public $location;
     public $description;
+    public $bike_type;
+    public $frame_size;
+    public $groupset;
+    public $condition_percent;
+    public $listing_status;
     public $seller_id;
 
     public function __construct($db) {
@@ -22,14 +29,17 @@ class Product {
     // HÀM 0: Lấy tất cả sản phẩm
     // ---------------------------------------------------
 public function getAll() {
-    // Bổ sung thêm lệnh đếm tổng số lượng ảnh (COUNT)
-    $query = "SELECT p.*, 
+    $query = "SELECT p.*,
+              p.frame_size AS size,
+              p.condition_percent AS `condition`,
               (SELECT image_url FROM product_images WHERE product_id = p.id LIMIT 1) as main_image,
               (SELECT COUNT(*) FROM product_images WHERE product_id = p.id) as image_count
-              FROM " . $this->table_name . " p 
+              FROM " . $this->table_name . " p
+              WHERE p.listing_status = :listing_status
               ORDER BY p.id DESC";
 
     $stmt = $this->conn->prepare($query);
+    $stmt->bindValue(':listing_status', ProjectFlow::LISTING_APPROVED);
     $stmt->execute();
 
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -40,26 +50,38 @@ public function getAll() {
     // ---------------------------------------------------
     public function create() {
         $query = "INSERT INTO " . $this->table_name . " 
-                  (title, brand, price, location, description, seller_id) 
+                  (title, brand, bike_type, price, location, description, frame_size, groupset, condition_percent, listing_status, seller_id) 
                   VALUES 
-                  (:title, :brand, :price, :location, :description, :seller_id)";
+                  (:title, :brand, :bike_type, :price, :location, :description, :frame_size, :groupset, :condition_percent, :listing_status, :seller_id)";
 
         $stmt = $this->conn->prepare($query);
 
         // Làm sạch dữ liệu (Chống XSS/Hack)
         $this->title = htmlspecialchars(strip_tags($this->title));
         $this->brand = htmlspecialchars(strip_tags($this->brand));
+        $this->bike_type = htmlspecialchars(strip_tags((string) $this->bike_type));
         $this->price = htmlspecialchars(strip_tags($this->price));
         $this->location = htmlspecialchars(strip_tags($this->location));
         $this->description = htmlspecialchars(strip_tags($this->description));
+        $this->frame_size = htmlspecialchars(strip_tags((string) $this->frame_size));
+        $this->groupset = htmlspecialchars(strip_tags((string) $this->groupset));
+        $this->condition_percent = $this->condition_percent !== null && $this->condition_percent !== ''
+            ? (int) $this->condition_percent
+            : null;
+        $this->listing_status = $this->listing_status ?: ProjectFlow::LISTING_PENDING;
         $this->seller_id = htmlspecialchars(strip_tags($this->seller_id));
 
         // Gắn dữ liệu
         $stmt->bindParam(":title", $this->title);
         $stmt->bindParam(":brand", $this->brand);
+        $stmt->bindValue(":bike_type", $this->bike_type !== '' ? $this->bike_type : null, $this->bike_type !== '' ? PDO::PARAM_STR : PDO::PARAM_NULL);
         $stmt->bindParam(":price", $this->price);
         $stmt->bindParam(":location", $this->location);
         $stmt->bindParam(":description", $this->description);
+        $stmt->bindValue(":frame_size", $this->frame_size !== '' ? $this->frame_size : null, $this->frame_size !== '' ? PDO::PARAM_STR : PDO::PARAM_NULL);
+        $stmt->bindValue(":groupset", $this->groupset !== '' ? $this->groupset : null, $this->groupset !== '' ? PDO::PARAM_STR : PDO::PARAM_NULL);
+        $stmt->bindValue(":condition_percent", $this->condition_percent, $this->condition_percent === null ? PDO::PARAM_NULL : PDO::PARAM_INT);
+        $stmt->bindParam(":listing_status", $this->listing_status);
         $stmt->bindParam(":seller_id", $this->seller_id);
 
         return $stmt->execute();
@@ -94,7 +116,15 @@ public function getAll() {
             return null;
         }
 
-        $query = "SELECT * FROM " . $this->table_name . " WHERE id = ? LIMIT 1";
+        $query = "SELECT p.*,
+                         p.frame_size AS size,
+                         p.condition_percent AS `condition`,
+                         u.name AS seller_name,
+                         u.avatar AS seller_avatar
+                  FROM " . $this->table_name . " p
+                  LEFT JOIN users u ON u.id = p.seller_id
+                  WHERE p.id = ?
+                  LIMIT 1";
         $stmt = $this->conn->prepare($query);
         $stmt->execute([$productId]);
         $product = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -108,6 +138,26 @@ public function getAll() {
         }
 
         return $product;
+    }
+
+    public function markAsSold(int $productId): bool
+    {
+        $query = "UPDATE " . $this->table_name . "
+                  SET listing_status = :listing_status,
+                      sold_at = NOW()
+                  WHERE id = :id
+                    AND listing_status = :current_status";
+
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindValue(':listing_status', ProjectFlow::LISTING_SOLD);
+        $stmt->bindValue(':id', $productId, PDO::PARAM_INT);
+        $stmt->bindValue(':current_status', ProjectFlow::LISTING_APPROVED);
+
+        if (!$stmt->execute()) {
+            return false;
+        }
+
+        return $stmt->rowCount() > 0;
     }
 }
 ?>

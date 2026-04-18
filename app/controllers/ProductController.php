@@ -3,6 +3,7 @@
 require_once __DIR__ . '/../../config/config.php';
 require_once __DIR__ . '/../helpers/Database.php';
 require_once __DIR__ . '/../helpers/CloudinaryHelper.php';
+require_once __DIR__ . '/../helpers/ProjectFlow.php';
 require_once __DIR__ . '/../models/Product.php';
 
 class ProductController {
@@ -20,9 +21,14 @@ class ProductController {
             // 2. Nhận dữ liệu từ form
             $product->title = $_POST['title'] ?? '';
             $product->brand = $_POST['brand'] ?? '';
+            $product->bike_type = $_POST['bike_type'] ?? '';
             $product->price = $_POST['price'] ?? 0;
             $product->location = $_POST['location'] ?? '';
             $product->description = $_POST['description'] ?? '';
+            $product->frame_size = $_POST['frame_size'] ?? '';
+            $product->groupset = $_POST['groupset'] ?? '';
+            $product->condition_percent = $_POST['condition_percent'] ?? null;
+            $product->listing_status = ProjectFlow::LISTING_PENDING;
             
             // Tạm gán ID người bán là 1
             $product->seller_id = 1;

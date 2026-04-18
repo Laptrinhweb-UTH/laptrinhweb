@@ -2,6 +2,7 @@
 session_start();
 require_once __DIR__ . '/../../../config/config.php';
 require_once __DIR__ . '/../../helpers/Database.php';
+require_once __DIR__ . '/../../helpers/ProjectFlow.php';
 
 if (!isset($_SESSION['user_id'])) {
     header('Location: ' . app_url('app/views/auth/auth.php'));
@@ -9,58 +10,19 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 function order_list_status_label(string $status): string {
-    return match ($status) {
-        'pending' => 'Chờ thanh toán',
-        'paid' => 'Đã tạo đơn',
-        'shipping' => 'Đang giao xe',
-        'completed' => 'Hoàn tất',
-        'cancelled' => 'Đã hủy',
-        default => 'Đang cập nhật',
-    };
+    return ProjectFlow::orderLabel($status);
 }
 
 function order_list_escrow_label(string $status): string {
-    return match ($status) {
-        'holding' => 'SpinBike đang giữ tiền',
-        'released' => 'Đã giải phóng cho người bán',
-        'refunded' => 'Đã hoàn tiền cho người mua',
-        'disputed' => 'Đang xử lý khiếu nại',
-        default => 'Đang cập nhật',
-    };
+    return ProjectFlow::escrowLabel($status);
 }
 
 function order_list_badge_class(string $status): string {
-    return match ($status) {
-        'completed', 'released' => 'bg-success',
-        'paid', 'shipping' => 'bg-primary',
-        'holding' => 'bg-warning text-dark',
-        'cancelled', 'refunded', 'disputed' => 'bg-danger',
-        default => 'bg-secondary',
-    };
+    return ProjectFlow::orderBadgeClass($status);
 }
 
 function order_list_status_guide(string $orderStatus, string $escrowStatus, string $view): string {
-    if ($escrowStatus === 'disputed') {
-        return $view === 'seller'
-            ? 'Đơn đang có khiếu nại và tiền vẫn bị giữ. Bạn cần phối hợp xử lý trước khi giao dịch khép lại.'
-            : 'Bạn đã gửi khiếu nại cho đơn này. SpinBike đang tạm giữ tiền để chờ xử lý.';
-    }
-
-    if ($escrowStatus === 'refunded') {
-        return $view === 'seller'
-            ? 'Đơn đã được đóng theo hướng hoàn tiền cho người mua.'
-            : 'Đơn đã được xử lý hoàn tiền và khép lại.';
-    }
-
-    if ($orderStatus === 'completed') {
-        return 'Đơn đã hoàn tất.';
-    }
-
-    if ($escrowStatus === 'holding') {
-        return 'Tiền vẫn đang được hệ thống giữ an toàn.';
-    }
-
-    return 'Đơn đang được theo dõi và cập nhật trạng thái.';
+    return ProjectFlow::orderListGuide($orderStatus, $escrowStatus, $view);
 }
 
 $currentUserId = (int) $_SESSION['user_id'];
@@ -91,9 +53,9 @@ if (!$db) {
         $filterColumn = $view === 'seller' ? 'o.seller_id' : 'o.buyer_id';
         $extraCondition = '';
         if ($filter === 'disputed') {
-            $extraCondition = " AND e.status = 'disputed'";
+            $extraCondition = " AND e.status = '" . ProjectFlow::ESCROW_DISPUTED . "'";
         } elseif ($filter === 'refunded') {
-            $extraCondition = " AND e.status = 'refunded'";
+            $extraCondition = " AND e.status = '" . ProjectFlow::ESCROW_REFUNDED . "'";
         }
         $query = "
             SELECT
@@ -130,13 +92,16 @@ if (!$db) {
 
         foreach ($orders as $order) {
             $summary['total']++;
-            if (($order['escrow_status'] ?? '') === 'holding') {
+            if (($order['escrow_status'] ?? '') === ProjectFlow::ESCROW_HOLDING) {
                 $summary['holding']++;
             }
-            if (($order['order_status'] ?? '') === 'completed') {
+            if (($order['order_status'] ?? '') === ProjectFlow::ORDER_COMPLETED) {
                 $summary['completed']++;
             }
-            if (in_array(($order['order_status'] ?? ''), ['cancelled'], true) || in_array(($order['escrow_status'] ?? ''), ['refunded', 'disputed'], true)) {
+            if (
+                in_array(($order['order_status'] ?? ''), [ProjectFlow::ORDER_CANCELLED], true)
+                || in_array(($order['escrow_status'] ?? ''), [ProjectFlow::ESCROW_REFUNDED, ProjectFlow::ESCROW_DISPUTED], true)
+            ) {
                 $summary['cancelled']++;
             }
         }

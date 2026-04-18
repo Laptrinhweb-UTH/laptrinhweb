@@ -2,6 +2,7 @@
 session_start();
 require_once __DIR__ . '/../../../config/config.php';
 require_once __DIR__ . '/../../helpers/Database.php';
+require_once __DIR__ . '/../../helpers/ProjectFlow.php';
 
 if (!isset($_SESSION['user_id'])) {
     header('Location: ' . app_url('app/views/auth/auth.php'));
@@ -9,24 +10,11 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 function format_order_status_label(string $status): string {
-    return match ($status) {
-        'pending' => 'Chờ thanh toán',
-        'paid' => 'Đã tạo đơn',
-        'shipping' => 'Đang giao xe',
-        'completed' => 'Hoàn tất',
-        'cancelled' => 'Đã hủy',
-        default => 'Đang cập nhật',
-    };
+    return ProjectFlow::orderLabel($status);
 }
 
 function format_escrow_status_label(string $status): string {
-    return match ($status) {
-        'holding' => 'SpinBike đang giữ tiền',
-        'released' => 'Đã giải phóng cho người bán',
-        'refunded' => 'Đã hoàn tiền cho người mua',
-        'disputed' => 'Đang xử lý khiếu nại',
-        default => 'Đang cập nhật',
-    };
+    return ProjectFlow::escrowLabel($status);
 }
 
 function timeline_step_state(int $stepIndex, int $currentStep, bool $isCancelled): string {
@@ -126,8 +114,8 @@ if ($orderError === null) {
     }
 }
 
-$orderStatus = $order['order_status'] ?? 'pending';
-$escrowStatus = $order['escrow_status'] ?? 'holding';
+$orderStatus = $order['order_status'] ?? ProjectFlow::ORDER_PENDING_PAYMENT;
+$escrowStatus = $order['escrow_status'] ?? ProjectFlow::ESCROW_HOLDING;
 $productTitle = trim((string) ($order['product_title'] ?? ''));
 if ($productTitle === '') {
     $productTitle = 'Xe đạp đang cập nhật tên';
@@ -182,67 +170,35 @@ $formattedFeeAmount = number_format($feeAmount, 0, ',', '.') . ' đ';
 $formattedSellerReceives = number_format($sellerReceives, 0, ',', '.') . ' đ';
 $formattedOrderDate = !empty($order['order_created_at']) ? date('d/m/Y H:i', strtotime((string) $order['order_created_at'])) : 'Đang cập nhật';
 $formattedReleaseDate = !empty($order['released_at']) ? date('d/m/Y H:i', strtotime((string) $order['released_at'])) : 'Chưa giải phóng';
-$statusGuideText = match ($orderStatus) {
-    'pending' => 'Đơn hàng đã được tạo nhưng vẫn đang chờ hoàn tất thanh toán.',
-    'paid' => 'Người mua đã thanh toán. Hệ thống đang giữ tiền an toàn cho đơn này.',
-    'shipping' => 'Đơn hàng đang trong quá trình giao nhận giữa hai bên.',
-    'completed' => 'Đơn hàng đã hoàn tất và tiền đã được giải phóng cho người bán.',
-    'cancelled' => 'Đơn hàng đã bị hủy hoặc dừng xử lý.',
-    default => 'Trạng thái đơn hàng đang được cập nhật.',
-};
-$escrowGuideText = match ($escrowStatus) {
-    'holding' => 'Khoản tiền vẫn đang được SpinBike giữ để bảo vệ giao dịch.',
-    'released' => 'Khoản tiền đã được chuyển cho người bán sau khi đơn hoàn tất.',
-    'refunded' => 'Khoản tiền đã được hoàn lại cho người mua.',
-    'disputed' => 'Khoản tiền đang được giữ để chờ xử lý khiếu nại.',
-    default => 'Trạng thái giữ tiền đang được cập nhật.',
-};
+$statusGuideText = ProjectFlow::orderDescription($orderStatus);
+$escrowGuideText = ProjectFlow::escrowDescription($escrowStatus);
 $resolutionGuideTitle = match ($escrowStatus) {
-    'disputed' => 'Đơn hàng đang ở chế độ tranh chấp',
-    'refunded' => 'Khoản tiền đã được hoàn cho người mua',
+    ProjectFlow::ESCROW_DISPUTED => 'Đơn hàng đang ở chế độ tranh chấp',
+    ProjectFlow::ESCROW_REFUNDED => 'Khoản tiền đã được hoàn cho người mua',
     default => '',
 };
 $resolutionGuideText = match ($escrowStatus) {
-    'disputed' => 'SpinBike đang tiếp tục giữ tiền để chờ người bán hoặc quản trị viên xử lý. Trong giai đoạn này, tiền sẽ không được giải phóng cho người bán.',
-    'refunded' => 'Khiếu nại đã được xử lý theo hướng hoàn tiền. Đơn hàng được đóng lại và khoản tiền đã quay về tài khoản người mua.',
+    ProjectFlow::ESCROW_DISPUTED => 'SpinBike đang tiếp tục giữ tiền để chờ người bán hoặc quản trị viên xử lý. Trong giai đoạn này, tiền sẽ không được giải phóng cho người bán.',
+    ProjectFlow::ESCROW_REFUNDED => 'Khiếu nại đã được xử lý theo hướng hoàn tiền. Đơn hàng được đóng lại và khoản tiền đã quay về tài khoản người mua.',
     default => '',
 };
 $resolutionGuideClass = match ($escrowStatus) {
-    'disputed' => 'order-resolution-banner is-danger',
-    'refunded' => 'order-resolution-banner is-success',
+    ProjectFlow::ESCROW_DISPUTED => 'order-resolution-banner is-danger',
+    ProjectFlow::ESCROW_REFUNDED => 'order-resolution-banner is-success',
     default => 'order-resolution-banner',
 };
 
-$statusBadgeClass = match ($orderStatus) {
-    'completed' => 'bg-success',
-    'shipping', 'paid' => 'bg-primary',
-    'cancelled' => 'bg-danger',
-    default => 'bg-secondary',
-};
-
-$escrowBadgeClass = match ($escrowStatus) {
-    'released' => 'bg-success',
-    'holding' => 'bg-warning text-dark',
-    'refunded', 'disputed' => 'bg-danger',
-    default => 'bg-secondary',
-};
-
-$timelineCurrentStep = match ($orderStatus) {
-    'pending' => 0,
-    'paid' => 1,
-    'shipping' => 2,
-    'completed' => 3,
-    default => 1,
-};
-
-$isCancelledOrder = $orderStatus === 'cancelled' || $escrowStatus === 'refunded';
+$statusBadgeClass = ProjectFlow::orderBadgeClass($orderStatus);
+$escrowBadgeClass = ProjectFlow::orderBadgeClass($escrowStatus);
+$timelineCurrentStep = ProjectFlow::orderTimelineCurrentStep($orderStatus, $escrowStatus);
+$isCancelledOrder = $orderStatus === ProjectFlow::ORDER_CANCELLED || $escrowStatus === ProjectFlow::ESCROW_REFUNDED;
 $isBuyerView = $order !== null && (int) $order['buyer_id'] === $currentUserId;
 $isSellerView = $order !== null && (int) $order['seller_id'] === $currentUserId;
 $isAdminView = $currentUserRole === 'admin';
-$canConfirmReceipt = $isBuyerView && in_array($orderStatus, ['paid', 'shipping'], true) && $escrowStatus === 'holding';
-$canSubmitDispute = $isBuyerView && in_array($orderStatus, ['paid', 'shipping'], true) && $escrowStatus === 'holding';
+$canConfirmReceipt = $isBuyerView && ProjectFlow::orderCanBeConfirmedByBuyer($orderStatus, $escrowStatus);
+$canSubmitDispute = $isBuyerView && ProjectFlow::orderCanBeDisputedByBuyer($orderStatus, $escrowStatus);
 $canResolveRefund = $order !== null
-    && $escrowStatus === 'disputed'
+    && $escrowStatus === ProjectFlow::ESCROW_DISPUTED
     && ($isSellerView || $isAdminView);
 $orderDetailUrl = app_url('app/views/orders/detail.php');
 $confirmOrderUrl = app_url('app/controllers/ConfirmOrderController.php');
