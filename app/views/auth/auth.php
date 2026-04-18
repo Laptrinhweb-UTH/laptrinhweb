@@ -158,7 +158,7 @@
           messageBox.innerHTML = data.message;
 
           setTimeout(() => {
-            window.location.href = "<?php echo asset_url('index.php'); ?>";
+            window.location.href = data.redirect_url || "<?php echo asset_url('index.php'); ?>";
           }, 1000);
         } else {
           messageBox.style.color = "#e11d48";

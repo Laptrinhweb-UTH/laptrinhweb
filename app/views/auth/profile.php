@@ -1,6 +1,7 @@
 <?php
 session_start();
 require_once __DIR__ . '/../../../config/config.php';
+require_once __DIR__ . '/../../helpers/AdminAuth.php';
 
 // 1. KIỂM TRA ĐĂNG NHẬP
 if (!isset($_SESSION['user_id'])) {
@@ -134,7 +135,8 @@ $profilePhone = trim((string)($user['phone'] ?? ''));
 $profileEmail = trim((string)($user['email'] ?? ''));
 $profilePageUrl = app_url('app/views/auth/profile.php');
 $myListingsUrl = app_url('app/views/products/manage.php');
-$reviewListingsUrl = app_url('app/views/products/review.php');
+$reviewListingsUrl = admin_listings_url();
+$adminOrdersUrl = admin_orders_url();
 $buyerOrdersUrl = app_url('app/views/orders/index.php') . '?view=buyer';
 $sellerOrdersUrl = app_url('app/views/orders/index.php') . '?view=seller';
 $buyerDisputesUrl = app_url('app/views/orders/index.php') . '?view=buyer&filter=disputed';
@@ -168,6 +170,20 @@ include __DIR__ . '/../layouts/header.php';
                     <a href="javascript:void(0)" class="profile-nav-link">
                         <i class="fa-solid fa-lock"></i> Đổi mật khẩu
                     </a>
+                    <?php if ($isAdmin): ?>
+                    <a href="<?php echo admin_dashboard_url(); ?>" class="profile-nav-link">
+                        <i class="fa-solid fa-gauge-high"></i> Dashboard Admin
+                    </a>
+                    <a href="<?php echo $reviewListingsUrl; ?>" class="profile-nav-link">
+                        <i class="fa-solid fa-shield-halved"></i> Quản lý tin đăng
+                    </a>
+                    <a href="<?php echo $adminOrdersUrl; ?>" class="profile-nav-link">
+                        <i class="fa-solid fa-receipt"></i> Đơn hàng & tranh chấp
+                    </a>
+                    <a href="<?php echo asset_url('index.php'); ?>" class="profile-nav-link">
+                        <i class="fa-solid fa-globe"></i> Xem website
+                    </a>
+                    <?php else: ?>
                     <a href="<?php echo $myListingsUrl; ?>" class="profile-nav-link">
                         <i class="fa-solid fa-list-check"></i> Tin đăng của tôi
                     </a>
@@ -182,10 +198,6 @@ include __DIR__ . '/../layouts/header.php';
                     </a>
                     <a href="<?php echo $sellerDisputesUrl; ?>" class="profile-nav-link">
                         <i class="fa-solid fa-scale-balanced"></i> Xử lý tranh chấp
-                    </a>
-                    <?php if ($isAdmin): ?>
-                    <a href="<?php echo $reviewListingsUrl; ?>" class="profile-nav-link">
-                        <i class="fa-solid fa-shield-halved"></i> Duyệt tin đăng
                     </a>
                     <?php endif; ?>
                 </div>
