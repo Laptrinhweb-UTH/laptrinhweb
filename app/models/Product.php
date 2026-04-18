@@ -140,6 +140,108 @@ public function getAll() {
         return $product;
     }
 
+    public function getSellerListings(int $sellerId, string $filter = 'all'): array
+    {
+        $query = "SELECT p.*,
+                         p.frame_size AS size,
+                         p.condition_percent AS `condition`,
+                         (SELECT image_url FROM product_images WHERE product_id = p.id ORDER BY id ASC LIMIT 1) AS main_image,
+                         (SELECT COUNT(*) FROM product_images WHERE product_id = p.id) AS image_count
+                  FROM " . $this->table_name . " p
+                  WHERE p.seller_id = :seller_id";
+
+        if ($filter !== 'all') {
+            $query .= " AND p.listing_status = :listing_status";
+        }
+
+        $query .= " ORDER BY p.created_at DESC, p.id DESC";
+
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindValue(':seller_id', $sellerId, PDO::PARAM_INT);
+        if ($filter !== 'all') {
+            $stmt->bindValue(':listing_status', $filter);
+        }
+        $stmt->execute();
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function getAdminListings(string $filter = 'all'): array
+    {
+        $query = "SELECT p.*,
+                         p.frame_size AS size,
+                         p.condition_percent AS `condition`,
+                         u.name AS seller_name,
+                         (SELECT image_url FROM product_images WHERE product_id = p.id ORDER BY id ASC LIMIT 1) AS main_image,
+                         (SELECT COUNT(*) FROM product_images WHERE product_id = p.id) AS image_count
+                  FROM " . $this->table_name . " p
+                  LEFT JOIN users u ON u.id = p.seller_id
+                  WHERE 1 = 1";
+
+        if ($filter !== 'all') {
+            $query .= " AND p.listing_status = :listing_status";
+        }
+
+        $query .= " ORDER BY 
+                        CASE p.listing_status
+                            WHEN 'pending' THEN 0
+                            WHEN 'rejected' THEN 1
+                            WHEN 'approved' THEN 2
+                            WHEN 'hidden' THEN 3
+                            WHEN 'sold' THEN 4
+                            ELSE 5
+                        END,
+                        p.created_at DESC,
+                        p.id DESC";
+
+        $stmt = $this->conn->prepare($query);
+        if ($filter !== 'all') {
+            $stmt->bindValue(':listing_status', $filter);
+        }
+        $stmt->execute();
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function findListingById(int $productId): ?array
+    {
+        $query = "SELECT p.*,
+                         u.name AS seller_name
+                  FROM " . $this->table_name . " p
+                  LEFT JOIN users u ON u.id = p.seller_id
+                  WHERE p.id = :id
+                  LIMIT 1";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindValue(':id', $productId, PDO::PARAM_INT);
+        $stmt->execute();
+        $listing = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        return $listing ?: null;
+    }
+
+    public function updateListingStatus(int $productId, string $newStatus, ?string $approvalNote = null): bool
+    {
+        $query = "UPDATE " . $this->table_name . "
+                  SET listing_status = :listing_status,
+                      approval_note = :approval_note,
+                      approved_at = CASE
+                          WHEN :listing_status = 'approved' THEN NOW()
+                          ELSE approved_at
+                      END,
+                      sold_at = CASE
+                          WHEN :listing_status = 'sold' THEN NOW()
+                          ELSE sold_at
+                      END
+                  WHERE id = :id";
+
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindValue(':listing_status', $newStatus);
+        $stmt->bindValue(':approval_note', $approvalNote !== null && trim($approvalNote) !== '' ? trim($approvalNote) : null, $approvalNote !== null && trim($approvalNote) !== '' ? PDO::PARAM_STR : PDO::PARAM_NULL);
+        $stmt->bindValue(':id', $productId, PDO::PARAM_INT);
+
+        return $stmt->execute();
+    }
+
     public function markAsSold(int $productId): bool
     {
         $query = "UPDATE " . $this->table_name . "

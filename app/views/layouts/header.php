@@ -10,7 +10,10 @@ $authUrl = app_url('app/views/auth/auth.php');
 $profileUrl = app_url('app/views/auth/profile.php');
 $logoutUrl = app_url('app/views/auth/logout.php');
 $sellUrl = app_url('app/views/products/sell.php');
+$myListingsUrl = app_url('app/views/products/manage.php');
+$reviewListingsUrl = app_url('app/views/products/review.php');
 $isLoggedIn = isset($_SESSION['user_id'], $_SESSION['user_name']);
+$isAdmin = (string) ($_SESSION['role'] ?? 'user') === 'admin';
 $displayUserName = htmlspecialchars($_SESSION['user_name'] ?? '');
 
 // ==========================================
@@ -109,6 +112,14 @@ if ($isLoggedIn) {
                     <a href="<?php echo $profileUrl; ?>" class="dropdown-item dropdown-item-first">
                       <i class="fa-solid fa-user-pen"></i> Cập nhật thông tin
                     </a>
+                    <a href="<?php echo $myListingsUrl; ?>" class="dropdown-item">
+                      <i class="fa-solid fa-list-check"></i> Tin đăng của tôi
+                    </a>
+                    <?php if ($isAdmin): ?>
+                    <a href="<?php echo $reviewListingsUrl; ?>" class="dropdown-item">
+                      <i class="fa-solid fa-shield-halved"></i> Duyệt tin đăng
+                    </a>
+                    <?php endif; ?>
                     
                     <hr class="dropdown-divider">
                     

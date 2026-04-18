@@ -118,6 +118,60 @@ final class ProjectFlow
         return self::LISTING_BLUEPRINT;
     }
 
+    public static function listingLabel(string $status): string
+    {
+        return self::LISTING_BLUEPRINT[$status]['label'] ?? 'Đang cập nhật';
+    }
+
+    public static function listingDescription(string $status): string
+    {
+        return self::LISTING_BLUEPRINT[$status]['description'] ?? 'Trạng thái tin đăng đang được cập nhật.';
+    }
+
+    public static function listingBadgeClass(string $status): string
+    {
+        return match ($status) {
+            self::LISTING_APPROVED => 'bg-success',
+            self::LISTING_PENDING => 'bg-warning text-dark',
+            self::LISTING_REJECTED => 'bg-danger',
+            self::LISTING_SOLD => 'bg-primary',
+            self::LISTING_HIDDEN => 'bg-secondary',
+            default => 'bg-secondary',
+        };
+    }
+
+    public static function sellerAllowedListingActions(string $status): array
+    {
+        return match ($status) {
+            self::LISTING_APPROVED => ['hide', 'mark_sold'],
+            self::LISTING_HIDDEN => ['show'],
+            default => [],
+        };
+    }
+
+    public static function adminAllowedListingActions(string $status): array
+    {
+        return match ($status) {
+            self::LISTING_PENDING => ['approve', 'reject'],
+            self::LISTING_APPROVED => ['hide', 'reject'],
+            self::LISTING_REJECTED => ['approve'],
+            self::LISTING_HIDDEN => ['approve'],
+            default => [],
+        };
+    }
+
+    public static function listingActionLabel(string $action): string
+    {
+        return match ($action) {
+            'approve' => 'Duyệt tin',
+            'reject' => 'Từ chối',
+            'hide' => 'Ẩn tin',
+            'show' => 'Hiện lại',
+            'mark_sold' => 'Đánh dấu đã bán',
+            default => 'Cập nhật',
+        };
+    }
+
     public static function orderBlueprint(): array
     {
         return self::ORDER_BLUEPRINT;
