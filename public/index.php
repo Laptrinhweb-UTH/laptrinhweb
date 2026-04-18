@@ -67,8 +67,15 @@ if (!$db) {
 
       <div class="products-section">
         <div class="products-header">
-          <h1>Danh sách xe đạp</h1>
-          <p id="resultCount"><?php echo count($products); ?> sản phẩm</p>
+          <h1>Xe Dang Mo Ban</h1>
+          <p id="resultCount"><?php echo count($products); ?> tin da duoc duyet va dang hien thi</p>
+        </div>
+
+        <div class="profile-card mb-4">
+          <div class="d-flex flex-column gap-2">
+            <div class="fw-bold">Quy trinh giao dich tren SpinBike</div>
+            <div class="text-muted">Nguoi mua dat mua an toan, he thong giu tien, nguoi ban giao xe, sau do buyer xac nhan nhan hang hoac gui khieu nai neu co van de.</div>
+          </div>
         </div>
 
         <div id="productGrid" class="product-grid">
@@ -150,7 +157,7 @@ if (!$db) {
           <?php else: ?>
             <div class="empty-state-card">
                 <i class="fa-solid fa-box-open empty-state-icon"></i>
-                <p class="empty-state-text">Chưa có chiếc xe nào được đăng bán. Hãy là người đầu tiên!</p>
+                <p class="empty-state-text">Hien chua co tin nao o trang thai dang ban. Hay tao va cho duyet mot tin moi!</p>
             </div>
           <?php endif; ?>
         </div>

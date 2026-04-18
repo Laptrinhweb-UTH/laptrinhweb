@@ -112,8 +112,8 @@ if (!$db) {
 
 $pageTitle = $view === 'seller' ? 'Quản lý bán hàng' : 'Đơn hàng mua';
 $pageSubtitle = $view === 'seller'
-    ? 'Theo dõi các đơn hàng mà bạn đang bán và trạng thái giải phóng tiền.'
-    : 'Theo dõi các đơn hàng bạn đã mua và tiến trình giữ tiền an toàn.';
+    ? 'Theo dõi cac don hang nguoi mua da dat, qua trinh tiep nhan don, giao xe va giai phong tien.'
+    : 'Theo dõi cac don hang ban da dat mua va tien trinh giu tien an toan tren he thong.';
 $filterLabel = match ($filter) {
     'disputed' => 'đơn đang tranh chấp',
     'refunded' => 'đơn đã hoàn tiền',
@@ -247,8 +247,8 @@ include __DIR__ . '/../layouts/header.php';
                 $view
             );
             $statusGuideClass = match ((string) ($order['escrow_status'] ?? '')) {
-                'disputed' => 'order-list-guide is-danger',
-                'refunded' => 'order-list-guide is-success',
+                ProjectFlow::ESCROW_DISPUTED => 'order-list-guide is-danger',
+                ProjectFlow::ESCROW_REFUNDED => 'order-list-guide is-success',
                 default => 'order-list-guide',
             };
             ?>
