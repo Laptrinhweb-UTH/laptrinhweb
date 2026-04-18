@@ -78,15 +78,12 @@ if ($isAdmin) {
 
     $nextStatus = match ($action) {
         'hide' => ProjectFlow::LISTING_HIDDEN,
-        'show' => ProjectFlow::LISTING_APPROVED,
         'mark_sold' => ProjectFlow::LISTING_SOLD,
         default => null,
     };
 
     if ($action === 'hide') {
         $approvalNote = 'Tin được người bán tạm ẩn khỏi danh sách hiển thị.';
-    } elseif ($action === 'show') {
-        $approvalNote = 'Tin được người bán mở lại để tiếp tục giao dịch.';
     } elseif ($action === 'mark_sold') {
         $approvalNote = 'Người bán đã xác nhận chiếc xe đã bán xong.';
     }

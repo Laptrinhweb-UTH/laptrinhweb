@@ -144,7 +144,6 @@ final class ProjectFlow
     {
         return match ($status) {
             self::LISTING_APPROVED => ['hide', 'mark_sold'],
-            self::LISTING_HIDDEN => ['show'],
             default => [],
         };
     }

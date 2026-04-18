@@ -1,5 +1,6 @@
 <?php
 // Bổ sung gọi file config để lấy hằng số BASE_URL cho việc chuyển hướng
+session_start();
 require_once __DIR__ . '/../../config/config.php';
 require_once __DIR__ . '/../helpers/Database.php';
 require_once __DIR__ . '/../helpers/CloudinaryHelper.php';
@@ -10,6 +11,11 @@ class ProductController {
     
     // Hàm xử lý việc lưu tin đăng
     public function store() {
+        if (!isset($_SESSION['user_id'])) {
+            header('Location: ' . app_url('app/views/auth/auth.php'));
+            exit;
+        }
+
         // Kiểm tra xem người dùng có bấm nút Submit (POST) chưa
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
@@ -29,9 +35,7 @@ class ProductController {
             $product->groupset = $_POST['groupset'] ?? '';
             $product->condition_percent = $_POST['condition_percent'] ?? null;
             $product->listing_status = ProjectFlow::LISTING_PENDING;
-            
-            // Tạm gán ID người bán là 1
-            $product->seller_id = 1;
+            $product->seller_id = (int) $_SESSION['user_id'];
 
             // 3. Gọi Model để lưu thông tin vào Database trước
             if ($product->create()) {
@@ -56,10 +60,12 @@ class ProductController {
                     }
                 }
 
-                // 5. Báo thành công và quay về trang chủ (Dùng BASE_URL cho chuẩn xác)
+                $manageListingsUrl = app_url('app/views/products/manage.php');
+
+                // 5. Báo thành công và chuyển người bán về trang quản lý tin
                 echo "<script>
-                        alert('Đăng tin bán xe đạp thành công! Ảnh đã được lên mây.');
-                        window.location.href = '" . BASE_URL . "/index.php';
+                        alert('Tin đăng đã được gửi duyệt thành công. Bạn có thể theo dõi trạng thái ở mục Tin đăng của tôi.');
+                        window.location.href = '" . $manageListingsUrl . "?filter=pending&status=success&message=" . rawurlencode('Tin đăng đã được gửi duyệt thành công.') . "';
                       </script>";
                 exit; // Dừng chạy code tiếp sau khi chuyển trang
             } else {
