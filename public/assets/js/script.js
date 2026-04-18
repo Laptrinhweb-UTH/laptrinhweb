@@ -118,6 +118,46 @@ function toggleWishlistFromModal() {
 // ==================== MODAL ====================
 let currentProduct = null;
 
+function showLegacyDialog({ title = "Thông báo", message = "", confirmText = "Đã hiểu" } = {}) {
+  let dialog = document.getElementById("legacyAppDialog");
+
+  if (!dialog) {
+    dialog = document.createElement("div");
+    dialog.id = "legacyAppDialog";
+    dialog.className = "modal";
+    dialog.innerHTML = `
+      <div class="modal-backdrop"></div>
+      <div class="modal-content detail-buy-modal" style="max-width: 520px;">
+        <div class="detail-buy-modal-header">
+          <h3 id="legacyAppDialogTitle" class="detail-buy-modal-title"></h3>
+          <button type="button" class="detail-buy-modal-close" aria-label="Đóng">&times;</button>
+        </div>
+        <div class="p-4">
+          <p id="legacyAppDialogMessage" class="mb-4 text-muted" style="line-height: 1.7;"></p>
+          <div class="d-flex justify-content-end">
+            <button type="button" id="legacyAppDialogConfirm" class="btn btn-primary rounded-pill px-4"></button>
+          </div>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(dialog);
+
+    const closeDialog = () => dialog.classList.add("hidden");
+    dialog.querySelector(".modal-backdrop").addEventListener("click", closeDialog);
+    dialog
+      .querySelector(".detail-buy-modal-close")
+      .addEventListener("click", closeDialog);
+    dialog
+      .querySelector("#legacyAppDialogConfirm")
+      .addEventListener("click", closeDialog);
+  }
+
+  dialog.querySelector("#legacyAppDialogTitle").textContent = title;
+  dialog.querySelector("#legacyAppDialogMessage").textContent = message;
+  dialog.querySelector("#legacyAppDialogConfirm").textContent = confirmText;
+  dialog.classList.remove("hidden");
+}
+
 function showDetail(id) {
   currentProduct = products.find((p) => p.id === id);
   if (!currentProduct) return;
@@ -171,13 +211,14 @@ function hideDetailModal() {
 
 function fakeChat() {
   hideDetailModal();
-  setTimeout(
-    () =>
-      alert(
-        "💬 Chat đã mở!\nNgười bán: Chào bạn! Xe em còn rất tốt, bạn muốn gặp xem trực tiếp không?",
-      ),
-    400,
-  );
+  setTimeout(() => {
+    showLegacyDialog({
+      title: "Hội thoại mẫu",
+      message:
+        "Người bán: Chào bạn! Xe vẫn còn và mình có thể gửi thêm ảnh chi tiết nếu bạn cần xem kỹ hơn.",
+      confirmText: "Tiếp tục xem xe",
+    });
+  }, 400);
 }
 
 // ==================== ĐĂNG BÁN ====================
@@ -228,9 +269,11 @@ function hideSellModal() {
 // Chặn form submit tải lại trang (chờ viết code PHP xử lý sau)
 function handleSellSubmit(e) {
   e.preventDefault();
-  alert(
-    "Chức năng đang được hoàn thiện! Sắp tới chúng ta sẽ dùng PHP để lưu dữ liệu này vào Database.",
-  );
+  showLegacyDialog({
+    title: "Chức năng đang được hoàn thiện",
+    message:
+      "Biểu mẫu demo này sẽ được thay bằng luồng lưu dữ liệu thật với PHP và MySQL trong phiên bản tiếp theo.",
+  });
 }
 
 // ==================== KHỞI ĐỘNG ====================

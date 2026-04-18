@@ -177,7 +177,10 @@ include __DIR__ . '/../app/views/layouts/header.php';
                         </div>
                         <?php endif; ?>
                         
-                        <a href="#" onclick="alert('Tính năng nhắn tin đang được phát triển!'); return false;" class="detail-chat-btn" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='#ffffff'">
+                        <a href="#" onclick="showInfoDialog({
+                                title: 'Nhắn tin đang được phát triển',
+                                message: 'Tính năng nhắn tin nội bộ sẽ được bổ sung ở phiên bản tiếp theo. Hiện tại bạn có thể ưu tiên đặt mua an toàn qua SpinBike để giao dịch minh bạch hơn.'
+                            }); return false;" class="detail-chat-btn" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='#ffffff'">
                             <i class="fa-solid fa-comment-dots detail-chat-icon"></i> Nhắn tin trao đổi
                         </a>
                     </div>
@@ -216,7 +219,27 @@ include __DIR__ . '/../app/views/layouts/header.php';
     </div>
 </div>
 
-<?php if ($detailError === null && $canPurchase): ?>
+<?php if ($detailError === null): ?>
+<div id="detailInfoModal" class="modal hidden">
+    <div class="modal-backdrop" onclick="hideInfoDialog()"></div>
+    <div class="modal-content detail-buy-modal" style="max-width: 520px;">
+        <div class="detail-buy-modal-header">
+            <h3 id="detailInfoModalTitle" class="detail-buy-modal-title">Thông báo</h3>
+            <button type="button" class="detail-buy-modal-close" onclick="hideInfoDialog()">&times;</button>
+        </div>
+        <div class="p-4">
+            <p id="detailInfoModalMessage" class="mb-4 text-muted" style="line-height: 1.7;"></p>
+            <div class="d-flex justify-content-end gap-2 flex-wrap">
+                <button type="button" id="detailInfoModalCancel" class="btn btn-outline-secondary rounded-pill px-4 hidden" onclick="hideInfoDialog()">Để sau</button>
+                <button type="button" id="detailInfoModalConfirm" class="btn btn-primary rounded-pill px-4" onclick="confirmInfoDialog()">Đã hiểu</button>
+            </div>
+        </div>
+    </div>
+</div>
+<?php endif; ?>
+
+<?php if ($detailError === null): ?>
+<?php if ($canPurchase): ?>
 <div id="buyOptionsModal" class="modal hidden">
     <div class="modal-backdrop" onclick="hideBuyOptions()"></div>
     <div class="modal-content detail-buy-modal">
@@ -253,11 +276,60 @@ include __DIR__ . '/../app/views/layouts/header.php';
 
     </div>
 </div>
+<?php endif; ?>
 
 <script>
     // Logic Slider Ảnh
     const bikeImages = <?php echo json_encode($images); ?>;
     let currentIdx = 0;
+    let detailInfoDialogAction = null;
+
+    function showInfoDialog(options = {}) {
+        const modal = document.getElementById('detailInfoModal');
+        if (!modal) {
+            if (typeof options.onConfirm === 'function') {
+                options.onConfirm();
+            }
+            return;
+        }
+
+        const title = options.title || 'Thông báo';
+        const message = options.message || 'Thông tin đang được cập nhật.';
+        const confirmText = options.confirmText || 'Đã hiểu';
+        const cancelText = options.cancelText || 'Để sau';
+        const showCancel = Boolean(options.showCancel);
+        const confirmButtonClass = options.confirmButtonClass || 'btn btn-primary rounded-pill px-4';
+
+        document.getElementById('detailInfoModalTitle').textContent = title;
+        document.getElementById('detailInfoModalMessage').textContent = message;
+
+        const cancelButton = document.getElementById('detailInfoModalCancel');
+        cancelButton.textContent = cancelText;
+        cancelButton.classList.toggle('hidden', !showCancel);
+
+        const confirmButton = document.getElementById('detailInfoModalConfirm');
+        confirmButton.textContent = confirmText;
+        confirmButton.className = confirmButtonClass;
+
+        detailInfoDialogAction = typeof options.onConfirm === 'function' ? options.onConfirm : null;
+        modal.classList.remove('hidden');
+    }
+
+    function hideInfoDialog() {
+        const modal = document.getElementById('detailInfoModal');
+        if (modal) {
+            modal.classList.add('hidden');
+        }
+        detailInfoDialogAction = null;
+    }
+
+    function confirmInfoDialog() {
+        const action = detailInfoDialogAction;
+        hideInfoDialog();
+        if (typeof action === 'function') {
+            action();
+        }
+    }
 
     function showImage(index) {
         currentIdx = index;
@@ -294,14 +366,24 @@ include __DIR__ . '/../app/views/layouts/header.php';
     function showBuyOptions() {
         // Kiểm tra đăng nhập (PHP render logic)
         <?php if(!isset($_SESSION['user_id'])): ?>
-            alert("Bạn cần đăng nhập để thực hiện chức năng mua hàng!");
-            window.location.href = '<?php echo app_url('app/views/auth/auth.php'); ?>';
+            showInfoDialog({
+                title: 'Cần đăng nhập để tiếp tục',
+                message: 'Bạn cần đăng nhập trước khi đặt mua an toàn qua SpinBike.',
+                confirmText: 'Đăng nhập ngay',
+                showCancel: true,
+                onConfirm: () => {
+                    window.location.href = '<?php echo app_url('app/views/auth/auth.php'); ?>';
+                }
+            });
             return;
         <?php endif; ?>
         
         // Kiểm tra xem người bán có tự mua hàng của chính mình không
         <?php if(isset($_SESSION['user_id']) && $_SESSION['user_id'] == $product['seller_id']): ?>
-            alert("Bạn không thể mua chiếc xe do chính mình đăng bán!");
+            showInfoDialog({
+                title: 'Không thể tự mua sản phẩm của bạn',
+                message: 'Đây là chiếc xe do chính bạn đăng bán, nên hệ thống không cho phép tạo đơn mua cho sản phẩm này.'
+            });
             return;
         <?php endif; ?>
         
@@ -309,7 +391,10 @@ include __DIR__ . '/../app/views/layouts/header.php';
     }
 
     function hideBuyOptions() {
-        document.getElementById('buyOptionsModal').classList.add('hidden');
+        const modal = document.getElementById('buyOptionsModal');
+        if (modal) {
+            modal.classList.add('hidden');
+        }
     }
 
     function processEscrowCheckout() {
@@ -318,7 +403,10 @@ include __DIR__ . '/../app/views/layouts/header.php';
 
     function processDirectCheckout() {
         hideBuyOptions();
-        alert('Vui lòng sử dụng tính năng Nhắn tin trao đổi để thỏa thuận trực tiếp với người bán!');
+        showInfoDialog({
+            title: 'Giao dịch trực tiếp',
+            message: 'Nếu muốn tự giao dịch trực tiếp, bạn vui lòng trao đổi với người bán trước. SpinBike chỉ bảo vệ khoản tiền khi bạn chọn luồng đặt mua an toàn qua hệ thống.'
+        });
     }
 </script>
 <?php endif; ?>

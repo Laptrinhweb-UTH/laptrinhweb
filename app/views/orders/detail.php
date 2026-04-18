@@ -480,14 +480,80 @@ include __DIR__ . '/../layouts/header.php';
 <?php endif; ?>
 
 <?php if ($canSellerConfirmOrder || $canSellerMarkShipping || $canConfirmReceipt || $canSubmitDispute || $canResolveRefund): ?>
+<div id="orderActionConfirmModal" class="modal hidden">
+    <div class="modal-backdrop" onclick="hideOrderActionConfirm()"></div>
+    <div class="modal-content detail-buy-modal" style="max-width: 520px;">
+        <div class="detail-buy-modal-header">
+            <h3 id="orderActionConfirmTitle" class="detail-buy-modal-title">Xác nhận thao tác</h3>
+            <button type="button" class="detail-buy-modal-close" onclick="hideOrderActionConfirm()">&times;</button>
+        </div>
+        <div class="p-4">
+            <p id="orderActionConfirmMessage" class="mb-4 text-muted" style="line-height: 1.7;"></p>
+            <div class="d-flex justify-content-end gap-2 flex-wrap">
+                <button type="button" class="btn btn-outline-secondary rounded-pill px-4" onclick="hideOrderActionConfirm()">Để sau</button>
+                <button type="button" id="orderActionConfirmButton" class="btn btn-primary rounded-pill px-4" onclick="submitOrderActionConfirm()">Xác nhận</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
-    async function sellerConfirmOrder() {
-        const confirmMessage = 'Xác nhận bạn đã tiếp nhận đơn hàng này và sẽ tiến hành chuẩn bị giao xe?';
-        if (!window.confirm(confirmMessage)) {
+    let orderActionConfirmCallback = null;
+
+    function showOrderActionConfirm(options = {}) {
+        const modal = document.getElementById('orderActionConfirmModal');
+        if (!modal) {
+            if (typeof options.onConfirm === 'function') {
+                options.onConfirm();
+            }
             return;
         }
 
+        document.getElementById('orderActionConfirmTitle').textContent = options.title || 'Xác nhận thao tác';
+        document.getElementById('orderActionConfirmMessage').textContent = options.message || 'Bạn có chắc muốn tiếp tục thao tác này không?';
+
+        const confirmButton = document.getElementById('orderActionConfirmButton');
+        confirmButton.textContent = options.confirmText || 'Xác nhận';
+        confirmButton.className = options.confirmButtonClass || 'btn btn-primary rounded-pill px-4';
+
+        orderActionConfirmCallback = typeof options.onConfirm === 'function' ? options.onConfirm : null;
+        modal.classList.remove('hidden');
+    }
+
+    function hideOrderActionConfirm() {
+        const modal = document.getElementById('orderActionConfirmModal');
+        if (modal) {
+            modal.classList.add('hidden');
+        }
+        orderActionConfirmCallback = null;
+    }
+
+    function submitOrderActionConfirm() {
+        const callback = orderActionConfirmCallback;
+        hideOrderActionConfirm();
+        if (typeof callback === 'function') {
+            callback();
+        }
+    }
+
+    async function sellerConfirmOrder() {
         const button = document.getElementById('sellerConfirmOrderButton');
+        if (!button || button.dataset.confirmed !== 'true') {
+            showOrderActionConfirm({
+                title: 'Xác nhận tiếp nhận đơn hàng',
+                message: 'Xác nhận bạn đã tiếp nhận đơn hàng này và sẽ tiến hành chuẩn bị giao xe?',
+                confirmText: 'Tiếp nhận đơn',
+                onConfirm: () => {
+                    if (button) {
+                        button.dataset.confirmed = 'true';
+                        sellerConfirmOrder();
+                    }
+                }
+            });
+            return;
+        }
+
+        delete button.dataset.confirmed;
         const originalHtml = button.innerHTML;
         button.disabled = true;
         button.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i> Đang xác nhận...';
@@ -516,12 +582,23 @@ include __DIR__ . '/../layouts/header.php';
     }
 
     async function markOrderShipping() {
-        const confirmMessage = 'Xác nhận chiếc xe đã được giao cho đơn vị vận chuyển hoặc đang trong quá trình bàn giao cho người mua?';
-        if (!window.confirm(confirmMessage)) {
+        const button = document.getElementById('shipOrderButton');
+        if (!button || button.dataset.confirmed !== 'true') {
+            showOrderActionConfirm({
+                title: 'Xác nhận đang giao xe',
+                message: 'Xác nhận chiếc xe đã được giao cho đơn vị vận chuyển hoặc đang trong quá trình bàn giao cho người mua?',
+                confirmText: 'Cập nhật giao xe',
+                onConfirm: () => {
+                    if (button) {
+                        button.dataset.confirmed = 'true';
+                        markOrderShipping();
+                    }
+                }
+            });
             return;
         }
 
-        const button = document.getElementById('shipOrderButton');
+        delete button.dataset.confirmed;
         const originalHtml = button.innerHTML;
         button.disabled = true;
         button.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i> Đang cập nhật...';
@@ -550,12 +627,24 @@ include __DIR__ . '/../layouts/header.php';
     }
 
     async function confirmReceipt() {
-        const confirmMessage = 'Xác nhận bạn đã kiểm tra xe và đồng ý giải phóng tiền cho người bán? Hành động này không thể hoàn tác.';
-        if (!window.confirm(confirmMessage)) {
+        const button = document.getElementById('confirmReceiptButton');
+        if (!button || button.dataset.confirmed !== 'true') {
+            showOrderActionConfirm({
+                title: 'Xác nhận đã nhận được xe',
+                message: 'Xác nhận bạn đã kiểm tra xe và đồng ý giải phóng tiền cho người bán? Hành động này không thể hoàn tác.',
+                confirmText: 'Xác nhận nhận xe',
+                confirmButtonClass: 'btn btn-success rounded-pill px-4',
+                onConfirm: () => {
+                    if (button) {
+                        button.dataset.confirmed = 'true';
+                        confirmReceipt();
+                    }
+                }
+            });
             return;
         }
 
-        const button = document.getElementById('confirmReceiptButton');
+        delete button.dataset.confirmed;
         const originalHtml = button.innerHTML;
         button.disabled = true;
         button.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i> Đang xác nhận...';
@@ -639,12 +728,24 @@ include __DIR__ . '/../layouts/header.php';
     }
 
     async function refundBuyer() {
-        const confirmMessage = 'Xác nhận hoàn tiền cho người mua? Hành động này sẽ hủy đơn hàng và chuyển khoản tiền giữ sang trạng thái đã hoàn.';
-        if (!window.confirm(confirmMessage)) {
+        const button = document.getElementById('refundBuyerButton');
+        if (!button || button.dataset.confirmed !== 'true') {
+            showOrderActionConfirm({
+                title: 'Xác nhận hoàn tiền cho người mua',
+                message: 'Hành động này sẽ hủy đơn hàng và chuyển khoản tiền giữ sang trạng thái đã hoàn. Bạn có chắc muốn tiếp tục?',
+                confirmText: 'Hoàn tiền ngay',
+                confirmButtonClass: 'btn btn-danger rounded-pill px-4',
+                onConfirm: () => {
+                    if (button) {
+                        button.dataset.confirmed = 'true';
+                        refundBuyer();
+                    }
+                }
+            });
             return;
         }
 
-        const button = document.getElementById('refundBuyerButton');
+        delete button.dataset.confirmed;
         const originalHtml = button.innerHTML;
         button.disabled = true;
         button.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i> Đang hoàn tiền...';

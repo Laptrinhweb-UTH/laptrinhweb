@@ -1,4 +1,9 @@
-<?php include __DIR__ . '/../layouts/header.php'; ?>
+<?php
+$status = $_GET['status'] ?? '';
+$message = trim((string) ($_GET['message'] ?? ''));
+$noticeClass = $status === 'success' ? 'auth-message auth-message-success' : 'auth-message auth-message-error';
+include __DIR__ . '/../layouts/header.php';
+?>
 
 <main class="main-content sell-page-shell">
     
@@ -7,6 +12,12 @@
             <h1 class="sell-page-title">Đăng bán xe đạp</h1>
             <p class="sell-page-subtitle">Vui lòng điền thông tin để đăng bán xe của bạn.</p>
         </div>
+
+        <?php if ($message !== ''): ?>
+        <div class="<?php echo $noticeClass; ?>">
+            <?php echo htmlspecialchars($message); ?>
+        </div>
+        <?php endif; ?>
 
         <form id="sellBikeForm" class="sell-form" action="<?php echo asset_url('process_sell.php'); ?>" method="POST" enctype="multipart/form-data">
         

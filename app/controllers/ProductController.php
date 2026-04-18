@@ -8,6 +8,12 @@ require_once __DIR__ . '/../helpers/ProjectFlow.php';
 require_once __DIR__ . '/../models/Product.php';
 
 class ProductController {
+    private function redirectWithFeedback(string $url, string $message, string $status = 'error'): never
+    {
+        $separator = str_contains($url, '?') ? '&' : '?';
+        header('Location: ' . $url . $separator . 'status=' . rawurlencode($status) . '&message=' . rawurlencode($message));
+        exit;
+    }
     
     // Hàm xử lý việc lưu tin đăng
     public function store() {
@@ -60,16 +66,17 @@ class ProductController {
                     }
                 }
 
-                $manageListingsUrl = app_url('app/views/products/manage.php');
-
-                // 5. Báo thành công và chuyển người bán về trang quản lý tin
-                echo "<script>
-                        alert('Tin đăng đã được gửi duyệt thành công. Bạn có thể theo dõi trạng thái ở mục Tin đăng của tôi.');
-                        window.location.href = '" . $manageListingsUrl . "?filter=pending&status=success&message=" . rawurlencode('Tin đăng đã được gửi duyệt thành công.') . "';
-                      </script>";
-                exit; // Dừng chạy code tiếp sau khi chuyển trang
+                $manageListingsUrl = app_url('app/views/products/manage.php') . '?filter=pending';
+                $this->redirectWithFeedback(
+                    $manageListingsUrl,
+                    'Tin đăng đã được gửi duyệt thành công. Bạn có thể theo dõi trạng thái ở mục Tin đăng của tôi.',
+                    'success'
+                );
             } else {
-                echo "<script>alert('Có lỗi xảy ra khi lưu thông tin!');</script>";
+                $this->redirectWithFeedback(
+                    app_url('app/views/products/sell.php'),
+                    'Có lỗi xảy ra khi lưu thông tin. Vui lòng kiểm tra lại dữ liệu và thử lại.'
+                );
             }
         }
     }
