@@ -1,6 +1,7 @@
 <?php
 session_start(); // Bắt buộc phải có session_start() để lấy $_SESSION['user_id']
 require_once __DIR__ . '/../app/helpers/Database.php';
+require_once __DIR__ . '/../app/helpers/ProjectFlow.php';
 require_once __DIR__ . '/../app/models/Product.php';
 
 // Kiểm tra ID xe hợp lệ
@@ -22,7 +23,9 @@ $product = null;
 $images = ['https://via.placeholder.com/600x400?text=Chua+Co+Anh'];
 $formattedPrice = 'Đang cập nhật';
 $sellerId = '1';
+$sellerName = '';
 $avatarUrl = "https://ui-avatars.com/api/?name=U+{$sellerId}&background=10b981&color=fff&rounded=true&bold=true";
+$canPurchase = false;
 
 if (!$db) {
     $detailError = 'Dữ liệu sản phẩm hiện chưa sẵn sàng. Vui lòng kiểm tra kết nối dữ liệu và thử lại sau.';
@@ -37,7 +40,15 @@ if (!$db) {
             $formattedPrice = number_format($product['price'], 0, ',', '.') . ' đ';
             $images = !empty($product['images']) ? $product['images'] : $images;
             $sellerId = $product['seller_id'] ?? $sellerId;
-            $avatarUrl = "https://ui-avatars.com/api/?name=U+{$sellerId}&background=10b981&color=fff&rounded=true&bold=true";
+            $sellerName = trim((string) ($product['seller_name'] ?? ''));
+            if ($sellerName !== '') {
+                $avatarUrl = !empty($product['seller_avatar'])
+                    ? $product['seller_avatar']
+                    : "https://ui-avatars.com/api/?name=" . urlencode($sellerName) . "&background=10b981&color=fff&rounded=true&bold=true";
+            } else {
+                $avatarUrl = "https://ui-avatars.com/api/?name=U+{$sellerId}&background=10b981&color=fff&rounded=true&bold=true";
+            }
+            $canPurchase = ($product['listing_status'] ?? '') === ProjectFlow::LISTING_APPROVED;
         }
     } catch (Throwable $exception) {
         $detailError = 'Thông tin chi tiết sản phẩm tạm thời chưa thể tải. Vui lòng thử lại sau.';
@@ -77,7 +88,18 @@ if ($productDescription === '') {
     $productDescription = 'Người bán chưa bổ sung mô tả chi tiết cho sản phẩm này.';
 }
 
-$sellerLabel = is_numeric($sellerId) ? 'Người bán (ID: ' . $sellerId . ')' : 'Người bán đang cập nhật';
+if ($sellerName === '') {
+    $sellerName = is_numeric($sellerId) ? 'Người bán (ID: ' . $sellerId . ')' : 'Người bán đang cập nhật';
+}
+$sellerLabel = $sellerName;
+$listingStatus = (string) ($product['listing_status'] ?? '');
+$listingStatusMessage = match ($listingStatus) {
+    ProjectFlow::LISTING_SOLD => 'Chiếc xe này đã được giữ chỗ hoặc đã chốt giao dịch nên hiện không thể mua thêm.',
+    ProjectFlow::LISTING_PENDING => 'Tin đăng này đang chờ duyệt và chưa mở bán công khai.',
+    ProjectFlow::LISTING_REJECTED => 'Tin đăng này đang được người bán chỉnh sửa lại nên chưa thể giao dịch.',
+    ProjectFlow::LISTING_HIDDEN => 'Tin đăng hiện đang được ẩn tạm thời khỏi hệ thống.',
+    default => '',
+};
 
 include __DIR__ . '/../app/views/layouts/header.php';
 ?>
@@ -145,11 +167,20 @@ include __DIR__ . '/../app/views/layouts/header.php';
                     </div>
                     
                     <div class="detail-action-stack">
+                        <?php if ($canPurchase): ?>
                         <button onclick="showBuyOptions()" class="detail-buy-btn" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
-                            <i class="fa-solid fa-cart-shopping"></i> MUA NGAY
+                            <i class="fa-solid fa-cart-shopping"></i> ĐẶT MUA AN TOÀN
                         </button>
+                        <?php else: ?>
+                        <div class="auth-message auth-message-error">
+                            <?php echo htmlspecialchars($listingStatusMessage !== '' ? $listingStatusMessage : 'Tin đăng này hiện chưa thể giao dịch.'); ?>
+                        </div>
+                        <?php endif; ?>
                         
-                        <a href="#" onclick="alert('Tính năng nhắn tin đang được phát triển!'); return false;" class="detail-chat-btn" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='#ffffff'">
+                        <a href="#" onclick="showInfoDialog({
+                                title: 'Nhắn tin đang được phát triển',
+                                message: 'Tính năng nhắn tin nội bộ sẽ được bổ sung ở phiên bản tiếp theo. Hiện tại bạn có thể ưu tiên đặt mua an toàn qua SpinBike để giao dịch minh bạch hơn.'
+                            }); return false;" class="detail-chat-btn" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='#ffffff'">
                             <i class="fa-solid fa-comment-dots detail-chat-icon"></i> Nhắn tin trao đổi
                         </a>
                     </div>
@@ -189,12 +220,32 @@ include __DIR__ . '/../app/views/layouts/header.php';
 </div>
 
 <?php if ($detailError === null): ?>
+<div id="detailInfoModal" class="modal hidden">
+    <div class="modal-backdrop" onclick="hideInfoDialog()"></div>
+    <div class="modal-content detail-buy-modal" style="max-width: 520px;">
+        <div class="detail-buy-modal-header">
+            <h3 id="detailInfoModalTitle" class="detail-buy-modal-title">Thông báo</h3>
+            <button type="button" class="detail-buy-modal-close" onclick="hideInfoDialog()">&times;</button>
+        </div>
+        <div class="p-4">
+            <p id="detailInfoModalMessage" class="mb-4 text-muted" style="line-height: 1.7;"></p>
+            <div class="d-flex justify-content-end gap-2 flex-wrap">
+                <button type="button" id="detailInfoModalCancel" class="btn btn-outline-secondary rounded-pill px-4 hidden" onclick="hideInfoDialog()">Để sau</button>
+                <button type="button" id="detailInfoModalConfirm" class="btn btn-primary rounded-pill px-4" onclick="confirmInfoDialog()">Đã hiểu</button>
+            </div>
+        </div>
+    </div>
+</div>
+<?php endif; ?>
+
+<?php if ($detailError === null): ?>
+<?php if ($canPurchase): ?>
 <div id="buyOptionsModal" class="modal hidden">
     <div class="modal-backdrop" onclick="hideBuyOptions()"></div>
     <div class="modal-content detail-buy-modal">
         
         <div class="detail-buy-modal-header">
-            <h3 class="detail-buy-modal-title">Chọn phương thức mua hàng</h3>
+            <h3 class="detail-buy-modal-title">Chọn cách tiếp tục</h3>
             <button onclick="hideBuyOptions()" class="detail-buy-modal-close">&times;</button>
         </div>
         
@@ -204,9 +255,9 @@ include __DIR__ . '/../app/views/layouts/header.php';
                     <i class="fa-solid fa-shield-halved"></i>
                 </div>
                 <div>
-                    <h4 class="detail-buy-option-heading detail-buy-option-heading-primary">Mua an toàn qua SpinBike</h4>
+                    <h4 class="detail-buy-option-heading detail-buy-option-heading-primary">Đặt mua an toàn qua SpinBike</h4>
                     <span class="detail-buy-badge">Khuyên dùng</span>
-                    <p class="detail-buy-option-text detail-buy-option-text-primary">SpinBike sẽ làm trung gian giữ tiền. Chỉ khi bạn kiểm tra và nhận xe đúng mô tả, tiền mới được chuyển cho người bán.</p>
+                    <p class="detail-buy-option-text detail-buy-option-text-primary">Bạn sẽ đi tới bước xác nhận đơn hàng và thanh toán an toàn. SpinBike giữ tiền cho tới khi bạn xác nhận đã nhận xe đúng mô tả.</p>
                 </div>
             </div>
         </div>
@@ -225,11 +276,60 @@ include __DIR__ . '/../app/views/layouts/header.php';
 
     </div>
 </div>
+<?php endif; ?>
 
 <script>
     // Logic Slider Ảnh
     const bikeImages = <?php echo json_encode($images); ?>;
     let currentIdx = 0;
+    let detailInfoDialogAction = null;
+
+    function showInfoDialog(options = {}) {
+        const modal = document.getElementById('detailInfoModal');
+        if (!modal) {
+            if (typeof options.onConfirm === 'function') {
+                options.onConfirm();
+            }
+            return;
+        }
+
+        const title = options.title || 'Thông báo';
+        const message = options.message || 'Thông tin đang được cập nhật.';
+        const confirmText = options.confirmText || 'Đã hiểu';
+        const cancelText = options.cancelText || 'Để sau';
+        const showCancel = Boolean(options.showCancel);
+        const confirmButtonClass = options.confirmButtonClass || 'btn btn-primary rounded-pill px-4';
+
+        document.getElementById('detailInfoModalTitle').textContent = title;
+        document.getElementById('detailInfoModalMessage').textContent = message;
+
+        const cancelButton = document.getElementById('detailInfoModalCancel');
+        cancelButton.textContent = cancelText;
+        cancelButton.classList.toggle('hidden', !showCancel);
+
+        const confirmButton = document.getElementById('detailInfoModalConfirm');
+        confirmButton.textContent = confirmText;
+        confirmButton.className = confirmButtonClass;
+
+        detailInfoDialogAction = typeof options.onConfirm === 'function' ? options.onConfirm : null;
+        modal.classList.remove('hidden');
+    }
+
+    function hideInfoDialog() {
+        const modal = document.getElementById('detailInfoModal');
+        if (modal) {
+            modal.classList.add('hidden');
+        }
+        detailInfoDialogAction = null;
+    }
+
+    function confirmInfoDialog() {
+        const action = detailInfoDialogAction;
+        hideInfoDialog();
+        if (typeof action === 'function') {
+            action();
+        }
+    }
 
     function showImage(index) {
         currentIdx = index;
@@ -266,14 +366,24 @@ include __DIR__ . '/../app/views/layouts/header.php';
     function showBuyOptions() {
         // Kiểm tra đăng nhập (PHP render logic)
         <?php if(!isset($_SESSION['user_id'])): ?>
-            alert("Bạn cần đăng nhập để thực hiện chức năng mua hàng!");
-            window.location.href = '<?php echo app_url('app/views/auth/auth.php'); ?>';
+            showInfoDialog({
+                title: 'Cần đăng nhập để tiếp tục',
+                message: 'Bạn cần đăng nhập trước khi đặt mua an toàn qua SpinBike.',
+                confirmText: 'Đăng nhập ngay',
+                showCancel: true,
+                onConfirm: () => {
+                    window.location.href = '<?php echo app_url('app/views/auth/auth.php'); ?>';
+                }
+            });
             return;
         <?php endif; ?>
         
         // Kiểm tra xem người bán có tự mua hàng của chính mình không
         <?php if(isset($_SESSION['user_id']) && $_SESSION['user_id'] == $product['seller_id']): ?>
-            alert("Bạn không thể mua chiếc xe do chính mình đăng bán!");
+            showInfoDialog({
+                title: 'Không thể tự mua sản phẩm của bạn',
+                message: 'Đây là chiếc xe do chính bạn đăng bán, nên hệ thống không cho phép tạo đơn mua cho sản phẩm này.'
+            });
             return;
         <?php endif; ?>
         
@@ -281,7 +391,10 @@ include __DIR__ . '/../app/views/layouts/header.php';
     }
 
     function hideBuyOptions() {
-        document.getElementById('buyOptionsModal').classList.add('hidden');
+        const modal = document.getElementById('buyOptionsModal');
+        if (modal) {
+            modal.classList.add('hidden');
+        }
     }
 
     function processEscrowCheckout() {
@@ -290,7 +403,10 @@ include __DIR__ . '/../app/views/layouts/header.php';
 
     function processDirectCheckout() {
         hideBuyOptions();
-        alert('Vui lòng sử dụng tính năng Nhắn tin trao đổi để thỏa thuận trực tiếp với người bán!');
+        showInfoDialog({
+            title: 'Giao dịch trực tiếp',
+            message: 'Nếu muốn tự giao dịch trực tiếp, bạn vui lòng trao đổi với người bán trước. SpinBike chỉ bảo vệ khoản tiền khi bạn chọn luồng đặt mua an toàn qua hệ thống.'
+        });
     }
 </script>
 <?php endif; ?>

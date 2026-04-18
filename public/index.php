@@ -67,8 +67,15 @@ if (!$db) {
 
       <div class="products-section">
         <div class="products-header">
-          <h1>Danh sách xe đạp</h1>
-          <p id="resultCount"><?php echo count($products); ?> sản phẩm</p>
+          <h1>Xe Đang Mở Bán</h1>
+          <p id="resultCount"><?php echo count($products); ?> tin đã được duyệt và đang hiển thị</p>
+        </div>
+
+        <div class="profile-card mb-4">
+          <div class="d-flex flex-column gap-2">
+            <div class="fw-bold">Quy trình giao dịch trên SpinBike</div>
+            <div class="text-muted">Người mua đặt mua an toàn, hệ thống giữ tiền, người bán giao xe, sau đó buyer xác nhận nhận hàng hoặc gửi khiếu nại nếu có vấn đề.</div>
+          </div>
         </div>
 
         <div id="productGrid" class="product-grid">
@@ -150,7 +157,7 @@ if (!$db) {
           <?php else: ?>
             <div class="empty-state-card">
                 <i class="fa-solid fa-box-open empty-state-icon"></i>
-                <p class="empty-state-text">Chưa có chiếc xe nào được đăng bán. Hãy là người đầu tiên!</p>
+                <p class="empty-state-text">Hiện chưa có tin nào ở trạng thái đang bán. Hãy tạo và chờ duyệt một tin mới!</p>
             </div>
           <?php endif; ?>
         </div>

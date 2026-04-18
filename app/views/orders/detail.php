@@ -2,6 +2,7 @@
 session_start();
 require_once __DIR__ . '/../../../config/config.php';
 require_once __DIR__ . '/../../helpers/Database.php';
+require_once __DIR__ . '/../../helpers/ProjectFlow.php';
 
 if (!isset($_SESSION['user_id'])) {
     header('Location: ' . app_url('app/views/auth/auth.php'));
@@ -9,24 +10,11 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 function format_order_status_label(string $status): string {
-    return match ($status) {
-        'pending' => 'Chờ thanh toán',
-        'paid' => 'Đã tạo đơn',
-        'shipping' => 'Đang giao xe',
-        'completed' => 'Hoàn tất',
-        'cancelled' => 'Đã hủy',
-        default => 'Đang cập nhật',
-    };
+    return ProjectFlow::orderLabel($status);
 }
 
 function format_escrow_status_label(string $status): string {
-    return match ($status) {
-        'holding' => 'SpinBike đang giữ tiền',
-        'released' => 'Đã giải phóng cho người bán',
-        'refunded' => 'Đã hoàn tiền cho người mua',
-        'disputed' => 'Đang xử lý khiếu nại',
-        default => 'Đang cập nhật',
-    };
+    return ProjectFlow::escrowLabel($status);
 }
 
 function timeline_step_state(int $stepIndex, int $currentStep, bool $isCancelled): string {
@@ -126,8 +114,8 @@ if ($orderError === null) {
     }
 }
 
-$orderStatus = $order['order_status'] ?? 'pending';
-$escrowStatus = $order['escrow_status'] ?? 'holding';
+$orderStatus = $order['order_status'] ?? ProjectFlow::ORDER_PENDING_PAYMENT;
+$escrowStatus = $order['escrow_status'] ?? ProjectFlow::ESCROW_HOLDING;
 $productTitle = trim((string) ($order['product_title'] ?? ''));
 if ($productTitle === '') {
     $productTitle = 'Xe đạp đang cập nhật tên';
@@ -182,70 +170,42 @@ $formattedFeeAmount = number_format($feeAmount, 0, ',', '.') . ' đ';
 $formattedSellerReceives = number_format($sellerReceives, 0, ',', '.') . ' đ';
 $formattedOrderDate = !empty($order['order_created_at']) ? date('d/m/Y H:i', strtotime((string) $order['order_created_at'])) : 'Đang cập nhật';
 $formattedReleaseDate = !empty($order['released_at']) ? date('d/m/Y H:i', strtotime((string) $order['released_at'])) : 'Chưa giải phóng';
-$statusGuideText = match ($orderStatus) {
-    'pending' => 'Đơn hàng đã được tạo nhưng vẫn đang chờ hoàn tất thanh toán.',
-    'paid' => 'Người mua đã thanh toán. Hệ thống đang giữ tiền an toàn cho đơn này.',
-    'shipping' => 'Đơn hàng đang trong quá trình giao nhận giữa hai bên.',
-    'completed' => 'Đơn hàng đã hoàn tất và tiền đã được giải phóng cho người bán.',
-    'cancelled' => 'Đơn hàng đã bị hủy hoặc dừng xử lý.',
-    default => 'Trạng thái đơn hàng đang được cập nhật.',
-};
-$escrowGuideText = match ($escrowStatus) {
-    'holding' => 'Khoản tiền vẫn đang được SpinBike giữ để bảo vệ giao dịch.',
-    'released' => 'Khoản tiền đã được chuyển cho người bán sau khi đơn hoàn tất.',
-    'refunded' => 'Khoản tiền đã được hoàn lại cho người mua.',
-    'disputed' => 'Khoản tiền đang được giữ để chờ xử lý khiếu nại.',
-    default => 'Trạng thái giữ tiền đang được cập nhật.',
-};
+$statusGuideText = ProjectFlow::orderDescription($orderStatus);
+$escrowGuideText = ProjectFlow::escrowDescription($escrowStatus);
 $resolutionGuideTitle = match ($escrowStatus) {
-    'disputed' => 'Đơn hàng đang ở chế độ tranh chấp',
-    'refunded' => 'Khoản tiền đã được hoàn cho người mua',
+    ProjectFlow::ESCROW_DISPUTED => 'Đơn hàng đang ở chế độ tranh chấp',
+    ProjectFlow::ESCROW_REFUNDED => 'Khoản tiền đã được hoàn cho người mua',
     default => '',
 };
 $resolutionGuideText = match ($escrowStatus) {
-    'disputed' => 'SpinBike đang tiếp tục giữ tiền để chờ người bán hoặc quản trị viên xử lý. Trong giai đoạn này, tiền sẽ không được giải phóng cho người bán.',
-    'refunded' => 'Khiếu nại đã được xử lý theo hướng hoàn tiền. Đơn hàng được đóng lại và khoản tiền đã quay về tài khoản người mua.',
+    ProjectFlow::ESCROW_DISPUTED => 'SpinBike đang tiếp tục giữ tiền để chờ người bán hoặc quản trị viên xử lý. Trong giai đoạn này, tiền sẽ không được giải phóng cho người bán.',
+    ProjectFlow::ESCROW_REFUNDED => 'Khiếu nại đã được xử lý theo hướng hoàn tiền. Đơn hàng được đóng lại và khoản tiền đã quay về tài khoản người mua.',
     default => '',
 };
 $resolutionGuideClass = match ($escrowStatus) {
-    'disputed' => 'order-resolution-banner is-danger',
-    'refunded' => 'order-resolution-banner is-success',
+    ProjectFlow::ESCROW_DISPUTED => 'order-resolution-banner is-danger',
+    ProjectFlow::ESCROW_REFUNDED => 'order-resolution-banner is-success',
     default => 'order-resolution-banner',
 };
 
-$statusBadgeClass = match ($orderStatus) {
-    'completed' => 'bg-success',
-    'shipping', 'paid' => 'bg-primary',
-    'cancelled' => 'bg-danger',
-    default => 'bg-secondary',
-};
-
-$escrowBadgeClass = match ($escrowStatus) {
-    'released' => 'bg-success',
-    'holding' => 'bg-warning text-dark',
-    'refunded', 'disputed' => 'bg-danger',
-    default => 'bg-secondary',
-};
-
-$timelineCurrentStep = match ($orderStatus) {
-    'pending' => 0,
-    'paid' => 1,
-    'shipping' => 2,
-    'completed' => 3,
-    default => 1,
-};
-
-$isCancelledOrder = $orderStatus === 'cancelled' || $escrowStatus === 'refunded';
+$statusBadgeClass = ProjectFlow::orderBadgeClass($orderStatus);
+$escrowBadgeClass = ProjectFlow::orderBadgeClass($escrowStatus);
+$timelineCurrentStep = ProjectFlow::orderTimelineCurrentStep($orderStatus, $escrowStatus);
+$isCancelledOrder = $orderStatus === ProjectFlow::ORDER_CANCELLED || $escrowStatus === ProjectFlow::ESCROW_REFUNDED;
 $isBuyerView = $order !== null && (int) $order['buyer_id'] === $currentUserId;
 $isSellerView = $order !== null && (int) $order['seller_id'] === $currentUserId;
 $isAdminView = $currentUserRole === 'admin';
-$canConfirmReceipt = $isBuyerView && in_array($orderStatus, ['paid', 'shipping'], true) && $escrowStatus === 'holding';
-$canSubmitDispute = $isBuyerView && in_array($orderStatus, ['paid', 'shipping'], true) && $escrowStatus === 'holding';
+$canSellerConfirmOrder = $isSellerView && ProjectFlow::sellerCanConfirmOrder($orderStatus, $escrowStatus);
+$canSellerMarkShipping = $isSellerView && ProjectFlow::sellerCanMarkShipping($orderStatus, $escrowStatus);
+$canConfirmReceipt = $isBuyerView && ProjectFlow::orderCanBeConfirmedByBuyer($orderStatus, $escrowStatus);
+$canSubmitDispute = $isBuyerView && ProjectFlow::orderCanBeDisputedByBuyer($orderStatus, $escrowStatus);
 $canResolveRefund = $order !== null
-    && $escrowStatus === 'disputed'
+    && $escrowStatus === ProjectFlow::ESCROW_DISPUTED
     && ($isSellerView || $isAdminView);
 $orderDetailUrl = app_url('app/views/orders/detail.php');
 $confirmOrderUrl = app_url('app/controllers/ConfirmOrderController.php');
+$sellerConfirmOrderUrl = app_url('app/controllers/SellerConfirmOrderController.php');
+$shipOrderUrl = app_url('app/controllers/ShipOrderController.php');
 $disputeOrderUrl = app_url('app/controllers/DisputeOrderController.php');
 $refundOrderUrl = app_url('app/controllers/RefundOrderController.php');
 
@@ -303,8 +263,9 @@ include __DIR__ . '/../layouts/header.php';
         <div class="order-timeline">
             <?php
             $timelineSteps = [
-                ['icon' => 'fa-solid fa-check', 'text' => 'Đã đặt hàng'],
-                ['icon' => 'fa-solid fa-wallet', 'text' => 'Đơn đã được tạo'],
+                ['icon' => 'fa-solid fa-check', 'text' => 'Đặt mua'],
+                ['icon' => 'fa-solid fa-wallet', 'text' => 'Đã thanh toán'],
+                ['icon' => 'fa-solid fa-handshake', 'text' => 'Người bán xác nhận đơn'],
                 ['icon' => 'fa-solid fa-truck-fast', 'text' => 'Đang giao xe'],
                 ['icon' => 'fa-solid fa-box-open', 'text' => 'Hoàn tất'],
             ];
@@ -318,7 +279,7 @@ include __DIR__ . '/../layouts/header.php';
             <?php endforeach; ?>
         </div>
         <?php if ($isCancelledOrder): ?>
-        <p class="text-danger fw-semibold mb-0 text-center">Đơn hàng này đã bị hủy hoặc hoàn tiền. Dòng thời gian được dừng tại bước thanh toán.</p>
+        <p class="text-danger fw-semibold mb-0 text-center">Đơn hàng này đã bị hủy hoặc hoàn tiền. Dòng thời gian được dừng tại bước xử lý giao dịch.</p>
         <?php endif; ?>
     </div>
 
@@ -417,6 +378,28 @@ include __DIR__ . '/../layouts/header.php';
     </div>
 
     <div class="d-flex gap-3 mb-5 flex-wrap">
+        <?php if ($canSellerConfirmOrder): ?>
+        <button
+            type="button"
+            id="sellerConfirmOrderButton"
+            class="btn btn-primary flex-grow-1 py-3 rounded-3 fw-bold fs-6 shadow-sm"
+            onclick="sellerConfirmOrder()"
+        >
+            <i class="fa-solid fa-handshake me-2"></i> Tôi xác nhận tiếp nhận đơn
+        </button>
+        <?php endif; ?>
+
+        <?php if ($canSellerMarkShipping): ?>
+        <button
+            type="button"
+            id="shipOrderButton"
+            class="btn btn-outline-primary flex-grow-1 py-3 rounded-3 fw-bold fs-6 shadow-sm"
+            onclick="markOrderShipping()"
+        >
+            <i class="fa-solid fa-truck-fast me-2"></i> Cập nhật đang giao xe
+        </button>
+        <?php endif; ?>
+
         <?php if ($canConfirmReceipt): ?>
         <button
             type="button"
@@ -426,9 +409,9 @@ include __DIR__ . '/../layouts/header.php';
         >
             <i class="fa-solid fa-check-circle me-2"></i> Tôi đã nhận được xe
         </button>
-        <?php else: ?>
+        <?php elseif (!$canSellerConfirmOrder && !$canSellerMarkShipping): ?>
         <button class="btn btn-outline-secondary flex-grow-1 py-3 rounded-3 fw-bold fs-6 shadow-sm" disabled>
-            <i class="fa-solid fa-check-circle me-2"></i> Chưa có thao tác xác nhận ở trạng thái này
+            <i class="fa-solid fa-check-circle me-2"></i> Chưa có thao tác tiếp theo ở trạng thái này
         </button>
         <?php endif; ?>
 
@@ -496,15 +479,172 @@ include __DIR__ . '/../layouts/header.php';
 </div>
 <?php endif; ?>
 
-<?php if ($canConfirmReceipt || $canSubmitDispute || $canResolveRefund): ?>
+<?php if ($canSellerConfirmOrder || $canSellerMarkShipping || $canConfirmReceipt || $canSubmitDispute || $canResolveRefund): ?>
+<div id="orderActionConfirmModal" class="modal hidden">
+    <div class="modal-backdrop" onclick="hideOrderActionConfirm()"></div>
+    <div class="modal-content detail-buy-modal" style="max-width: 520px;">
+        <div class="detail-buy-modal-header">
+            <h3 id="orderActionConfirmTitle" class="detail-buy-modal-title">Xác nhận thao tác</h3>
+            <button type="button" class="detail-buy-modal-close" onclick="hideOrderActionConfirm()">&times;</button>
+        </div>
+        <div class="p-4">
+            <p id="orderActionConfirmMessage" class="mb-4 text-muted" style="line-height: 1.7;"></p>
+            <div class="d-flex justify-content-end gap-2 flex-wrap">
+                <button type="button" class="btn btn-outline-secondary rounded-pill px-4" onclick="hideOrderActionConfirm()">Để sau</button>
+                <button type="button" id="orderActionConfirmButton" class="btn btn-primary rounded-pill px-4" onclick="submitOrderActionConfirm()">Xác nhận</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
-    async function confirmReceipt() {
-        const confirmMessage = 'Xác nhận bạn đã kiểm tra xe và đồng ý giải phóng tiền cho người bán? Hành động này không thể hoàn tác.';
-        if (!window.confirm(confirmMessage)) {
+    let orderActionConfirmCallback = null;
+
+    function showOrderActionConfirm(options = {}) {
+        const modal = document.getElementById('orderActionConfirmModal');
+        if (!modal) {
+            if (typeof options.onConfirm === 'function') {
+                options.onConfirm();
+            }
             return;
         }
 
+        document.getElementById('orderActionConfirmTitle').textContent = options.title || 'Xác nhận thao tác';
+        document.getElementById('orderActionConfirmMessage').textContent = options.message || 'Bạn có chắc muốn tiếp tục thao tác này không?';
+
+        const confirmButton = document.getElementById('orderActionConfirmButton');
+        confirmButton.textContent = options.confirmText || 'Xác nhận';
+        confirmButton.className = options.confirmButtonClass || 'btn btn-primary rounded-pill px-4';
+
+        orderActionConfirmCallback = typeof options.onConfirm === 'function' ? options.onConfirm : null;
+        modal.classList.remove('hidden');
+    }
+
+    function hideOrderActionConfirm() {
+        const modal = document.getElementById('orderActionConfirmModal');
+        if (modal) {
+            modal.classList.add('hidden');
+        }
+        orderActionConfirmCallback = null;
+    }
+
+    function submitOrderActionConfirm() {
+        const callback = orderActionConfirmCallback;
+        hideOrderActionConfirm();
+        if (typeof callback === 'function') {
+            callback();
+        }
+    }
+
+    async function sellerConfirmOrder() {
+        const button = document.getElementById('sellerConfirmOrderButton');
+        if (!button || button.dataset.confirmed !== 'true') {
+            showOrderActionConfirm({
+                title: 'Xác nhận tiếp nhận đơn hàng',
+                message: 'Xác nhận bạn đã tiếp nhận đơn hàng này và sẽ tiến hành chuẩn bị giao xe?',
+                confirmText: 'Tiếp nhận đơn',
+                onConfirm: () => {
+                    if (button) {
+                        button.dataset.confirmed = 'true';
+                        sellerConfirmOrder();
+                    }
+                }
+            });
+            return;
+        }
+
+        delete button.dataset.confirmed;
+        const originalHtml = button.innerHTML;
+        button.disabled = true;
+        button.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i> Đang xác nhận...';
+
+        try {
+            const response = await fetch('<?php echo $sellerConfirmOrderUrl; ?>', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                },
+                body: new URLSearchParams({
+                    order_id: '<?php echo (int) $order['id']; ?>',
+                }),
+            });
+
+            const result = await response.json();
+            const status = result.status === 'success' ? 'success' : 'error';
+            const message = result.message || 'Không thể xác nhận tiếp nhận đơn hàng lúc này.';
+            window.location.href = '<?php echo $orderDetailUrl; ?>?id=<?php echo (int) $order['id']; ?>&status=' + encodeURIComponent(status) + '&message=' + encodeURIComponent(message);
+        } catch (error) {
+            window.location.href = '<?php echo $orderDetailUrl; ?>?id=<?php echo (int) $order['id']; ?>&status=error&message=' + encodeURIComponent('Không thể cập nhật đơn hàng lúc này. Vui lòng thử lại sau.');
+        } finally {
+            button.disabled = false;
+            button.innerHTML = originalHtml;
+        }
+    }
+
+    async function markOrderShipping() {
+        const button = document.getElementById('shipOrderButton');
+        if (!button || button.dataset.confirmed !== 'true') {
+            showOrderActionConfirm({
+                title: 'Xác nhận đang giao xe',
+                message: 'Xác nhận chiếc xe đã được giao cho đơn vị vận chuyển hoặc đang trong quá trình bàn giao cho người mua?',
+                confirmText: 'Cập nhật giao xe',
+                onConfirm: () => {
+                    if (button) {
+                        button.dataset.confirmed = 'true';
+                        markOrderShipping();
+                    }
+                }
+            });
+            return;
+        }
+
+        delete button.dataset.confirmed;
+        const originalHtml = button.innerHTML;
+        button.disabled = true;
+        button.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i> Đang cập nhật...';
+
+        try {
+            const response = await fetch('<?php echo $shipOrderUrl; ?>', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                },
+                body: new URLSearchParams({
+                    order_id: '<?php echo (int) $order['id']; ?>',
+                }),
+            });
+
+            const result = await response.json();
+            const status = result.status === 'success' ? 'success' : 'error';
+            const message = result.message || 'Không thể cập nhật trạng thái giao xe lúc này.';
+            window.location.href = '<?php echo $orderDetailUrl; ?>?id=<?php echo (int) $order['id']; ?>&status=' + encodeURIComponent(status) + '&message=' + encodeURIComponent(message);
+        } catch (error) {
+            window.location.href = '<?php echo $orderDetailUrl; ?>?id=<?php echo (int) $order['id']; ?>&status=error&message=' + encodeURIComponent('Không thể cập nhật trạng thái giao xe lúc này. Vui lòng thử lại sau.');
+        } finally {
+            button.disabled = false;
+            button.innerHTML = originalHtml;
+        }
+    }
+
+    async function confirmReceipt() {
         const button = document.getElementById('confirmReceiptButton');
+        if (!button || button.dataset.confirmed !== 'true') {
+            showOrderActionConfirm({
+                title: 'Xác nhận đã nhận được xe',
+                message: 'Xác nhận bạn đã kiểm tra xe và đồng ý giải phóng tiền cho người bán? Hành động này không thể hoàn tác.',
+                confirmText: 'Xác nhận nhận xe',
+                confirmButtonClass: 'btn btn-success rounded-pill px-4',
+                onConfirm: () => {
+                    if (button) {
+                        button.dataset.confirmed = 'true';
+                        confirmReceipt();
+                    }
+                }
+            });
+            return;
+        }
+
+        delete button.dataset.confirmed;
         const originalHtml = button.innerHTML;
         button.disabled = true;
         button.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i> Đang xác nhận...';
@@ -588,12 +728,24 @@ include __DIR__ . '/../layouts/header.php';
     }
 
     async function refundBuyer() {
-        const confirmMessage = 'Xác nhận hoàn tiền cho người mua? Hành động này sẽ hủy đơn hàng và chuyển khoản tiền giữ sang trạng thái đã hoàn.';
-        if (!window.confirm(confirmMessage)) {
+        const button = document.getElementById('refundBuyerButton');
+        if (!button || button.dataset.confirmed !== 'true') {
+            showOrderActionConfirm({
+                title: 'Xác nhận hoàn tiền cho người mua',
+                message: 'Hành động này sẽ hủy đơn hàng và chuyển khoản tiền giữ sang trạng thái đã hoàn. Bạn có chắc muốn tiếp tục?',
+                confirmText: 'Hoàn tiền ngay',
+                confirmButtonClass: 'btn btn-danger rounded-pill px-4',
+                onConfirm: () => {
+                    if (button) {
+                        button.dataset.confirmed = 'true';
+                        refundBuyer();
+                    }
+                }
+            });
             return;
         }
 
-        const button = document.getElementById('refundBuyerButton');
+        delete button.dataset.confirmed;
         const originalHtml = button.innerHTML;
         button.disabled = true;
         button.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i> Đang hoàn tiền...';
