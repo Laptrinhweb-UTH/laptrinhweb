@@ -14,7 +14,7 @@ function redirect_listing_feedback(string $url, string $message, string $status 
 }
 
 if (!isset($_SESSION['user_id']) || $_SERVER['REQUEST_METHOD'] !== 'POST') {
-    header('Location: ' . asset_url('index.php'));
+    header('Location: ' . route_url('home'));
     exit;
 }
 
@@ -22,8 +22,8 @@ $listingId = filter_input(INPUT_POST, 'listing_id', FILTER_VALIDATE_INT, ['optio
 $action = trim((string) ($_POST['action'] ?? ''));
 $returnUrl = trim((string) ($_POST['return_url'] ?? ''));
 
-$fallbackUrl = app_url('app/views/auth/profile.php');
-$safeReturnUrl = $returnUrl !== '' && str_starts_with($returnUrl, APP_URL) ? $returnUrl : $fallbackUrl;
+$fallbackUrl = route_url('profile');
+$safeReturnUrl = $returnUrl !== '' && str_starts_with($returnUrl, app_origin()) ? $returnUrl : $fallbackUrl;
 
 if ($listingId === false || $listingId === null || $action === '') {
     redirect_listing_feedback($safeReturnUrl, 'Thiếu dữ liệu để cập nhật trạng thái tin đăng.');

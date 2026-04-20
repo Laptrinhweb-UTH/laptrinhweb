@@ -6,23 +6,23 @@ if (session_status() === PHP_SESSION_NONE) {
 require_once __DIR__ . '/../../../config/config.php';
 require_once __DIR__ . '/../../helpers/AdminAuth.php';
 
-$authUrl = app_url('app/views/auth/auth.php');
-$profileUrl = app_url('app/views/auth/profile.php');
-$logoutUrl = app_url('app/views/auth/logout.php');
-$sellUrl = app_url('app/views/products/sell.php');
-$myListingsUrl = app_url('app/views/products/manage.php');
+$authUrl = route_url('auth');
+$profileUrl = route_url('profile');
+$logoutUrl = route_url('logout');
+$sellUrl = route_url('sell');
+$myListingsUrl = route_url('my-listings');
 $reviewListingsUrl = admin_listings_url();
 $adminOrdersUrl = admin_orders_url();
 $adminDashboardUrl = admin_dashboard_url();
 $isLoggedIn = isset($_SESSION['user_id'], $_SESSION['user_name']);
 $isAdmin = (string) ($_SESSION['role'] ?? 'user') === 'admin';
-$websiteUrl = asset_url('index.php');
-$currentScript = $_SERVER['SCRIPT_NAME'] ?? '';
-$isAdminArea = $isAdmin && str_contains($currentScript, '/app/views/admin/');
-$isAdminDashboardPage = $isAdminArea && str_contains($currentScript, '/app/views/admin/dashboard.php');
-$isAdminListingsPage = $isAdminArea && str_contains($currentScript, '/app/views/admin/listings.php');
-$isAdminOrdersPage = $isAdminArea && str_contains($currentScript, '/app/views/admin/orders.php');
-$homeUrl = $isAdminArea ? $adminDashboardUrl : asset_url('index.php');
+$websiteUrl = route_url('home');
+$currentRoute = current_route_name();
+$isAdminArea = $isAdmin && is_string($currentRoute) && str_starts_with($currentRoute, 'admin.');
+$isAdminDashboardPage = $currentRoute === 'admin.dashboard';
+$isAdminListingsPage = $currentRoute === 'admin.listings';
+$isAdminOrdersPage = $currentRoute === 'admin.orders';
+$homeUrl = $isAdminArea ? $adminDashboardUrl : route_url('home');
 $displayUserName = htmlspecialchars($_SESSION['user_name'] ?? '');
 
 // ==========================================

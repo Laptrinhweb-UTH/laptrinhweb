@@ -13,7 +13,7 @@ function redirect_with_feedback(string $url, string $message, string $status = '
 
 // Bảo vệ file: Phải đăng nhập và đi vào bằng nút "Submit" mới được
 if (!isset($_SESSION['user_id']) || $_SERVER['REQUEST_METHOD'] !== 'POST') {
-    header("Location: " . asset_url('index.php'));
+    header("Location: " . route_url('home'));
     exit;
 }
 
@@ -21,10 +21,10 @@ $buyer_id = $_SESSION['user_id'];
 $product_id = filter_input(INPUT_POST, 'product_id', FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
 $payment_method = $_POST['payment_method'] ?? '';
 $allowedPaymentMethods = ['vnpay', 'momo'];
-$checkoutUrl = app_url('app/views/orders/checkout.php') . '?product_id=' . ($product_id ?: '');
+$checkoutUrl = route_url('checkout', ['product_id' => $product_id ?: '']);
 
 if ($product_id === false || $product_id === null || !in_array($payment_method, $allowedPaymentMethods, true)) {
-    redirect_with_feedback(asset_url('index.php'), 'Dữ liệu thanh toán không hợp lệ. Vui lòng thử lại.');
+    redirect_with_feedback(route_url('home'), 'Dữ liệu thanh toán không hợp lệ. Vui lòng thử lại.');
 }
 
 // TẠI ĐÂY MÔ PHỎNG VIỆC GỌI API VNPAY/MOMO THÀNH CÔNG
@@ -121,7 +121,7 @@ try {
     $db->commit();
 
     redirect_with_feedback(
-        app_url("app/views/orders/detail.php") . "?id=" . $order_id,
+        route_url('order', ['id' => $order_id]),
         'Đặt mua thành công. Hệ thống đã tạo đơn hàng và đang giữ tiền an toàn cho giao dịch của bạn.',
         'success'
     );

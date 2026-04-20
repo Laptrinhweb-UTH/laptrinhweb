@@ -41,7 +41,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
             $redirectUrl = (string) $user['role'] === 'admin'
                 ? admin_dashboard_url()
-                : asset_url('index.php');
+                : route_url('home');
 
             echo json_encode([
                 'status' => 'success',

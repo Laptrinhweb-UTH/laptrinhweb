@@ -1,4 +1,8 @@
 <?php include __DIR__ . '/../layouts/header.php'; ?>
+<?php
+$registerEndpoint = route_url('auth.register');
+$loginEndpoint = route_url('auth.login');
+?>
 
 <main class="auth-page-wrapper">
   <div class="auth-container">
@@ -71,7 +75,7 @@
       <button type="submit" class="btn-submit auth-submit-btn">Tạo tài khoản</button>
     </form>
 
-    <a href="<?php echo asset_url('index.php'); ?>" class="back-home">
+    <a href="<?php echo route_url('home'); ?>" class="back-home">
       <i class="fa-solid fa-arrow-left"></i> Quay lại trang chủ
     </a>
   </div>
@@ -115,7 +119,7 @@
 
     const formData = new FormData(this);
 
-    fetch("register.php", {
+    fetch("<?php echo htmlspecialchars($registerEndpoint, ENT_QUOTES, 'UTF-8'); ?>", {
       method: "POST",
       body: formData,
     })
@@ -147,7 +151,7 @@
 
     const formData = new FormData(this);
 
-    fetch("login.php", {
+    fetch("<?php echo htmlspecialchars($loginEndpoint, ENT_QUOTES, 'UTF-8'); ?>", {
       method: "POST",
       body: formData,
     })
@@ -158,7 +162,7 @@
           messageBox.innerHTML = data.message;
 
           setTimeout(() => {
-            window.location.href = data.redirect_url || "<?php echo asset_url('index.php'); ?>";
+            window.location.href = data.redirect_url || "<?php echo route_url('home'); ?>";
           }, 1000);
         } else {
           messageBox.style.color = "#e11d48";

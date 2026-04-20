@@ -6,7 +6,7 @@ require_once __DIR__ . '/../../helpers/ProjectFlow.php';
 require_once __DIR__ . '/../../models/Product.php';
 
 if (!isset($_SESSION['user_id'])) {
-    header('Location: ' . app_url('app/views/auth/auth.php'));
+    header('Location: ' . route_url('auth'));
     exit;
 }
 
@@ -36,7 +36,7 @@ if (!$db) {
     }
 }
 
-$currentUrl = app_url('app/views/products/manage.php') . '?filter=' . urlencode($filter);
+$currentUrl = route_url('my-listings', ['filter' => $filter]);
 include __DIR__ . '/../layouts/header.php';
 ?>
 
@@ -46,7 +46,7 @@ include __DIR__ . '/../layouts/header.php';
             <h2 class="fw-bold mb-1">Tin đăng của tôi</h2>
             <p class="text-muted mb-0">Theo dõi trạng thái duyệt tin và quản lý những chiếc xe bạn đang rao bán.</p>
         </div>
-        <a href="<?php echo app_url('app/views/products/sell.php'); ?>" class="btn btn-success rounded-pill px-4">
+        <a href="<?php echo route_url('sell'); ?>" class="btn btn-success rounded-pill px-4">
             <i class="fa-solid fa-plus me-2"></i>Tạo tin mới
         </a>
     </div>
@@ -61,7 +61,7 @@ include __DIR__ . '/../layouts/header.php';
         <?php foreach ($allowedFilters as $filterItem): ?>
             <?php
             $label = $filterItem === 'all' ? 'Tất cả' : ProjectFlow::listingLabel($filterItem);
-            $url = app_url('app/views/products/manage.php') . '?filter=' . urlencode($filterItem);
+            $url = route_url('my-listings', ['filter' => $filterItem]);
             ?>
             <a href="<?php echo $url; ?>" class="order-filter-chip <?php echo $filter === $filterItem ? 'is-active' : ''; ?>">
                 <?php echo htmlspecialchars($label); ?>
@@ -114,11 +114,11 @@ include __DIR__ . '/../layouts/header.php';
                     <?php endif; ?>
 
                     <div class="d-flex gap-2 flex-wrap mt-4">
-                        <a href="<?php echo asset_url('detail.php?id=' . (int) $listing['id']); ?>" class="btn btn-outline-secondary rounded-pill px-3">
+                        <a href="<?php echo route_url('listing', ['id' => (int) $listing['id']]); ?>" class="btn btn-outline-secondary rounded-pill px-3">
                             <i class="fa-regular fa-eye me-2"></i>Xem chi tiết
                         </a>
                         <?php foreach ($allowedActions as $action): ?>
-                        <form action="<?php echo app_url('app/controllers/ListingStatusController.php'); ?>" method="POST" class="d-inline">
+                        <form action="<?php echo route_url('listing.action'); ?>" method="POST" class="d-inline">
                             <input type="hidden" name="listing_id" value="<?php echo (int) $listing['id']; ?>">
                             <input type="hidden" name="action" value="<?php echo htmlspecialchars($action); ?>">
                             <input type="hidden" name="return_url" value="<?php echo htmlspecialchars($currentUrl); ?>">

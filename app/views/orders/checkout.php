@@ -7,7 +7,7 @@ require_once __DIR__ . '/../../models/Product.php';
 
 // 1. Kiểm tra đăng nhập
 if (!isset($_SESSION['user_id'])) {
-    header("Location: " . app_url('app/views/auth/auth.php'));
+    header("Location: " . route_url('auth'));
     exit;
 }
 
@@ -90,7 +90,7 @@ include __DIR__ . '/../layouts/header.php';
     <div class="empty-state-card">
         <i class="fa-solid fa-circle-exclamation empty-state-icon"></i>
         <p class="empty-state-text"><?php echo htmlspecialchars($checkoutError); ?></p>
-        <a href="<?php echo asset_url('index.php'); ?>" class="btn-detail product-detail-link">Quay lại trang chủ</a>
+        <a href="<?php echo route_url('home'); ?>" class="btn-detail product-detail-link">Quay lại trang chủ</a>
     </div>
     <?php else: ?>
     <h2 class="fw-bold mb-4">Đặt mua và thanh toán an toàn</h2>
@@ -142,7 +142,7 @@ include __DIR__ . '/../layouts/header.php';
                 <h5 class="fw-bold mb-2">Xác nhận đặt mua</h5>
                 <p class="text-muted mb-4">Bạn đang ở bước cuối để tạo đơn hàng an toàn cho chiếc xe này.</p>
                 
-                <form action="process_checkout.php" method="POST">
+                <form action="<?php echo route_url('checkout.process'); ?>" method="POST">
                     <input type="hidden" name="product_id" value="<?php echo $product['id']; ?>">
                     <div class="alert alert-light border rounded-4 mb-4">
                         <div class="fw-semibold mb-2">Tôi xác nhận rằng:</div>

@@ -11,6 +11,6 @@ session_unset();
 session_destroy();
 
 // Đẩy người dùng về trang chủ theo cấu hình local hiện tại
-header("Location: " . asset_url('index.php'));
+header("Location: " . route_url('home'));
 exit;
 ?>

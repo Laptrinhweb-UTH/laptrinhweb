@@ -13,8 +13,8 @@ $allListingsUrl = $reviewListingsUrl . '?filter=all';
 $adminOrdersUrl = admin_orders_url();
 $disputedOrdersUrl = admin_orders_url('filter=disputed');
 $refundedOrdersUrl = admin_orders_url('filter=refunded');
-$homeUrl = asset_url('index.php');
-$profileUrl = app_url('app/views/auth/profile.php');
+$homeUrl = route_url('home');
+$profileUrl = route_url('profile');
 $adminSection = 'dashboard';
 $dashboardError = null;
 $stats = [
@@ -241,7 +241,7 @@ include __DIR__ . '/../layouts/header.php';
                             <?php else: ?>
                             <div class="d-grid gap-2">
                                 <?php foreach ($recentDisputedOrders as $order): ?>
-                                <a href="<?php echo app_url('app/views/orders/detail.php'); ?>?id=<?php echo (int) $order['id']; ?>" class="text-decoration-none">
+                                <a href="<?php echo route_url('order', ['id' => (int) $order['id']]); ?>" class="text-decoration-none">
                                     <div class="border rounded-3 px-3 py-2 bg-white">
                                         <div class="fw-semibold text-dark">Đơn #<?php echo (int) $order['id']; ?> · <?php echo htmlspecialchars((string) ($order['product_title'] ?? 'Xe đạp')); ?></div>
                                         <div class="small text-muted">

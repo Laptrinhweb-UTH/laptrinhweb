@@ -1,18 +1,19 @@
 <?php
 session_start(); // Bắt buộc phải có session_start() để lấy $_SESSION['user_id']
+require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/../app/helpers/Database.php';
 require_once __DIR__ . '/../app/helpers/ProjectFlow.php';
 require_once __DIR__ . '/../app/models/Product.php';
 
 // Kiểm tra ID xe hợp lệ
 if (!isset($_GET['id']) || empty($_GET['id'])) {
-    header("Location: index.php");
+    header('Location: ' . route_url('home'));
     exit;
 }
 
 $id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
 if ($id === false || $id === null) {
-    header("Location: index.php");
+    header('Location: ' . route_url('home'));
     exit;
 }
 
@@ -110,12 +111,12 @@ include __DIR__ . '/../app/views/layouts/header.php';
         <div class="empty-state-card">
             <i class="fa-solid fa-circle-exclamation empty-state-icon"></i>
             <p class="empty-state-text"><?php echo htmlspecialchars($detailError); ?></p>
-            <a href="index.php" class="btn-detail product-detail-link">Quay lại trang chủ</a>
+            <a href="<?php echo route_url('home'); ?>" class="btn-detail product-detail-link">Quay lại trang chủ</a>
         </div>
         <?php else: ?>
         
         <div class="detail-breadcrumbs">
-            <a href="index.php" class="detail-breadcrumb-link"><i class="fa-solid fa-house"></i> Trang chủ</a> 
+            <a href="<?php echo route_url('home'); ?>" class="detail-breadcrumb-link"><i class="fa-solid fa-house"></i> Trang chủ</a> 
             <i class="fa-solid fa-angle-right detail-breadcrumb-separator"></i>
             <span><?php echo htmlspecialchars($productBrand); ?></span>
             <i class="fa-solid fa-angle-right detail-breadcrumb-separator"></i>
@@ -372,7 +373,7 @@ include __DIR__ . '/../app/views/layouts/header.php';
                 confirmText: 'Đăng nhập ngay',
                 showCancel: true,
                 onConfirm: () => {
-                    window.location.href = '<?php echo app_url('app/views/auth/auth.php'); ?>';
+                    window.location.href = '<?php echo route_url('auth'); ?>';
                 }
             });
             return;
@@ -398,7 +399,7 @@ include __DIR__ . '/../app/views/layouts/header.php';
     }
 
     function processEscrowCheckout() {
-        window.location.href = '<?php echo app_url('app/views/orders/checkout.php'); ?>?product_id=<?php echo $id; ?>';
+        window.location.href = '<?php echo route_url('checkout'); ?>?product_id=<?php echo $id; ?>';
     }
 
     function processDirectCheckout() {

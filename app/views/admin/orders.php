@@ -339,7 +339,7 @@ include __DIR__ . '/../layouts/header.php';
                         </div>
 
                         <div class="mt-3">
-                            <a href="<?php echo app_url('app/views/orders/detail.php'); ?>?id=<?php echo (int) $order['id']; ?>" class="btn-detail product-detail-link order-list-action">
+                            <a href="<?php echo route_url('order', ['id' => (int) $order['id']]); ?>" class="btn-detail product-detail-link order-list-action">
                                 Xem chi tiết đơn hàng
                             </a>
                         </div>

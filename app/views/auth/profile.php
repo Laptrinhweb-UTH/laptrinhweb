@@ -5,7 +5,7 @@ require_once __DIR__ . '/../../helpers/AdminAuth.php';
 
 // 1. KIỂM TRA ĐĂNG NHẬP
 if (!isset($_SESSION['user_id'])) {
-    header("Location: " . app_url('app/views/auth/auth.php'));
+    header("Location: " . route_url('auth'));
     exit;
 }
 
@@ -103,7 +103,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && $db) {
         $stmt = $db->prepare($query);
         $stmt->execute([$name, $phone, $avatar_url, $user_id]);
         
-        header('Location: profile.php?status=success&message=' . rawurlencode('Cập nhật thông tin thành công.'));
+        header('Location: ' . route_url('profile', [
+            'status' => 'success',
+            'message' => 'Cập nhật thông tin thành công.',
+        ]));
         exit;
     } catch (Exception $e) {
         $profileError = 'Không thể lưu thay đổi lúc này. Vui lòng thử lại sau.';
@@ -133,14 +136,14 @@ $display_avatar = !empty($user['avatar']) ? $user['avatar'] : "https://ui-avatar
 $profileName = trim((string)($user['name'] ?? ''));
 $profilePhone = trim((string)($user['phone'] ?? ''));
 $profileEmail = trim((string)($user['email'] ?? ''));
-$profilePageUrl = app_url('app/views/auth/profile.php');
-$myListingsUrl = app_url('app/views/products/manage.php');
+$profilePageUrl = route_url('profile');
+$myListingsUrl = route_url('my-listings');
 $reviewListingsUrl = admin_listings_url();
 $adminOrdersUrl = admin_orders_url();
-$buyerOrdersUrl = app_url('app/views/orders/index.php') . '?view=buyer';
-$sellerOrdersUrl = app_url('app/views/orders/index.php') . '?view=seller';
-$buyerDisputesUrl = app_url('app/views/orders/index.php') . '?view=buyer&filter=disputed';
-$sellerDisputesUrl = app_url('app/views/orders/index.php') . '?view=seller&filter=disputed';
+$buyerOrdersUrl = route_url('orders', ['view' => 'buyer']);
+$sellerOrdersUrl = route_url('orders', ['view' => 'seller']);
+$buyerDisputesUrl = route_url('orders', ['view' => 'buyer', 'filter' => 'disputed']);
+$sellerDisputesUrl = route_url('orders', ['view' => 'seller', 'filter' => 'disputed']);
 $isAdmin = (string) ($user['role'] ?? $_SESSION['role'] ?? 'user') === 'admin';
 
 if ($profileName === '') {
@@ -180,7 +183,7 @@ include __DIR__ . '/../layouts/header.php';
                     <a href="<?php echo $adminOrdersUrl; ?>" class="profile-nav-link">
                         <i class="fa-solid fa-receipt"></i> Đơn hàng & tranh chấp
                     </a>
-                    <a href="<?php echo asset_url('index.php'); ?>" class="profile-nav-link">
+                    <a href="<?php echo route_url('home'); ?>" class="profile-nav-link">
                         <i class="fa-solid fa-globe"></i> Xem website
                     </a>
                     <?php else: ?>
@@ -264,7 +267,7 @@ include __DIR__ . '/../layouts/header.php';
                         <?php echo htmlspecialchars($profileError); ?>
                     </div>
                     <div class="mt-4">
-                        <a href="<?php echo asset_url('index.php'); ?>" class="btn-detail product-detail-link">Quay lại trang chủ</a>
+                        <a href="<?php echo route_url('home'); ?>" class="btn-detail product-detail-link">Quay lại trang chủ</a>
                     </div>
                     <?php endif; ?>
                 </div>

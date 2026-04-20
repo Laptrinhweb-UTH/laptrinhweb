@@ -5,7 +5,7 @@ require_once __DIR__ . '/../../helpers/Database.php';
 require_once __DIR__ . '/../../helpers/ProjectFlow.php';
 
 if (!isset($_SESSION['user_id'])) {
-    header('Location: ' . app_url('app/views/auth/auth.php'));
+    header('Location: ' . route_url('auth'));
     exit;
 }
 
@@ -121,12 +121,12 @@ $filterLabel = match ($filter) {
 };
 $otherView = $view === 'seller' ? 'buyer' : 'seller';
 $otherViewLabel = $view === 'seller' ? 'Xem đơn hàng mua' : 'Xem quản lý bán hàng';
-$profilePageUrl = app_url('app/views/auth/profile.php');
-$buyerOrdersUrl = app_url('app/views/orders/index.php') . '?view=buyer';
-$sellerOrdersUrl = app_url('app/views/orders/index.php') . '?view=seller';
-$disputedOrdersUrl = app_url('app/views/orders/index.php') . '?view=' . urlencode($view) . '&filter=disputed';
-$refundedOrdersUrl = app_url('app/views/orders/index.php') . '?view=' . urlencode($view) . '&filter=refunded';
-$allOrdersUrl = app_url('app/views/orders/index.php') . '?view=' . urlencode($view) . '&filter=all';
+$profilePageUrl = route_url('profile');
+$buyerOrdersUrl = route_url('orders', ['view' => 'buyer']);
+$sellerOrdersUrl = route_url('orders', ['view' => 'seller']);
+$disputedOrdersUrl = route_url('orders', ['view' => $view, 'filter' => 'disputed']);
+$refundedOrdersUrl = route_url('orders', ['view' => $view, 'filter' => 'refunded']);
+$allOrdersUrl = route_url('orders', ['view' => $view, 'filter' => 'all']);
 
 include __DIR__ . '/../layouts/header.php';
 ?>
@@ -167,7 +167,7 @@ include __DIR__ . '/../layouts/header.php';
     <div class="empty-state-card">
         <i class="fa-solid fa-circle-exclamation empty-state-icon"></i>
         <p class="empty-state-text"><?php echo htmlspecialchars($pageError); ?></p>
-        <a href="<?php echo asset_url('index.php'); ?>" class="btn-detail product-detail-link">Quay lại trang chủ</a>
+        <a href="<?php echo route_url('home'); ?>" class="btn-detail product-detail-link">Quay lại trang chủ</a>
     </div>
     <?php else: ?>
     <div class="row g-3 mb-4">
@@ -209,7 +209,7 @@ include __DIR__ . '/../layouts/header.php';
                     ? 'Bạn chưa có đơn hàng mua nào. Khi hoàn tất thanh toán, đơn hàng sẽ xuất hiện tại đây.'
                     : 'Hiện chưa có đơn mua nào khớp với bộ lọc bạn đang xem.'); ?>
         </p>
-        <a href="<?php echo $filter === 'all' ? app_url('app/views/orders/index.php') . '?view=' . $otherView : $allOrdersUrl; ?>" class="btn-detail product-detail-link">
+        <a href="<?php echo $filter === 'all' ? route_url('orders', ['view' => $otherView]) : $allOrdersUrl; ?>" class="btn-detail product-detail-link">
             <?php echo htmlspecialchars($filter === 'all' ? $otherViewLabel : 'Xem tất cả đơn hàng'); ?>
         </a>
     </div>
@@ -299,7 +299,7 @@ include __DIR__ . '/../layouts/header.php';
                         </div>
 
                         <div class="mt-3">
-                            <a href="<?php echo app_url('app/views/orders/detail.php'); ?>?id=<?php echo (int) $order['id']; ?>" class="btn-detail product-detail-link order-list-action">
+                            <a href="<?php echo route_url('order', ['id' => (int) $order['id']]); ?>" class="btn-detail product-detail-link order-list-action">
                                 Xem chi tiết đơn hàng
                             </a>
                         </div>

@@ -184,11 +184,11 @@ include __DIR__ . '/../layouts/header.php';
                     </div>
 
                     <div class="d-flex gap-2 flex-wrap mt-4">
-                        <a href="<?php echo asset_url('detail.php?id=' . (int) $listing['id']); ?>" class="btn btn-outline-secondary rounded-pill px-3">
+                        <a href="<?php echo route_url('listing', ['id' => (int) $listing['id']]); ?>" class="btn btn-outline-secondary rounded-pill px-3">
                             <i class="fa-regular fa-eye me-2"></i>Xem chi tiết
                         </a>
                         <?php foreach ($allowedActions as $action): ?>
-                        <form action="<?php echo app_url('app/controllers/ListingStatusController.php'); ?>" method="POST" class="d-inline">
+                        <form action="<?php echo route_url('listing.action'); ?>" method="POST" class="d-inline">
                             <input type="hidden" name="listing_id" value="<?php echo (int) $listing['id']; ?>">
                             <input type="hidden" name="action" value="<?php echo htmlspecialchars($action); ?>">
                             <input type="hidden" name="return_url" value="<?php echo htmlspecialchars($currentUrl); ?>">

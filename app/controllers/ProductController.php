@@ -18,7 +18,7 @@ class ProductController {
     // Hàm xử lý việc lưu tin đăng
     public function store() {
         if (!isset($_SESSION['user_id'])) {
-            header('Location: ' . app_url('app/views/auth/auth.php'));
+            header('Location: ' . route_url('auth'));
             exit;
         }
 
@@ -66,7 +66,7 @@ class ProductController {
                     }
                 }
 
-                $manageListingsUrl = app_url('app/views/products/manage.php') . '?filter=pending';
+                $manageListingsUrl = route_url('my-listings', ['filter' => 'pending']);
                 $this->redirectWithFeedback(
                     $manageListingsUrl,
                     'Tin đăng đã được gửi duyệt thành công. Bạn có thể theo dõi trạng thái ở mục Tin đăng của tôi.',
@@ -74,7 +74,7 @@ class ProductController {
                 );
             } else {
                 $this->redirectWithFeedback(
-                    app_url('app/views/products/sell.php'),
+                    route_url('sell'),
                     'Có lỗi xảy ra khi lưu thông tin. Vui lòng kiểm tra lại dữ liệu và thử lại.'
                 );
             }

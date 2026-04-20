@@ -5,7 +5,7 @@ require_once __DIR__ . '/../../helpers/Database.php';
 require_once __DIR__ . '/../../helpers/ProjectFlow.php';
 
 if (!isset($_SESSION['user_id'])) {
-    header('Location: ' . app_url('app/views/auth/auth.php'));
+    header('Location: ' . route_url('auth'));
     exit;
 }
 
@@ -202,12 +202,12 @@ $canSubmitDispute = $isBuyerView && ProjectFlow::orderCanBeDisputedByBuyer($orde
 $canResolveRefund = $order !== null
     && $escrowStatus === ProjectFlow::ESCROW_DISPUTED
     && ($isSellerView || $isAdminView);
-$orderDetailUrl = app_url('app/views/orders/detail.php');
-$confirmOrderUrl = app_url('app/controllers/ConfirmOrderController.php');
-$sellerConfirmOrderUrl = app_url('app/controllers/SellerConfirmOrderController.php');
-$shipOrderUrl = app_url('app/controllers/ShipOrderController.php');
-$disputeOrderUrl = app_url('app/controllers/DisputeOrderController.php');
-$refundOrderUrl = app_url('app/controllers/RefundOrderController.php');
+$orderDetailUrl = route_url('order');
+$confirmOrderUrl = route_url('order.confirm');
+$sellerConfirmOrderUrl = route_url('order.seller-confirm');
+$shipOrderUrl = route_url('order.ship');
+$disputeOrderUrl = route_url('order.dispute');
+$refundOrderUrl = route_url('order.refund');
 
 include __DIR__ . '/../layouts/header.php';
 ?>
@@ -223,7 +223,7 @@ include __DIR__ . '/../layouts/header.php';
     <div class="empty-state-card">
         <i class="fa-solid fa-circle-exclamation empty-state-icon"></i>
         <p class="empty-state-text"><?php echo htmlspecialchars($orderError); ?></p>
-        <a href="<?php echo asset_url('index.php'); ?>" class="btn-detail product-detail-link">Quay lại trang chủ</a>
+        <a href="<?php echo route_url('home'); ?>" class="btn-detail product-detail-link">Quay lại trang chủ</a>
     </div>
     <?php else: ?>
     <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
@@ -335,7 +335,7 @@ include __DIR__ . '/../layouts/header.php';
                             <div class="text-muted mb-2"><?php echo htmlspecialchars($productBrand); ?></div>
                             <div class="text-muted mb-2"><i class="fa-solid fa-location-dot"></i> <?php echo htmlspecialchars($productLocation); ?></div>
                             <div class="fw-bold text-primary fs-5"><?php echo htmlspecialchars($formattedPaidAmount); ?></div>
-                            <a href="<?php echo asset_url('detail.php?id=' . (int) $order['product_id']); ?>" class="btn-detail product-detail-link mt-3">Xem lại sản phẩm</a>
+                            <a href="<?php echo route_url('listing', ['id' => (int) $order['product_id']]); ?>" class="btn-detail product-detail-link mt-3">Xem lại sản phẩm</a>
                         </div>
                     </div>
                 </div>

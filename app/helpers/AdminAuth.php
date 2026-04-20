@@ -5,14 +5,14 @@ require_once __DIR__ . '/../../config/config.php';
 if (!function_exists('admin_dashboard_url')) {
     function admin_dashboard_url(): string
     {
-        return app_url('app/views/admin/dashboard.php');
+        return route_url('admin.dashboard');
     }
 }
 
 if (!function_exists('admin_listings_url')) {
     function admin_listings_url(string $query = ''): string
     {
-        $url = app_url('app/views/admin/listings.php');
+        $url = route_url('admin.listings');
         return $query !== '' ? $url . '?' . ltrim($query, '?') : $url;
     }
 }
@@ -20,7 +20,7 @@ if (!function_exists('admin_listings_url')) {
 if (!function_exists('admin_orders_url')) {
     function admin_orders_url(string $query = ''): string
     {
-        $url = app_url('app/views/admin/orders.php');
+        $url = route_url('admin.orders');
         return $query !== '' ? $url . '?' . ltrim($query, '?') : $url;
     }
 }
@@ -40,7 +40,7 @@ if (!function_exists('require_admin_session')) {
         }
 
         if (!is_admin_session()) {
-            header('Location: ' . asset_url('index.php'));
+            header('Location: ' . route_url('home'));
             exit;
         }
     }

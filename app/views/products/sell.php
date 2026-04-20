@@ -19,7 +19,7 @@ include __DIR__ . '/../layouts/header.php';
         </div>
         <?php endif; ?>
 
-        <form id="sellBikeForm" class="sell-form" action="<?php echo asset_url('process_sell.php'); ?>" method="POST" enctype="multipart/form-data">
+        <form id="sellBikeForm" class="sell-form" action="<?php echo route_url('sell.process'); ?>" method="POST" enctype="multipart/form-data">
         
             <div class="form-group">
                 <label class="form-label">Tên xe <span class="text-danger">*</span></label>
