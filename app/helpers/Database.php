@@ -1,45 +1,82 @@
 <?php
-// File: app/helpers/Database.php
-// CHUYÊN chứa công cụ kết nối PDO
-
-require_once __DIR__ . '/../../config/config.php';
-
 class Database {
-    private $host = DB_HOST;
-    private $db_name = DB_NAME;
-    private $username = DB_USER;
-    private $password = DB_PASS;
-    public $conn;
-    private $lastError = null;
+    private $host = 'localhost';
+    private $db_name = 'spinbike_db';
+    private $user = 'root';
+    private $password = '';
+    
+    private $conn;
+    private $stmt;
+
+    public function connect() {
+        $this->conn = null;
+
+        try {
+            $this->conn = new PDO(
+                'mysql:host=' . $this->host . ';dbname=' . $this->db_name,
+                $this->user,
+                $this->password
+            );
+            $this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        } catch (PDOException $e) {
+            echo 'Database Error: ' . $e->getMessage();
+        }
+
+        return $this->conn;
+    }
 
     public function getConnection() {
-        $this->conn = null;
-        try {
-            // Đoạn kết nối PDO y hệt code cũ của bạn
-            $this->conn = new PDO("mysql:host=" . $this->host . ";dbname=" . $this->db_name . ";charset=utf8mb4", $this->username, $this->password);
-            $this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-            $this->lastError = null;
-        } catch(PDOException $exception) {
-            die("Kết nối Database thất bại: " . $exception->getMessage());
-        }
-        return $this->conn;
+        return $this->connect();
     }
 
+    // Thêm method này
     public function getConnectionOrNull() {
-        $this->conn = null;
         try {
-            $this->conn = new PDO("mysql:host=" . $this->host . ";dbname=" . $this->db_name . ";charset=utf8mb4", $this->username, $this->password);
-            $this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-            $this->lastError = null;
-        } catch (PDOException $exception) {
-            $this->lastError = $exception->getMessage();
+            return $this->connect();
+        } catch (Exception $e) {
+            return null;
         }
-
-        return $this->conn;
     }
 
-    public function getLastError() {
-        return $this->lastError;
+    public function query($sql) {
+        $this->stmt = $this->conn->prepare($sql);
+    }
+
+    public function bind($param, $value, $type = null) {
+        if (is_null($type)) {
+            switch (true) {
+                case is_int($value):
+                    $type = PDO::PARAM_INT;
+                    break;
+                case is_bool($value):
+                    $type = PDO::PARAM_BOOL;
+                    break;
+                case is_null($value):
+                    $type = PDO::PARAM_NULL;
+                    break;
+                default:
+                    $type = PDO::PARAM_STR;
+            }
+        }
+        $this->stmt->bindParam($param, $value, $type);
+    }
+
+    public function execute() {
+        return $this->stmt->execute();
+    }
+
+    public function single() {
+        $this->execute();
+        return $this->stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    public function resultSet() {
+        $this->execute();
+        return $this->stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function rowCount() {
+        return $this->stmt->rowCount();
     }
 }
 ?>
