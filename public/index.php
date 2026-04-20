@@ -67,15 +67,8 @@ if (!$db) {
 
       <div class="products-section">
         <div class="products-header">
-          <h1>Xe Đang Mở Bán</h1>
-          <p id="resultCount"><?php echo count($products); ?> tin đã được duyệt và đang hiển thị</p>
-        </div>
-
-        <div class="profile-card mb-4">
-          <div class="d-flex flex-column gap-2">
-            <div class="fw-bold">Quy trình giao dịch trên SpinBike</div>
-            <div class="text-muted">Người mua đặt mua an toàn, hệ thống giữ tiền, người bán giao xe, sau đó buyer xác nhận nhận hàng hoặc gửi khiếu nại nếu có vấn đề.</div>
-          </div>
+          <h1>Sản phẩm đang bán</h1>
+          <p id="resultCount"><?php echo count($products); ?> tin đang hoạt động</p>
         </div>
 
         <div id="productGrid" class="product-grid">

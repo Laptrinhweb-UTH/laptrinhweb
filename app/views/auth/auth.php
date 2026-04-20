@@ -32,7 +32,7 @@ $loginEndpoint = route_url('auth.login');
         </div>
       </div>
       
-      <a href="#" class="forgot-password">Quên mật khẩu?</a>
+      <a href="<?= route_url('auth.forgot_password') ?>" class="forgot-password">Quên mật khẩu?</a>
 
       <div id="loginMessage" class="auth-message"></div>
 

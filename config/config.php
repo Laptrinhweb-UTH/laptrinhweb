@@ -111,6 +111,23 @@ if (!function_exists('route_definitions')) {
                 'target' => PROJECT_ROOT . '/app/views/auth/register.php',
                 'aliases' => ['register.php'],
             ],
+            'auth.forgot_password' => [
+                'path' => 'auth/forgot-password',
+                'target' => PROJECT_ROOT . '/app/views/auth/forgot_password.php',
+                'aliases' => ['forgot_password.php'],
+            ],
+            'auth.send_reset_link' => [
+                'path' => 'auth/send-reset-link',
+                'target' => PROJECT_ROOT . '/app/controllers/ForgotPasswordController.php',
+            ],
+            'auth.reset_password' => [
+                'path' => 'auth/reset-password',
+                'target' => PROJECT_ROOT . '/app/views/auth/reset_password.php',
+            ],
+            'auth.update_password' => [
+                'path' => 'auth/update-password',
+                'target' => PROJECT_ROOT . '/app/controllers/UpdatePasswordController.php',
+            ],          
             'profile' => [
                 'path' => 'profile',
                 'target' => PROJECT_ROOT . '/app/views/auth/profile.php',
