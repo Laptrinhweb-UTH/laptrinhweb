@@ -199,6 +199,22 @@ if (!function_exists('route_definitions')) {
                 'path' => 'admin/orders',
                 'target' => PROJECT_ROOT . '/app/views/admin/orders.php',
             ],
+            'support.safe_trading' => [
+                'path' => 'support/safe-trading',
+                'target' => PROJECT_ROOT . '/app/views/support/safe_trading.php',
+            ],
+            'support.bike_check_tips' => [
+                'path' => 'support/bike-check-tips',
+                'target' => PROJECT_ROOT . '/app/views/support/bike_check_tips.php',
+            ],
+            'support.posting_rules' => [
+                'path' => 'support/posting-rules',
+                'target' => PROJECT_ROOT . '/app/views/support/posting_rules.php',
+            ],
+            'support.dispute_policy' => [
+                'path' => 'support/dispute-policy',
+                'target' => PROJECT_ROOT . '/app/views/support/dispute_policy.php',
+            ],
         ];
 
         return $routes;

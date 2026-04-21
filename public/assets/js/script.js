@@ -22,7 +22,7 @@ function renderProducts(filtered) {
                         <div class="product-title">${p.title}</div>
                         ${verifiedHTML}
                     </div>
-                    <p class="product-meta">${p.brand} • Size ${p.size} • ${p.groupset}</p>
+                    
                     <div class="product-footer">
                         <span class="product-price">${(p.price / 1000000).toFixed(1)}tr</span>
                         <span class="product-condition">${p.condition}</span>
@@ -67,10 +67,6 @@ function applyFilters() {
   const maxP =
     parseFloat(document.getElementById("priceMax").value) * 1000000 || Infinity;
   filtered = filtered.filter((p) => p.price >= minP && p.price <= maxP);
-
-  // Groupset
-  const gs = document.getElementById("groupsetFilter").value;
-  if (gs) filtered = filtered.filter((p) => p.groupset === gs);
 
   // Condition
   const activeCond = Array.from(
@@ -118,7 +114,11 @@ function toggleWishlistFromModal() {
 // ==================== MODAL ====================
 let currentProduct = null;
 
-function showLegacyDialog({ title = "Thông báo", message = "", confirmText = "Đã hiểu" } = {}) {
+function showLegacyDialog({
+  title = "Thông báo",
+  message = "",
+  confirmText = "Đã hiểu",
+} = {}) {
   let dialog = document.getElementById("legacyAppDialog");
 
   if (!dialog) {
@@ -143,7 +143,9 @@ function showLegacyDialog({ title = "Thông báo", message = "", confirmText = "
     document.body.appendChild(dialog);
 
     const closeDialog = () => dialog.classList.add("hidden");
-    dialog.querySelector(".modal-backdrop").addEventListener("click", closeDialog);
+    dialog
+      .querySelector(".modal-backdrop")
+      .addEventListener("click", closeDialog);
     dialog
       .querySelector(".detail-buy-modal-close")
       .addEventListener("click", closeDialog);
@@ -174,8 +176,6 @@ function showDetail(id) {
     : "";
 
   document.getElementById("modalSize").textContent = currentProduct.size;
-  document.getElementById("modalGroupset").textContent =
-    currentProduct.groupset;
   document.getElementById("modalCondition").textContent =
     currentProduct.condition;
   document.getElementById("modalYear").textContent = currentProduct.year;

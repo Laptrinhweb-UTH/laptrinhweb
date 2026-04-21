@@ -16,7 +16,6 @@ class Product {
     public $description;
     public $bike_type;
     public $frame_size;
-    public $groupset;
     public $condition_percent;
     public $listing_status;
     public $seller_id;
@@ -50,9 +49,9 @@ public function getAll() {
     // ---------------------------------------------------
     public function create() {
         $query = "INSERT INTO " . $this->table_name . " 
-                  (title, brand, bike_type, price, location, description, frame_size, groupset, condition_percent, listing_status, seller_id) 
+                  (title, brand, bike_type, price, location, description, frame_size, condition_percent, listing_status, seller_id) 
                   VALUES 
-                  (:title, :brand, :bike_type, :price, :location, :description, :frame_size, :groupset, :condition_percent, :listing_status, :seller_id)";
+                  (:title, :brand, :bike_type, :price, :location, :description, :frame_size, :condition_percent, :listing_status, :seller_id)";
 
         $stmt = $this->conn->prepare($query);
 
@@ -64,7 +63,6 @@ public function getAll() {
         $this->location = htmlspecialchars(strip_tags($this->location));
         $this->description = htmlspecialchars(strip_tags($this->description));
         $this->frame_size = htmlspecialchars(strip_tags((string) $this->frame_size));
-        $this->groupset = htmlspecialchars(strip_tags((string) $this->groupset));
         $this->condition_percent = $this->condition_percent !== null && $this->condition_percent !== ''
             ? (int) $this->condition_percent
             : null;
@@ -79,8 +77,6 @@ public function getAll() {
         $stmt->bindParam(":location", $this->location);
         $stmt->bindParam(":description", $this->description);
         $stmt->bindValue(":frame_size", $this->frame_size !== '' ? $this->frame_size : null, $this->frame_size !== '' ? PDO::PARAM_STR : PDO::PARAM_NULL);
-        $stmt->bindValue(":groupset", $this->groupset !== '' ? $this->groupset : null, $this->groupset !== '' ? PDO::PARAM_STR : PDO::PARAM_NULL);
-        $stmt->bindValue(":condition_percent", $this->condition_percent, $this->condition_percent === null ? PDO::PARAM_NULL : PDO::PARAM_INT);
         $stmt->bindParam(":listing_status", $this->listing_status);
         $stmt->bindParam(":seller_id", $this->seller_id);
 

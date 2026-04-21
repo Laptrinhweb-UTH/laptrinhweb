@@ -79,10 +79,7 @@ include __DIR__ . '/../layouts/header.php';
             </div>
 
             <div class="form-row">
-                <div class="form-group">
-                    <label class="form-label">Groupset</label>
-                    <input type="text" name="groupset" placeholder="VD: Shimano 105 2x11" class="form-input" />
-                </div>
+          
                 <div class="form-group">
                     <label class="form-label">Độ mới (%)</label>
                     <select name="condition_percent" class="form-input">
