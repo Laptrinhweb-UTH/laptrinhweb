@@ -79,10 +79,6 @@ if ($productSize === '') {
 $productCondition = $product['condition'] ?? null;
 $productConditionLabel = is_numeric($productCondition) ? rtrim(rtrim(number_format((float)$productCondition, 0, ',', '.'), '0'), ',') . '%' : 'Đang cập nhật';
 
-$productGroupset = trim((string)($product['groupset'] ?? ''));
-if ($productGroupset === '') {
-    $productGroupset = 'Đang cập nhật';
-}
 
 $productDescription = trim((string)($product['description'] ?? ''));
 if ($productDescription === '') {
@@ -203,10 +199,7 @@ include __DIR__ . '/../app/views/layouts/header.php';
                             <td class="detail-spec-label">Độ mới</td>
                             <td class="detail-spec-value detail-spec-value-danger"><?php echo htmlspecialchars($productConditionLabel); ?></td>
                         </tr>
-                        <tr class="detail-spec-row">
-                            <td class="detail-spec-label">Groupset</td>
-                            <td class="detail-spec-value"><?php echo htmlspecialchars($productGroupset); ?></td>
-                        </tr>
+                   
                     </table>
                 </div>
 

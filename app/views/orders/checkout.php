@@ -17,7 +17,7 @@ $checkoutError = null;
 $product = null;
 $checkoutStatus = $_GET['status'] ?? '';
 $checkoutMessage = trim((string)($_GET['message'] ?? ''));
-$checkoutNoticeClass = $checkoutStatus === 'success' ? 'auth-message auth-message-success' : 'auth-message auth-message-error';
+$checkoutNoticeClass = $checkoutStatus === 'success' ? 'alert alert-success' : 'alert alert-danger';
 
 if ($productId === false || $productId === null) {
     $checkoutError = 'Không tìm thấy sản phẩm hợp lệ để thanh toán.';
@@ -79,130 +79,225 @@ if ($productFrameSize === '') {
 include __DIR__ . '/../layouts/header.php'; 
 ?>
 
-<div class="container py-5" style="max-width: 1000px;">
+<style>
+    body { background-color: #f8fafc; }
+    .checkout-wrapper { max-width: 1050px; }
+    
+    /* Payment Radio Cards */
+    .payment-option-input:checked + .payment-option-card {
+        border-color: #10b981 !important;
+        background-color: #ecfdf5;
+        box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.1);
+    }
+    .payment-option-input:checked + .payment-option-card .check-icon {
+        opacity: 1;
+        transform: scale(1);
+    }
+    .payment-option-card {
+        cursor: pointer;
+        border: 2px solid #e2e8f0;
+        transition: all 0.25s ease;
+    }
+    .payment-option-card:hover { border-color: #cbd5e1; }
+    .check-icon {
+        opacity: 0;
+        transform: scale(0.5);
+        transition: all 0.25s ease;
+        color: #10b981;
+    }
+
+    /* Timeline Styles */
+    .timeline-step { position: relative; padding-bottom: 1.5rem; }
+    .timeline-step:last-child { padding-bottom: 0; }
+    .timeline-icon {
+        width: 36px; height: 36px;
+        background: #f1f5f9; color: #475569;
+        display: flex; align-items: center; justify-content: center;
+        border-radius: 50%; font-weight: bold; z-index: 2; position: relative;
+    }
+    .timeline-step:not(:last-child)::after {
+        content: ''; position: absolute;
+        left: 17px; top: 36px; bottom: 0;
+        width: 2px; background: #e2e8f0; z-index: 1;
+    }
+
+    /* Escrow Banner */
+    .escrow-banner {
+        background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+        color: white; border-radius: 16px; position: relative; overflow: hidden;
+    }
+    .escrow-banner::before {
+        content: ''; position: absolute; top: -50%; right: -10%;
+        width: 200px; height: 200px; background: rgba(16, 185, 129, 0.2);
+        filter: blur(40px); border-radius: 50%;
+    }
+    
+    /* Summary Card */
+    .summary-card { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; }
+</style>
+
+<div class="container py-5 checkout-wrapper">
     <?php if ($checkoutMessage !== ''): ?>
-    <div class="<?php echo $checkoutNoticeClass; ?>">
+    <div class="<?php echo $checkoutNoticeClass; ?> mb-4 shadow-sm rounded-3">
         <?php echo htmlspecialchars($checkoutMessage); ?>
     </div>
     <?php endif; ?>
 
     <?php if ($checkoutError !== null): ?>
-    <div class="empty-state-card">
-        <i class="fa-solid fa-circle-exclamation empty-state-icon"></i>
-        <p class="empty-state-text"><?php echo htmlspecialchars($checkoutError); ?></p>
-        <a href="<?php echo route_url('home'); ?>" class="btn-detail product-detail-link">Quay lại trang chủ</a>
+    <div class="card border-0 shadow-sm rounded-4 text-center p-5 mt-4">
+        <i class="fa-solid fa-circle-exclamation text-danger mb-3" style="font-size: 3rem;"></i>
+        <h4 class="text-dark fw-bold mb-3">Rất tiếc!</h4>
+        <p class="text-muted fs-5 mb-4"><?php echo htmlspecialchars($checkoutError); ?></p>
+        <div>
+            <a href="<?php echo route_url('home'); ?>" class="btn btn-primary px-4 py-2 rounded-pill fw-bold">Quay lại trang chủ</a>
+        </div>
     </div>
     <?php else: ?>
-    <h2 class="fw-bold mb-4">Đặt mua và thanh toán an toàn</h2>
+    
+    <div class="d-flex align-items-center mb-4 pb-2 border-bottom">
+        <a href="javascript:history.back()" class="text-muted text-decoration-none me-3 fs-5"><i class="fa-solid fa-arrow-left"></i></a>
+        <h2 class="fw-bold mb-0 text-dark">Thanh toán & Đặt hàng</h2>
+    </div>
 
     <div class="row g-4">
         <div class="col-lg-7">
-            <div class="escrow-card mb-4">
-                <div class="d-flex gap-3">
-                    <div class="escrow-icon-wrapper flex-shrink-0">
-                        <i class="fa-solid fa-shield-halved"></i>
+            
+ <div class="escrow-banner p-4 mb-4 shadow-sm">
+                <div class="d-flex gap-3 align-items-start">
+                    <div class="bg-white bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 48px; height: 48px;">
+                        <i class="fa-solid fa-shield-halved text-success fs-4"></i>
                     </div>
                     <div>
-                        <h5 class="fw-bold text-success mb-2">Được bảo vệ bởi SpinBike Escrow</h5>
-                        <p class="text-muted mb-0" style="font-size: 14px; line-height: 1.6;">
-                            Sau khi bạn xác nhận đặt mua và thanh toán, SpinBike sẽ tạo đơn hàng và giữ tiền an toàn. Người bán <b>chỉ nhận được tiền</b> sau khi bạn đã nhận xe, kiểm tra đúng mô tả và nhấn xác nhận.
+                        <h5 class="fw-bold text-white mb-2">Giao dịch được bảo vệ 100%</h5>
+                        <p class="text-white-50 mb-0 small" style="line-height: 1.6;">
+                            SpinBike sẽ <b>giữ an toàn số tiền này</b>. Người bán chỉ nhận được tiền sau khi bạn xác nhận đã nhận xe, kiểm tra đúng mô tả và không có khiếu nại.
                         </p>
                     </div>
                 </div>
             </div>
 
-            <div class="profile-card mb-4">
-                <h5 class="fw-bold mb-3">Quy trình giao dịch</h5>
-                <div class="d-flex flex-column gap-3">
-                    <div class="d-flex gap-3">
-                        <div class="badge bg-dark rounded-pill px-3 py-2">1</div>
-                        <div>
-                            <div class="fw-semibold">Đặt mua chiếc xe này</div>
-                            <div class="text-muted small">Bạn xác nhận thông tin xe, giá bán và người bán trước khi thanh toán.</div>
-                        </div>
-                    </div>
-                    <div class="d-flex gap-3">
-                        <div class="badge bg-dark rounded-pill px-3 py-2">2</div>
-                        <div>
-                            <div class="fw-semibold">Thanh toán an toàn qua hệ thống</div>
-                            <div class="text-muted small">Đơn hàng được tạo và tiền chuyển sang trạng thái chờ giữ an toàn.</div>
-                        </div>
-                    </div>
-                    <div class="d-flex gap-3">
-                        <div class="badge bg-dark rounded-pill px-3 py-2">3</div>
-                        <div>
-                            <div class="fw-semibold">Hệ thống giữ tiền cho đến khi bạn hài lòng</div>
-                            <div class="text-muted small">Người bán giao xe, bạn kiểm tra và xác nhận hoặc gửi khiếu nại nếu có vấn đề.</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="card shadow-sm border-0 rounded-4 p-4">
-                <h5 class="fw-bold mb-2">Xác nhận đặt mua</h5>
-                <p class="text-muted mb-4">Bạn đang ở bước cuối để tạo đơn hàng an toàn cho chiếc xe này.</p>
+            <form action="<?php echo route_url('checkout.process'); ?>" method="POST">
+                <input type="hidden" name="product_id" value="<?php echo $product['id']; ?>">
                 
-                <form action="<?php echo route_url('checkout.process'); ?>" method="POST">
-                    <input type="hidden" name="product_id" value="<?php echo $product['id']; ?>">
-                    <div class="alert alert-light border rounded-4 mb-4">
-                        <div class="fw-semibold mb-2">Tôi xác nhận rằng:</div>
-                        <ul class="mb-0 ps-3 small text-muted">
-                            <li>Tôi đã xem kỹ thông tin chiếc xe và giá bán.</li>
-                            <li>Tôi hiểu rằng SpinBike sẽ giữ tiền cho đến khi tôi xác nhận nhận xe.</li>
-                            <li>Nếu xe có vấn đề, tôi có thể gửi khiếu nại để hệ thống tiếp tục khóa tiền.</li>
-                        </ul>
-                    </div>
+                <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
+                    <h5 class="fw-bold mb-4"><i class="fa-solid fa-wallet text-primary me-2"></i>Chọn phương thức thanh toán</h5>
                     
-                    <label class="d-block mb-3">
-                        <input type="radio" name="payment_method" value="vnpay" class="form-check-input d-none" checked>
-                        <div class="payment-method-card d-flex align-items-center gap-3">
-                            <img src="https://vnpay.vn/s1/statics.vnpay.vn/2023/9/06ncktiwd6dc1694418189687.png" height="30" alt="VNPay">
-                            <span class="fw-bold text-dark">Thanh toán qua VNPay</span>
+                    <label class="d-block mb-3 position-relative">
+                        <input type="radio" name="payment_method" value="vnpay" class="payment-option-input d-none" checked>
+                        <div class="payment-option-card rounded-3 p-3 d-flex align-items-center justify-content-between">
+                            <div class="d-flex align-items-center gap-3">
+                                <img src="https://vnpay.vn/s1/statics.vnpay.vn/2023/9/06ncktiwd6dc1694418189687.png" height="32" alt="VNPay">
+                                <div>
+                                    <div class="fw-bold text-dark">Thẻ ATM / Internet Banking / VNPAY-QR</div>
+                                    <div class="text-muted small">Thanh toán an toàn qua cổng VNPay</div>
+                                </div>
+                            </div>
+                            <i class="fa-solid fa-circle-check fs-4 check-icon"></i>
                         </div>
                     </label>
 
-                    <label class="d-block mb-4">
-                        <input type="radio" name="payment_method" value="momo" class="form-check-input d-none">
-                        <div class="payment-method-card d-flex align-items-center gap-3">
-                            <img src="https://upload.wikimedia.org/wikipedia/vi/f/fe/MoMo_Logo.png" height="30" alt="MoMo">
-                            <span class="fw-bold text-dark">Thanh toán qua Ví MoMo</span>
+                    <label class="d-block mb-2 position-relative">
+                        <input type="radio" name="payment_method" value="momo" class="payment-option-input d-none">
+                        <div class="payment-option-card rounded-3 p-3 d-flex align-items-center justify-content-between">
+                            <div class="d-flex align-items-center gap-3">
+                                <img src="https://upload.wikimedia.org/wikipedia/vi/f/fe/MoMo_Logo.png" height="32" alt="MoMo">
+                                <div>
+                                    <div class="fw-bold text-dark">Ví điện tử MoMo</div>
+                                    <div class="text-muted small">Quét mã QR qua ứng dụng MoMo</div>
+                                </div>
+                            </div>
+                            <i class="fa-solid fa-circle-check fs-4 check-icon"></i>
                         </div>
                     </label>
+                </div>
 
-                    <button type="submit" class="btn btn-primary w-100 py-3 rounded-3 fw-bold fs-5 shadow-sm">
-                        <i class="fa-solid fa-lock"></i> Đặt mua và thanh toán <?php echo $formattedPrice; ?>
+                <div class="card border-0 shadow-sm rounded-4 p-4">
+                    <div class="form-check mb-4">
+                        <input class="form-check-input" type="checkbox" value="" id="termsCheck" required checked>
+                        <label class="form-check-label small text-muted ms-1" for="termsCheck">
+                            Tôi đã xem kỹ tình trạng xe và đồng ý với <a href="<?= route_url('support.safe_trading') ?>" target="_blank" class="text-primary text-decoration-none">Chính sách mua bán an toàn</a> của SpinBike.
+                        </label>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100 py-3 rounded-pill fw-bold fs-5 shadow">
+                        Thanh toán <?php echo $formattedPrice; ?>
                     </button>
-                </form>
-            </div>
+                    <p class="text-center text-muted small mt-3 mb-0"><i class="fa-solid fa-lock text-success me-1"></i> Thông tin thanh toán của bạn được mã hóa bảo mật tuyệt đối.</p>
+                </div>
+            </form>
         </div>
 
         <div class="col-lg-5">
-            <div class="card shadow-sm border-0 rounded-4 p-4 sticky-top" style="top: 20px;">
-                <h5 class="fw-bold mb-4">Tóm tắt yêu cầu mua</h5>
-                <div class="d-flex gap-3 mb-4">
-                    <img src="<?php echo $mainImage; ?>" class="rounded-3" style="width: 80px; height: 80px; object-fit: cover; border: 1px solid var(--border);">
-                    <div>
-                        <h6 class="fw-bold text-dark mb-1" style="line-height: 1.4;"><?php echo htmlspecialchars($productTitle); ?></h6>
-                        <span class="badge bg-light text-dark border mt-1"><i class="fa-solid fa-user"></i> <?php echo htmlspecialchars($sellerName); ?></span>
+            <div class="summary-card shadow-sm p-4 sticky-top" style="top: 24px;">
+                <h5 class="fw-bold mb-4">Thông tin xe</h5>
+                
+                <div class="d-flex gap-3 mb-4 pb-4 border-bottom">
+                    <img src="<?php echo $mainImage; ?>" class="rounded-3" style="width: 90px; height: 90px; object-fit: cover;">
+                    <div class="d-flex flex-column justify-content-center">
+                        <h6 class="fw-bold text-dark mb-2" style="line-height: 1.4;"><?php echo htmlspecialchars($productTitle); ?></h6>
+                        <div class="d-inline-flex align-items-center gap-2">
+                            <span class="badge bg-light text-dark border text-truncate" style="max-width: 150px;"><i class="fa-solid fa-user text-muted me-1"></i> <?php echo htmlspecialchars($sellerName); ?></span>
+                            <span class="badge bg-primary bg-opacity-10 text-primary border border-primary-subtle"><?php echo htmlspecialchars($productCondition); ?> mới</span>
+                        </div>
                     </div>
                 </div>
-                <div class="small text-muted mb-2"><strong>Hãng xe:</strong> <?php echo htmlspecialchars($productBrand); ?></div>
-                <div class="small text-muted mb-2"><strong>Loại xe:</strong> <?php echo htmlspecialchars($productBikeType); ?></div>
-                <div class="small text-muted mb-2"><strong>Size khung:</strong> <?php echo htmlspecialchars($productFrameSize); ?></div>
-                <div class="small text-muted mb-2"><strong>Độ mới:</strong> <?php echo htmlspecialchars($productCondition); ?></div>
-                <div class="small text-muted mb-4"><strong>Khu vực giao dịch:</strong> <?php echo htmlspecialchars($productLocation); ?></div>
-                <hr class="text-muted">
+
+                <div class="row g-3 mb-4 pb-4 border-bottom small">
+                    <div class="col-6">
+                        <div class="text-muted mb-1">Thương hiệu</div>
+                        <div class="fw-semibold text-dark"><?php echo htmlspecialchars($productBrand); ?></div>
+                    </div>
+                    <div class="col-6">
+                        <div class="text-muted mb-1">Loại xe</div>
+                        <div class="fw-semibold text-dark"><?php echo htmlspecialchars($productBikeType); ?></div>
+                    </div>
+                    <div class="col-6">
+                        <div class="text-muted mb-1">Kích cỡ (Size)</div>
+                        <div class="fw-semibold text-dark"><?php echo htmlspecialchars($productFrameSize); ?></div>
+                    </div>
+                    <div class="col-6">
+                        <div class="text-muted mb-1">Khu vực giao dịch</div>
+                        <div class="fw-semibold text-dark text-truncate"><?php echo htmlspecialchars($productLocation); ?></div>
+                    </div>
+                </div>
+
                 <div class="d-flex justify-content-between mb-2">
-                    <span class="text-muted">Tạm tính</span>
-                    <span class="fw-bold"><?php echo $formattedPrice; ?></span>
+                    <span class="text-muted">Giá xe</span>
+                    <span class="fw-bold text-dark"><?php echo $formattedPrice; ?></span>
                 </div>
-                <div class="d-flex justify-content-between mb-3">
-                    <span class="text-muted">Phí giữ tiền an toàn</span>
-                    <span class="text-success fw-bold">Miễn phí cho người mua</span>
+                <div class="d-flex justify-content-between mb-4 pb-3 border-bottom">
+                    <span class="text-muted">Phí xử lý giao dịch</span>
+                    <span class="text-success fw-bold">Miễn phí</span>
                 </div>
-                <div class="d-flex justify-content-between align-items-center pt-3 border-top">
-                    <span class="fw-bold text-dark">Tổng thanh toán</span>
-                    <span class="fw-bold fs-4 text-primary"><?php echo $formattedPrice; ?></span>
+                
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <span class="fw-bold text-dark fs-5">Tổng cộng</span>
+                    <span class="fw-bold fs-3 text-primary"><?php echo $formattedPrice; ?></span>
+                </div>
+
+                <div class="bg-light rounded-3 p-3 mt-2 border">
+                    <h6 class="fw-bold text-dark mb-3 text-center" style="font-size: 0.9rem;">Hành trình đơn hàng của bạn</h6>
+                    <div class="timeline-step d-flex gap-3">
+                        <div class="timeline-icon text-primary bg-primary bg-opacity-10"><i class="fa-solid fa-check"></i></div>
+                        <div>
+                            <div class="fw-bold text-dark" style="font-size: 0.85rem;">Bạn thanh toán</div>
+                            <div class="text-muted" style="font-size: 0.75rem;">SpinBike giữ tiền an toàn</div>
+                        </div>
+                    </div>
+                    <div class="timeline-step d-flex gap-3">
+                        <div class="timeline-icon text-muted"><i class="fa-solid fa-truck"></i></div>
+                        <div>
+                            <div class="fw-bold text-muted" style="font-size: 0.85rem;">Người bán giao xe</div>
+                            <div class="text-muted" style="font-size: 0.75rem;">Bạn nhận và kiểm tra thực tế</div>
+                        </div>
+                    </div>
+                    <div class="timeline-step d-flex gap-3">
+                        <div class="timeline-icon text-muted"><i class="fa-solid fa-hand-holding-dollar"></i></div>
+                        <div>
+                            <div class="fw-bold text-muted" style="font-size: 0.85rem;">SpinBike giải ngân</div>
+                            <div class="text-muted" style="font-size: 0.75rem;">Chỉ khi bạn bấm xác nhận OK</div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

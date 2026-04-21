@@ -1,11 +1,10 @@
 <?php
 $footerSupportLinks = [
-    'Hướng dẫn mua bán an toàn',
-    'Mẹo kiểm tra xe đạp cũ',
-    'Quy định đăng tin & kiểm duyệt',
-    'Chính sách giải quyết tranh chấp',
+    ['title' => 'Hướng dẫn mua bán an toàn', 'route' => 'support.safe_trading'],
+    ['title' => 'Mẹo kiểm tra xe đạp cũ', 'route' => 'support.bike_check_tips'],
+    ['title' => 'Quy định đăng tin & kiểm duyệt', 'route' => 'support.posting_rules'],
+    ['title' => 'Chính sách giải quyết tranh chấp', 'route' => 'support.dispute_policy'], 
 ];
-
 $footerCatalogLinks = [
     'Xe đạp Road (Cuộc) thanh lý',
     'Xe đạp MTB (Địa hình) cũ',
@@ -35,14 +34,18 @@ $footerSocialLinks = [
                 </div>
             </section>
 
-            <nav class="footer-widget" aria-label="Hỗ trợ người dùng">
-                <h4>Hỗ Trợ Người Dùng</h4>
-                <ul>
-                    <?php foreach ($footerSupportLinks as $link): ?>
-                        <li><a href="#"><?php echo $link; ?></a></li>
-                    <?php endforeach; ?>
-                </ul>
-            </nav>
+         <nav class="footer-widget" aria-label="Hỗ trợ người dùng">
+    <h4>Hỗ Trợ Người Dùng</h4>
+    <ul>
+        <?php foreach ($footerSupportLinks as $link): ?>
+            <li>
+                <a href="<?= ($link['route'] !== '#') ? route_url($link['route']) : '#' ?>">
+                    <?php echo $link['title']; ?>
+                </a>
+            </li>
+        <?php endforeach; ?>
+    </ul>
+</nav>
 
             <nav class="footer-widget" aria-label="Khám phá danh mục">
                 <h4>Khám Phá & Danh Mục</h4>

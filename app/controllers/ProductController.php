@@ -38,7 +38,6 @@ class ProductController {
             $product->location = $_POST['location'] ?? '';
             $product->description = $_POST['description'] ?? '';
             $product->frame_size = $_POST['frame_size'] ?? '';
-            $product->groupset = $_POST['groupset'] ?? '';
             $product->condition_percent = $_POST['condition_percent'] ?? null;
             $product->listing_status = ProjectFlow::LISTING_PENDING;
             $product->seller_id = (int) $_SESSION['user_id'];
