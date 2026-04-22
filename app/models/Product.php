@@ -79,7 +79,7 @@ public function getAll() {
         $stmt->bindValue(":frame_size", $this->frame_size !== '' ? $this->frame_size : null, $this->frame_size !== '' ? PDO::PARAM_STR : PDO::PARAM_NULL);
         $stmt->bindParam(":listing_status", $this->listing_status);
         $stmt->bindParam(":seller_id", $this->seller_id);
-
+$stmt->bindParam(":condition_percent", $this->condition_percent);
         return $stmt->execute();
     }
 

@@ -322,7 +322,7 @@ img {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  background-color: var(--danger);
+  background-color: #f97316; /* Đổi thành màu cam tươi */
   color: var(--white);
   border: none;
   padding: 12px 32px;
@@ -334,15 +334,14 @@ img {
     transform var(--transition-base),
     background-color var(--transition-base),
     box-shadow var(--transition-base);
-  box-shadow: 0 12px 24px -14px rgba(225, 29, 72, 0.55);
+  box-shadow: 0 12px 24px -14px rgba(249, 115, 22, 0.55); /* Cập nhật bóng đổ sang tone cam */
 }
 
 .btn-sell:hover {
-  background-color: var(--accent-hover);
+  background-color: #ea580c; /* Đổi thành màu cam đậm hơn khi di chuột */
   transform: translateY(-1px);
-  box-shadow: 0 16px 30px -18px rgba(234, 88, 12, 0.5);
+  box-shadow: 0 16px 30px -18px rgba(234, 88, 12, 0.55); /* Cập nhật bóng đổ hover sang tone cam đậm */
 }
-
 .auth-buttons {
   display: flex;
   align-items: center;
@@ -618,7 +617,8 @@ img {
   outline: none;
   cursor: pointer;
   appearance: none;
-  background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" fill="%236b7280"><path d="M137.4 374.6c12.5 12.5 32.8 12.5 45.3 0l128-128c9.2-9.2 11.9-22.9 6.9-34.9s-16.6-19.8-29.6-19.8L32 192c-12.9 0-24.6 7.8-29.6 19.8s-2.2 25.7 6.9 34.9l128 128z"/></svg>') no-repeat right 14px center;
+  background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" fill="%236b7280"><path d="M137.4 374.6c12.5 12.5 32.8 12.5 45.3 0l128-128c9.2-9.2 11.9-22.9 6.9-34.9s-16.6-19.8-29.6-19.8L32 192c-12.9 0-24.6 7.8-29.6 19.8s-2.2 25.7 6.9 34.9l128 128z"/></svg>')
+    no-repeat right 14px center;
   background-size: 12px;
   background-color: var(--white);
   transition: 0.3s;
@@ -1930,7 +1930,7 @@ img {
   border-color: #cbd5e1;
 }
 
-.form-check-input:checked+.payment-method-card {
+.form-check-input:checked + .payment-method-card {
   border-color: #3b82f6;
   background: #eff6ff;
 }
