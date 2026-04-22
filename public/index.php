@@ -258,6 +258,5 @@ if (!$db) {
 
 <?php include __DIR__ . '/../app/views/layouts/footer.php'; ?>
     
-    <script src="<?php echo asset_url('assets/js/script.js'); ?>"></script>
   </body>
 </html>
