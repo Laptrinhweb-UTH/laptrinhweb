@@ -110,6 +110,15 @@ $listingStatusMessage = match ($listingStatus) {
     ProjectFlow::LISTING_HIDDEN => 'Tin đăng hiện đang được ẩn tạm thời khỏi hệ thống.',
     default => '',
 };
+$currentUserId = (int) ($_SESSION['user_id'] ?? 0);
+$currentUserRole = (string) ($_SESSION['role'] ?? 'user');
+$isAdminView = $detailError === null && $currentUserRole === 'admin';
+$isOwnerView = $detailError === null && !$isAdminView && $currentUserId > 0 && (int) $sellerId === $currentUserId;
+$detailUrl = route_url('listing', ['id' => $id]);
+$adminActions = $isAdminView ? ProjectFlow::adminAllowedListingActions($listingStatus) : [];
+$sellerActions = $isOwnerView ? ProjectFlow::sellerAllowedListingActions($listingStatus) : [];
+$detailFeedbackMessage = trim((string) ($_GET['message'] ?? ''));
+$detailFeedbackStatus = (string) ($_GET['status'] ?? '') === 'success' ? 'success' : 'error';
 
 include __DIR__ . '/../app/views/layouts/header.php';
 ?>
@@ -197,6 +206,92 @@ include __DIR__ . '/../app/views/layouts/header.php';
                     </div>
                     
                     <div class="detail-action-stack">
+                        <?php if ($detailFeedbackMessage !== ''): ?>
+                        <div class="auth-message <?php echo $detailFeedbackStatus === 'success' ? 'auth-message-success' : 'auth-message-error'; ?>">
+                            <?php echo htmlspecialchars($detailFeedbackMessage); ?>
+                        </div>
+                        <?php endif; ?>
+
+                        <?php if ($isAdminView): ?>
+                        <div class="detail-role-panel">
+                            <div class="detail-role-title">
+                                <i class="fa-solid fa-shield-halved"></i>
+                                Quản trị tin đăng
+                            </div>
+                            <p class="detail-role-text">
+                                <?php echo htmlspecialchars(ProjectFlow::listingDescription($listingStatus)); ?>
+                            </p>
+
+                            <?php if (!empty($adminActions)): ?>
+                            <div class="detail-role-actions">
+                                <?php foreach ($adminActions as $action): ?>
+                                <?php
+                                    $actionClass = $action === 'approve' ? 'btn btn-primary' : 'btn btn-outline-danger';
+                                    $actionIcon = match ($action) {
+                                        'approve' => 'fa-circle-check',
+                                        'reject' => 'fa-circle-xmark',
+                                        'hide' => 'fa-eye-slash',
+                                        default => 'fa-pen-to-square',
+                                    };
+                                ?>
+                                <form action="<?php echo route_url('listing.action'); ?>" method="POST">
+                                    <input type="hidden" name="listing_id" value="<?php echo (int) $id; ?>">
+                                    <input type="hidden" name="action" value="<?php echo htmlspecialchars($action); ?>">
+                                    <input type="hidden" name="return_url" value="<?php echo htmlspecialchars($detailUrl); ?>">
+                                    <button type="submit" class="<?php echo $actionClass; ?> detail-role-action-btn">
+                                        <i class="fa-solid <?php echo $actionIcon; ?>"></i>
+                                        <?php echo htmlspecialchars(ProjectFlow::listingActionLabel($action)); ?>
+                                    </button>
+                                </form>
+                                <?php endforeach; ?>
+                            </div>
+                            <?php else: ?>
+                            <div class="detail-role-note">Tin này hiện không có thao tác quản trị cần xử lý.</div>
+                            <?php endif; ?>
+
+                            <a href="<?php echo route_url('admin.listings'); ?>" class="detail-role-link">
+                                Mở danh sách duyệt tin
+                                <i class="fa-solid fa-arrow-right"></i>
+                            </a>
+                        </div>
+                        <?php elseif ($isOwnerView): ?>
+                        <div class="detail-role-panel">
+                            <div class="detail-role-title">
+                                <i class="fa-solid fa-store"></i>
+                                Tin đăng của bạn
+                            </div>
+                            <p class="detail-role-text">
+                                <?php echo htmlspecialchars(ProjectFlow::listingDescription($listingStatus)); ?>
+                            </p>
+
+                            <?php if (!empty($sellerActions)): ?>
+                            <div class="detail-role-actions">
+                                <?php foreach ($sellerActions as $action): ?>
+                                <?php
+                                    $actionClass = $action === 'mark_sold' ? 'btn btn-primary' : 'btn btn-outline-secondary';
+                                    $actionIcon = $action === 'mark_sold' ? 'fa-check' : 'fa-eye-slash';
+                                ?>
+                                <form action="<?php echo route_url('listing.action'); ?>" method="POST">
+                                    <input type="hidden" name="listing_id" value="<?php echo (int) $id; ?>">
+                                    <input type="hidden" name="action" value="<?php echo htmlspecialchars($action); ?>">
+                                    <input type="hidden" name="return_url" value="<?php echo htmlspecialchars($detailUrl); ?>">
+                                    <button type="submit" class="<?php echo $actionClass; ?> detail-role-action-btn">
+                                        <i class="fa-solid <?php echo $actionIcon; ?>"></i>
+                                        <?php echo htmlspecialchars(ProjectFlow::listingActionLabel($action)); ?>
+                                    </button>
+                                </form>
+                                <?php endforeach; ?>
+                            </div>
+                            <?php else: ?>
+                            <div class="detail-role-note">Tin này hiện không có thao tác nhanh cần xử lý.</div>
+                            <?php endif; ?>
+
+                            <a href="<?php echo route_url('my-listings'); ?>" class="detail-role-link">
+                                Quản lý tất cả tin của bạn
+                                <i class="fa-solid fa-arrow-right"></i>
+                            </a>
+                        </div>
+                        <?php else: ?>
                         <?php if ($canPurchase): ?>
                         <button onclick="showBuyOptions()" class="detail-buy-btn" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
                             <i class="fa-solid fa-cart-shopping"></i> Đặt mua
@@ -205,6 +300,7 @@ include __DIR__ . '/../app/views/layouts/header.php';
                         <div class="auth-message auth-message-error">
                             <?php echo htmlspecialchars($listingStatusMessage !== '' ? $listingStatusMessage : 'Tin đăng này hiện chưa thể giao dịch.'); ?>
                         </div>
+                        <?php endif; ?>
                         <?php endif; ?>
                     </div>
 
