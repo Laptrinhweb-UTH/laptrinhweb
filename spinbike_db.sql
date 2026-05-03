@@ -358,3 +358,220 @@ COMMIT;
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+
+
+-- --------------------------------------------------------
+-- Extra SpinBike marketplace seed data
+-- --------------------------------------------------------
+
+SET NAMES utf8mb4;
+START TRANSACTION;
+
+SET @seed_start_product_id := (SELECT COALESCE(MAX(id), 0) + 1 FROM products);
+
+CREATE TEMPORARY TABLE IF NOT EXISTS _spinbike_seed_nums (
+  n INT PRIMARY KEY
+);
+
+DELETE FROM _spinbike_seed_nums;
+
+INSERT INTO _spinbike_seed_nums (n) VALUES
+(0),(1),(2),(3),(4),(5),(6),(7),(8),(9),
+(10),(11),(12),(13),(14),(15),(16),(17),(18),(19),
+(20),(21),(22),(23),(24),(25),(26),(27),(28),(29),
+(30),(31),(32),(33),(34),(35),(36),(37),(38),(39),
+(40),(41),(42),(43),(44),(45),(46),(47),(48),(49),
+(50),(51),(52),(53),(54),(55),(56),(57),(58),(59),
+(60),(61),(62),(63),(64),(65),(66),(67),(68),(69),
+(70),(71),(72),(73),(74),(75),(76),(77),(78),(79),
+(80),(81),(82),(83),(84),(85),(86),(87),(88),(89),
+(90),(91),(92),(93),(94),(95),(96),(97),(98),(99);
+
+INSERT INTO products (
+  title,
+  brand,
+  bike_type,
+  price,
+  location,
+  description,
+  frame_size,
+  condition_percent,
+  listing_status,
+  approval_note,
+  approved_at,
+  sold_at,
+  created_at,
+  seller_id
+)
+SELECT
+  CONCAT(
+    brand_name,
+    ' ',
+    model_name,
+    ' ',
+    2020 + MOD(n, 6)
+  ) AS title,
+  brand_name AS brand,
+  bike_type,
+  CAST(4500000 + MOD(n * 1370000, 52000000) AS DECIMAL(15,2)) AS price,
+  location_name AS location,
+  CONCAT(
+    'Xe ',
+    LOWER(bike_type),
+    ' đã qua sử dụng, tình trạng còn tốt, khung sườn chắc chắn và vận hành ổn định. ',
+    'Phù hợp cho nhu cầu đi làm, luyện tập cuối tuần hoặc nâng cấp từ xe phổ thông. ',
+    'Người bán khuyến khích xem xe trực tiếp để kiểm tra size, phụ tùng và ngoại hình.'
+  ) AS description,
+  CASE MOD(n, 5)
+    WHEN 0 THEN 'XS'
+    WHEN 1 THEN 'S'
+    WHEN 2 THEN 'M'
+    WHEN 3 THEN 'L'
+    ELSE 'XL'
+  END AS frame_size,
+  80 + MOD(n * 3, 20) AS condition_percent,
+  listing_status,
+  CASE listing_status
+    WHEN 'approved' THEN 'Tin hợp lệ, hình ảnh rõ và thông tin đầy đủ.'
+    WHEN 'pending' THEN 'Tin đang chờ quản trị viên kiểm tra.'
+    WHEN 'rejected' THEN 'Cần bổ sung ảnh thực tế và mô tả chi tiết hơn.'
+    WHEN 'hidden' THEN 'Tin đang được tạm ẩn theo yêu cầu người bán.'
+    WHEN 'sold' THEN 'Xe đã phát sinh giao dịch hoặc đã bán.'
+    ELSE NULL
+  END AS approval_note,
+  CASE
+    WHEN listing_status IN ('approved', 'sold', 'hidden') THEN DATE_SUB(NOW(), INTERVAL (n + 2) HOUR)
+    ELSE NULL
+  END AS approved_at,
+  CASE
+    WHEN listing_status = 'sold' THEN DATE_SUB(NOW(), INTERVAL (n + 1) HOUR)
+    ELSE NULL
+  END AS sold_at,
+  DATE_SUB(NOW(), INTERVAL (n * 3 + 5) HOUR) AS created_at,
+  CASE MOD(n, 4)
+    WHEN 0 THEN 3
+    WHEN 1 THEN 4
+    WHEN 2 THEN 7
+    ELSE 8
+  END AS seller_id
+FROM (
+  SELECT
+    n,
+    CASE MOD(n, 12)
+      WHEN 0 THEN 'Giant'
+      WHEN 1 THEN 'Trek'
+      WHEN 2 THEN 'Specialized'
+      WHEN 3 THEN 'Cannondale'
+      WHEN 4 THEN 'Merida'
+      WHEN 5 THEN 'Scott'
+      WHEN 6 THEN 'Java'
+      WHEN 7 THEN 'Twitter'
+      WHEN 8 THEN 'Polygon'
+      WHEN 9 THEN 'Trinx'
+      WHEN 10 THEN 'Asama'
+      ELSE 'Martin 107'
+    END AS brand_name,
+    CASE MOD(n, 5)
+      WHEN 0 THEN 'Road'
+      WHEN 1 THEN 'MTB'
+      WHEN 2 THEN 'Gravel'
+      WHEN 3 THEN 'Touring'
+      ELSE 'Fixed'
+    END AS bike_type,
+    CASE MOD(n, 16)
+      WHEN 0 THEN 'TCR Advanced'
+      WHEN 1 THEN 'Domane AL'
+      WHEN 2 THEN 'Allez Sport'
+      WHEN 3 THEN 'Trail SE'
+      WHEN 4 THEN 'Scultura'
+      WHEN 5 THEN 'Speedster'
+      WHEN 6 THEN 'Siluro'
+      WHEN 7 THEN 'Gravel RS'
+      WHEN 8 THEN 'Path 3'
+      WHEN 9 THEN 'Free 2.0'
+      WHEN 10 THEN 'MTB Pro'
+      WHEN 11 THEN 'Touring City'
+      WHEN 12 THEN 'XTC 820'
+      WHEN 13 THEN 'Checkpoint ALR'
+      WHEN 14 THEN 'Diverge E5'
+      ELSE 'Urban Fixed'
+    END AS model_name,
+    CASE MOD(n, 20)
+      WHEN 0 THEN 'pending'
+      WHEN 1 THEN 'pending'
+      WHEN 2 THEN 'hidden'
+      WHEN 3 THEN 'rejected'
+      WHEN 4 THEN 'sold'
+      WHEN 5 THEN 'sold'
+      WHEN 6 THEN 'sold'
+      ELSE 'approved'
+    END AS listing_status,
+    CASE MOD(n, 18)
+      WHEN 0 THEN 'Phường Bến Thành, TP. Hồ Chí Minh'
+      WHEN 1 THEN 'Phường Thủ Đức, TP. Hồ Chí Minh'
+      WHEN 2 THEN 'Phường Bình Thạnh, TP. Hồ Chí Minh'
+      WHEN 3 THEN 'Phường Cầu Giấy, Hà Nội'
+      WHEN 4 THEN 'Phường Hoàn Kiếm, Hà Nội'
+      WHEN 5 THEN 'Phường Hải Châu, Đà Nẵng'
+      WHEN 6 THEN 'Phường Ninh Kiều, Cần Thơ'
+      WHEN 7 THEN 'Phường Biên Hòa, Đồng Nai'
+      WHEN 8 THEN 'Phường Thủ Dầu Một, TP. Hồ Chí Minh'
+      WHEN 9 THEN 'Phường Ngô Quyền, Hải Phòng'
+      WHEN 10 THEN 'Phường Quy Nhơn, Gia Lai'
+      WHEN 11 THEN 'Phường Nha Trang, Khánh Hòa'
+      WHEN 12 THEN 'Phường Vũng Tàu, TP. Hồ Chí Minh'
+      WHEN 13 THEN 'Phường Huế, TP. Huế'
+      WHEN 14 THEN 'Phường Buôn Ma Thuột, Đắk Lắk'
+      WHEN 15 THEN 'Phường Hạ Long, Quảng Ninh'
+      WHEN 16 THEN 'Phường Long Xuyên, An Giang'
+      ELSE 'Phường Mỹ Tho, Đồng Tháp'
+    END AS location_name
+  FROM _spinbike_seed_nums
+) AS seed_source;
+
+INSERT INTO product_images (product_id, image_url)
+SELECT
+  p.id,
+  CASE image_seed.image_index
+    WHEN 1 THEN CASE MOD(p.id, 8)
+      WHEN 0 THEN 'https://images.unsplash.com/photo-1511994298241-608e28f14fde?auto=format&fit=crop&w=1200&q=80'
+      WHEN 1 THEN 'https://images.unsplash.com/photo-1507035895480-2b3156c31fc8?auto=format&fit=crop&w=1200&q=80'
+      WHEN 2 THEN 'https://images.unsplash.com/photo-1485965120184-e220f721d03e?auto=format&fit=crop&w=1200&q=80'
+      WHEN 3 THEN 'https://images.unsplash.com/photo-1532298229144-0ec0c57515c7?auto=format&fit=crop&w=1200&q=80'
+      WHEN 4 THEN 'https://images.unsplash.com/photo-1571068316344-75bc76f77890?auto=format&fit=crop&w=1200&q=80'
+      WHEN 5 THEN 'https://images.unsplash.com/photo-1541625602330-2277a4c46182?auto=format&fit=crop&w=1200&q=80'
+      WHEN 6 THEN 'https://images.unsplash.com/photo-1517649763962-0c623066013b?auto=format&fit=crop&w=1200&q=80'
+      ELSE 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=1200&q=80'
+    END
+    WHEN 2 THEN CASE MOD(p.id, 6)
+      WHEN 0 THEN 'https://images.unsplash.com/photo-1502740479091-635887520276?auto=format&fit=crop&w=1200&q=80'
+      WHEN 1 THEN 'https://images.unsplash.com/photo-1485965120184-e220f721d03e?auto=format&fit=crop&w=1200&q=80'
+      WHEN 2 THEN 'https://images.unsplash.com/photo-1507035895480-2b3156c31fc8?auto=format&fit=crop&w=1200&q=80'
+      WHEN 3 THEN 'https://images.unsplash.com/photo-1541625602330-2277a4c46182?auto=format&fit=crop&w=1200&q=80'
+      WHEN 4 THEN 'https://images.unsplash.com/photo-1511994298241-608e28f14fde?auto=format&fit=crop&w=1200&q=80'
+      ELSE 'https://images.unsplash.com/photo-1532298229144-0ec0c57515c7?auto=format&fit=crop&w=1200&q=80'
+    END
+    ELSE CASE MOD(p.id, 5)
+      WHEN 0 THEN 'https://images.unsplash.com/photo-1517649763962-0c623066013b?auto=format&fit=crop&w=1200&q=80'
+      WHEN 1 THEN 'https://images.unsplash.com/photo-1571068316344-75bc76f77890?auto=format&fit=crop&w=1200&q=80'
+      WHEN 2 THEN 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=1200&q=80'
+      WHEN 3 THEN 'https://images.unsplash.com/photo-1502740479091-635887520276?auto=format&fit=crop&w=1200&q=80'
+      ELSE 'https://images.unsplash.com/photo-1507035895480-2b3156c31fc8?auto=format&fit=crop&w=1200&q=80'
+    END
+  END AS image_url
+FROM products p
+JOIN (
+  SELECT 1 AS image_index
+  UNION ALL SELECT 2
+  UNION ALL SELECT 3
+) AS image_seed
+WHERE p.id >= @seed_start_product_id
+  AND p.id < @seed_start_product_id + 100
+  AND image_seed.image_index <= CASE
+    WHEN MOD(p.id, 3) = 0 THEN 3
+    ELSE 2
+  END;
+
+DROP TEMPORARY TABLE IF EXISTS _spinbike_seed_nums;
+
+COMMIT;
