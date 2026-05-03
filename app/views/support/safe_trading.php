@@ -108,7 +108,7 @@
             <a href="<?= route_url('home') ?>" class="btn btn-outline-secondary px-4 py-2 fw-bold">
                 <i class="fa-solid fa-arrow-left"></i> Về trang chủ
             </a>
-            <a href="#" class="btn btn-primary px-4 py-2 fw-bold shadow-sm" style="background-color: #10b981; border-color: #10b981;">
+            <a href="mailto:hotro@spinbike.vn" class="btn btn-primary px-4 py-2 fw-bold shadow-sm">
                 <i class="fa-solid fa-headset"></i> Liên hệ CSKH
             </a>
         </div>

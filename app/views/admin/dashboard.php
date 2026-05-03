@@ -264,10 +264,9 @@ include __DIR__ . '/../layouts/header.php';
             </div>
 
             <div class="profile-card">
-                <h5 class="fw-bold mb-3">Phạm vi phase hiện tại</h5>
+                <h5 class="fw-bold mb-3">Vận hành hệ thống</h5>
                 <div class="order-status-note mb-0">
-                    <p class="mb-2"><strong>Đã có:</strong> entry point riêng cho admin, redirect sau login theo role, guard chặn user thường, dashboard tổng quan với số liệu thật từ database, khu quản lý tin đăng và màn quản lý order/dispute riêng cho admin.</p>
-                    <p class="mb-0"><strong>Sắp làm tiếp:</strong> hoàn thiện navigation admin và polish lại trải nghiệm khu quản trị cho đồng nhất hơn.</p>
+                    <p class="mb-0">Theo dõi các tin chờ duyệt, đơn đang giữ tiền và trường hợp tranh chấp để xử lý kịp thời trong một khu vực quản trị tập trung.</p>
                 </div>
             </div>
         </main>

@@ -23,52 +23,72 @@ if (!$db) {
 ?>
 
     <div class="main-content home-page-layout">
-      <aside class="sidebar">
+      <aside class="sidebar marketplace-sidebar">
         <div class="sidebar-header">
-          <h3 class="sidebar-title sidebar-title-compact">
-            <i class="fa-solid fa-filter"></i> Lọc kết quả
-          </h3>
-          <button onclick="resetFilters()" class="sidebar-reset-btn">
-            <i class="fa-solid fa-rotate-right"></i> Đặt lại
+          <div>
+            <p class="sidebar-eyebrow">Bộ lọc</p>
+            <h3 class="sidebar-title sidebar-title-compact">Tìm xe phù hợp</h3>
+          </div>
+          <button type="button" onclick="resetFilters()" class="sidebar-reset-btn" title="Đặt lại bộ lọc">
+            <i class="fa-solid fa-rotate-right"></i>
           </button>
         </div>
-        
+
         <div class="filter-group">
           <label class="filter-label"><i class="fa-solid fa-copyright"></i> Hãng xe</label>
           <select id="brandFilter" onchange="applyFilters()" class="filter-select-modern">
-            <option value="">Tất cả các hãng</option>
+            <option value="">Tất cả hãng</option>
+            <option value="Asama">Asama</option>
+            <option value="Cannondale">Cannondale</option>
             <option value="Giant">Giant</option>
+            <option value="Java">Java</option>
+            <option value="Martin 107">Martin 107</option>
+            <option value="Polygon">Polygon</option>
+            <option value="Specialized">Specialized</option>
             <option value="Trek">Trek</option>
             <option value="Trinx">Trinx</option>
-            <option value="Asama">Asama</option>
-            <option value="Martin 107">Martin 107</option>
-            <option value="Thống Nhất">Thống Nhất</option>
+            <option value="Twitter">Twitter</option>
           </select>
         </div>
 
         <div class="filter-group">
-          <label class="filter-label"><i class="fa-solid fa-money-bill-wave"></i> Mức giá (VNĐ)</label>
+          <label class="filter-label"><i class="fa-solid fa-bicycle"></i> Dòng xe</label>
+          <select id="typeFilter" onchange="applyFilters()" class="filter-select-modern">
+            <option value="">Tất cả dòng xe</option>
+            <option value="Road">Road bike</option>
+            <option value="MTB">Mountain bike</option>
+            <option value="Gravel">Gravel</option>
+            <option value="Touring">Touring</option>
+            <option value="Fixed">Fixed gear</option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label class="filter-label"><i class="fa-solid fa-money-bill-wave"></i> Khoảng giá</label>
           <div class="price-range-box">
-            <input id="priceMin" type="number" placeholder="Từ..." onchange="applyFilters()" class="price-input-modern" />
+            <input id="priceMin" type="number" min="0" placeholder="Từ" oninput="applyFilters()" class="price-input-modern" />
             <span class="price-separator">-</span>
-            <input id="priceMax" type="number" placeholder="Đến..." onchange="applyFilters()" class="price-input-modern" />
+            <input id="priceMax" type="number" min="0" placeholder="Đến" oninput="applyFilters()" class="price-input-modern" />
           </div>
+          <p class="filter-help">Nhập giá theo VNĐ, ví dụ 10000000.</p>
         </div>
 
         <div class="filter-group filter-group-last">
           <label class="filter-label"><i class="fa-solid fa-arrow-down-a-z"></i> Sắp xếp</label>
           <select id="sortFilter" onchange="applyFilters()" class="filter-select-modern">
             <option value="newest">Tin mới nhất</option>
-            <option value="price-low">Giá: Thấp đến cao</option>
-            <option value="price-high">Giá: Cao đến thấp</option>
+            <option value="price-low">Giá thấp đến cao</option>
+            <option value="price-high">Giá cao đến thấp</option>
           </select>
         </div>
       </aside>
 
-      <div class="products-section">
+      <div class="products-section marketplace-results">
         <div class="products-header">
-          <h1>Sản phẩm đang bán</h1>
-          <p id="resultCount"><?php echo count($products); ?> tin đang hoạt động</p>
+          <div>
+            <h1>Xe đạp đang bán</h1>
+          </div>
+          <p id="resultCount"><?php echo count($products); ?> tin phù hợp</p>
         </div>
 
         <div id="productGrid" class="product-grid">
@@ -120,18 +140,41 @@ if (!$db) {
                 $imgCount = isset($row['image_count']) && $row['image_count'] > 0 ? $row['image_count'] : 1;
               ?>
               
-              <div class="product-card">
-                <div class="product-image" style="background-image: url('<?php echo htmlspecialchars($image); ?>'); position: relative;">
+              <?php
+                $brandValue = trim((string)($row['brand'] ?? ''));
+                $typeValue = trim((string)($row['bike_type'] ?? ''));
+                $locationSearch = trim((string)($row['location'] ?? ''));
+                $createdSort = $createdAt ?: 0;
+              ?>
+              <article
+                class="product-card"
+                data-title="<?php echo htmlspecialchars($productTitle); ?>"
+                data-brand="<?php echo htmlspecialchars($brandValue); ?>"
+                data-type="<?php echo htmlspecialchars($typeValue); ?>"
+                data-price="<?php echo is_numeric($priceValue) ? (float) $priceValue : 0; ?>"
+                data-created="<?php echo (int) $createdSort; ?>"
+                data-location="<?php echo htmlspecialchars($locationSearch); ?>"
+              >
+                <a href="<?php echo route_url('listing', ['id' => (int) $row['id']]); ?>" class="product-image product-image-link" style="background-image: url('<?php echo htmlspecialchars($image); ?>');">
+                    <span class="product-status-pill">Đã duyệt</span>
                     <div class="product-time-badge">
                         <i class="fa-regular fa-clock"></i> <?php echo $timeAgo; ?>
                     </div>
                     <div class="product-image-count">
                         <i class="fa-regular fa-images"></i> <?php echo $imgCount; ?>
                     </div>
-                </div>
+                </a>
                 
                 <div class="product-info">
-                    <h3 class="product-title"><?php echo htmlspecialchars($productTitle); ?></h3>
+                    <div class="product-meta-row">
+                        <span><?php echo htmlspecialchars($brandValue !== '' ? $brandValue : 'Chưa rõ hãng'); ?></span>
+                        <?php if ($typeValue !== ''): ?>
+                        <span><?php echo htmlspecialchars($typeValue); ?></span>
+                        <?php endif; ?>
+                    </div>
+                    <h3 class="product-title">
+                        <a href="<?php echo route_url('listing', ['id' => (int) $row['id']]); ?>"><?php echo htmlspecialchars($productTitle); ?></a>
+                    </h3>
                     <div class="product-price"><?php echo $formattedPrice; ?></div>
                     
                     <div class="product-location product-location-spaced">
@@ -142,11 +185,15 @@ if (!$db) {
                     <div class="product-spacer"></div>
                     
                     <a href="<?php echo route_url('listing', ['id' => (int) $row['id']]); ?>" class="btn-detail product-detail-link">
-                        Xem chi tiết
+                        Xem chi tiết <i class="fa-solid fa-arrow-right"></i>
                     </a>
                 </div>
-              </div>
+              </article>
             <?php endforeach; ?>
+            <div id="noFilterResults" class="empty-state-card hidden">
+                <i class="fa-solid fa-magnifying-glass empty-state-icon"></i>
+                <p class="empty-state-text">Không có tin nào khớp với bộ lọc hiện tại. Hãy thử mở rộng khoảng giá hoặc đổi từ khóa tìm kiếm.</p>
+            </div>
           <?php else: ?>
             <div class="empty-state-card">
                 <i class="fa-solid fa-box-open empty-state-icon"></i>
@@ -157,104 +204,73 @@ if (!$db) {
       </div>
     </div>
 
-    <div id="sellModal" class="modal hidden">
-      <div class="modal-backdrop" onclick="hideSellModal()"></div>
-      <div class="modal-content sell-modal" style="max-width: 650px; max-height: 90vh; overflow-y: auto;">
-        
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-          <h2 class="sell-title" style="margin: 0;">Đăng bán xe đạp</h2>
-          <button onclick="hideSellModal()" class="modal-close" style="position: static;">×</button>
-        </div>
-        <p class="sell-subtitle">Vui lòng điền đầy đủ thông tin để tin đăng uy tín và dễ bán hơn.</p>
+<script>
+  function getSearchTerm() {
+    const searchInput = document.getElementById('searchInput');
+    return searchInput ? searchInput.value.trim().toLowerCase() : '';
+  }
 
-        <form id="sellBikeForm" class="sell-form" onsubmit="handleSellSubmit(event)">
-          
-          <div class="form-group">
-            <label class="form-label">Tên xe <span class="text-danger">*</span></label>
-            <input type="text" placeholder="VD: Trek Domane SL 5 2022" class="form-input" required />
-          </div>
+  function applyFilters() {
+    const grid = document.getElementById('productGrid');
+    if (!grid) return;
 
-          <div class="form-row">
-            <div class="form-group">
-              <label class="form-label">Loại xe <span class="text-danger">*</span></label>
-              <select class="form-input" required>
-                <option value="">-- Chọn loại xe --</option>
-                <option value="Road">Road Bike (Xe cuộc)</option>
-                <option value="MTB">MTB (Xe địa hình)</option>
-                <option value="Gravel">Gravel Bike</option>
-                <option value="Fixed">Fixed Gear</option>
-                <option value="Touring">Touring</option>
-                <option value="Other">Khác</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label class="form-label">Size khung <span class="text-danger">*</span></label>
-              <select class="form-input" required>
-                <option value="">-- Chọn Size --</option>
-                <option value="XS">XS (Dưới 1m60)</option>
-                <option value="S">S (1m60 - 1m70)</option>
-                <option value="M">M (1m70 - 1m80)</option>
-                <option value="L">L (1m80 - 1m90)</option>
-                <option value="XL">XL (1m90 - 1m95)</option>
-                <option value="XXL">XXL (Trên 1m95)</option>
-              </select>
-            </div>
-          </div>
+    const cards = Array.from(grid.querySelectorAll('.product-card'));
+    const brand = document.getElementById('brandFilter')?.value || '';
+    const type = document.getElementById('typeFilter')?.value || '';
+    const min = Number(document.getElementById('priceMin')?.value || 0);
+    const maxInput = document.getElementById('priceMax')?.value || '';
+    const max = maxInput !== '' ? Number(maxInput) : Infinity;
+    const sort = document.getElementById('sortFilter')?.value || 'newest';
+    const keyword = getSearchTerm();
+    let visibleCount = 0;
 
-          <div class="form-row">
-            <div class="form-group">
-              <label class="form-label">Tình trạng khung <span class="text-danger">*</span></label>
-              <select class="form-input" required>
-                <option value="">-- Đánh giá --</option>
-                <option value="99">Mới 99% (Như mới, không xước)</option>
-                <option value="95">95% (Có xước dăm rất nhẹ)</option>
-                <option value="90">90% (Xước thấy rõ, không móp méo)</option>
-                <option value="80">80% (Cũ theo thời gian, tróc sơn)</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label class="form-label">Tình trạng phụ tùng</label>
-              <input type="text" placeholder="VD: Groupset nguyên bản 105, sên mới..." class="form-input" />
-            </div>
-          </div>
+    const sortedCards = cards.sort((a, b) => {
+      if (sort === 'price-low') return Number(a.dataset.price) - Number(b.dataset.price);
+      if (sort === 'price-high') return Number(b.dataset.price) - Number(a.dataset.price);
+      return Number(b.dataset.created) - Number(a.dataset.created);
+    });
 
-          <div class="form-row">
-            <div class="form-group">
-              <label class="form-label">Mức giá (VNĐ) <span class="text-danger">*</span></label>
-              <input type="number" placeholder="VD: 15000000" class="form-input" required />
-            </div>
-            <div class="form-group">
-              <label class="form-label">Hình thức bán</label>
-              <select class="form-input">
-                <option value="fixed">Giá cố định (Không bớt)</option>
-                <option value="negotiable">Có thương lượng</option>
-              </select>
-            </div>
-          </div>
+    sortedCards.forEach((card) => grid.appendChild(card));
+    const noResults = document.getElementById('noFilterResults');
+    if (noResults) grid.appendChild(noResults);
 
-          <div class="form-group">
-            <label class="form-label">Địa chỉ xem xe <span class="text-danger">*</span></label>
-            <input type="text" placeholder="VD: Phường 12, Quận 10, TP.HCM" class="form-input" required />
-          </div>
+    cards.forEach((card) => {
+      const price = Number(card.dataset.price || 0);
+      const text = `${card.dataset.title || ''} ${card.dataset.brand || ''} ${card.dataset.type || ''} ${card.dataset.location || ''}`.toLowerCase();
+      const matched =
+        (!brand || card.dataset.brand === brand) &&
+        (!type || card.dataset.type === type) &&
+        price >= min &&
+        price <= max &&
+        (!keyword || text.includes(keyword));
 
-          <div class="form-group">
-            <label class="form-label">Hình ảnh thực tế (Tối thiểu 1 ảnh) <span class="text-danger">*</span></label>
-            <div class="upload-area" onclick="document.getElementById('bikeImages').click()">
-              <i class="fa-solid fa-cloud-arrow-up"></i>
-              <p style="font-weight: 600; margin-bottom: 4px;">Nhấn vào đây để tải ảnh lên</p>
-              <span class="upload-hint">(Nên chụp rõ: Toàn cảnh, khung, groupset, lốp, đồng hồ...)</span>
-            </div>
-            <input type="file" id="bikeImages" multiple accept="image/*" style="display: none;" required onchange="previewImages(event)">
-            
-            <div id="imagePreviewContainer" class="image-preview-container"></div>
-          </div>
+      card.classList.toggle('hidden', !matched);
+      if (matched) visibleCount += 1;
+    });
 
-          <button type="submit" class="btn-submit" style="margin-top: 16px;">
-            <i class="fa-solid fa-paper-plane"></i> Đăng tin bán xe
-          </button>
-        </form>
-      </div>
-    </div>
+    const resultCount = document.getElementById('resultCount');
+    if (resultCount) {
+      resultCount.textContent = `${visibleCount} tin phù hợp`;
+    }
+
+    noResults?.classList.toggle('hidden', visibleCount !== 0);
+  }
+
+  function resetFilters() {
+    ['brandFilter', 'typeFilter', 'sortFilter', 'priceMin', 'priceMax'].forEach((id) => {
+      const element = document.getElementById(id);
+      if (!element) return;
+      element.value = id === 'sortFilter' ? 'newest' : '';
+    });
+
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) searchInput.value = '';
+    applyFilters();
+  }
+
+  document.getElementById('searchInput')?.addEventListener('input', applyFilters);
+  window.addEventListener('DOMContentLoaded', applyFilters);
+</script>
 
 <?php include __DIR__ . '/../app/views/layouts/footer.php'; ?>
     

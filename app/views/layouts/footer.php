@@ -11,12 +11,6 @@ $footerCatalogLinks = [
     'Phụ tùng & Phụ kiện qua sử dụng',
     'Cộng đồng SpinBike',
 ];
-
-$footerSocialLinks = [
-    ['title' => 'Facebook', 'icon' => 'fa-brands fa-facebook-f'],
-    ['title' => 'Instagram', 'icon' => 'fa-brands fa-instagram'],
-    ['title' => 'YouTube', 'icon' => 'fa-brands fa-youtube'],
-];
 ?>
 
 <footer class="pro-footer">
@@ -25,13 +19,6 @@ $footerSocialLinks = [
             <section class="footer-widget brand-info">
                 <h2 class="footer-logo">SPINBIKE<span>.</span></h2>
                 <p>Nền tảng kết nối mua bán xe đạp thể thao cũ, kết hợp cơ chế giữ tiền an toàn để người mua và người bán giao dịch minh bạch hơn.</p>
-                <div class="pro-socials">
-                    <?php foreach ($footerSocialLinks as $social): ?>
-                        <a href="#" title="<?php echo $social['title']; ?>">
-                            <i class="<?php echo $social['icon']; ?>"></i>
-                        </a>
-                    <?php endforeach; ?>
-                </div>
             </section>
 
          <nav class="footer-widget" aria-label="Hỗ trợ người dùng">
@@ -51,7 +38,7 @@ $footerSocialLinks = [
                 <h4>Khám Phá & Danh Mục</h4>
                 <ul>
                     <?php foreach ($footerCatalogLinks as $link): ?>
-                        <li><a href="#"><?php echo $link; ?></a></li>
+                        <li><span class="footer-muted-item"><?php echo $link; ?></span></li>
                     <?php endforeach; ?>
                 </ul>
             </nav>

@@ -76,6 +76,11 @@ if ($productSize === '') {
     $productSize = 'Đang cập nhật';
 }
 
+$productType = trim((string)($product['bike_type'] ?? ''));
+if ($productType === '') {
+    $productType = 'Đang cập nhật';
+}
+
 $productCondition = $product['condition'] ?? null;
 $productConditionLabel = is_numeric($productCondition) ? rtrim(rtrim(number_format((float)$productCondition, 0, ',', '.'), '0'), ',') . '%' : 'Đang cập nhật';
 
@@ -90,6 +95,14 @@ if ($sellerName === '') {
 }
 $sellerLabel = $sellerName;
 $listingStatus = (string) ($product['listing_status'] ?? '');
+$listingStatusLabel = match ($listingStatus) {
+    ProjectFlow::LISTING_APPROVED => 'Đang bán',
+    ProjectFlow::LISTING_SOLD => 'Đã bán',
+    ProjectFlow::LISTING_PENDING => 'Chờ duyệt',
+    ProjectFlow::LISTING_REJECTED => 'Tạm ngưng',
+    ProjectFlow::LISTING_HIDDEN => 'Đã ẩn',
+    default => 'Đang cập nhật',
+};
 $listingStatusMessage = match ($listingStatus) {
     ProjectFlow::LISTING_SOLD => 'Chiếc xe này đã được giữ chỗ hoặc đã chốt giao dịch nên hiện không thể mua thêm.',
     ProjectFlow::LISTING_PENDING => 'Tin đăng này đang chờ duyệt và chưa mở bán công khai.',
@@ -147,9 +160,29 @@ include __DIR__ . '/../app/views/layouts/header.php';
             </div>
 
             <div class="detail-info">
+                <div class="detail-topline">
+                    <span class="detail-status-badge"><?php echo htmlspecialchars($listingStatusLabel); ?></span>
+                    <span class="detail-brand-chip"><?php echo htmlspecialchars($productBrand); ?></span>
+                </div>
+
                 <h1 class="detail-page-title"><?php echo htmlspecialchars($productTitle); ?></h1>
                 
-               <div class="detail-page-price"><?php echo $formattedPrice; ?></div>
+                <div class="detail-page-price"><?php echo $formattedPrice; ?></div>
+
+                <div class="detail-quick-specs">
+                    <div>
+                        <span>Dòng xe</span>
+                        <strong><?php echo htmlspecialchars($productType); ?></strong>
+                    </div>
+                    <div>
+                        <span>Size</span>
+                        <strong><?php echo htmlspecialchars($productSize); ?></strong>
+                    </div>
+                    <div>
+                        <span>Độ mới</span>
+                        <strong><?php echo htmlspecialchars($productConditionLabel); ?></strong>
+                    </div>
+                </div>
                 
                 <div class="detail-seller-card">
                     
@@ -166,46 +199,44 @@ include __DIR__ . '/../app/views/layouts/header.php';
                     <div class="detail-action-stack">
                         <?php if ($canPurchase): ?>
                         <button onclick="showBuyOptions()" class="detail-buy-btn" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
-                            <i class="fa-solid fa-cart-shopping"></i> ĐẶT MUA AN TOÀN
+                            <i class="fa-solid fa-cart-shopping"></i> Đặt mua
                         </button>
                         <?php else: ?>
                         <div class="auth-message auth-message-error">
                             <?php echo htmlspecialchars($listingStatusMessage !== '' ? $listingStatusMessage : 'Tin đăng này hiện chưa thể giao dịch.'); ?>
                         </div>
                         <?php endif; ?>
-                        
-                        <a href="#" onclick="showInfoDialog({
-                                title: 'Nhắn tin đang được phát triển',
-                                message: 'Tính năng nhắn tin nội bộ sẽ được bổ sung ở phiên bản tiếp theo. Hiện tại bạn có thể ưu tiên đặt mua an toàn qua SpinBike để giao dịch minh bạch hơn.'
-                            }); return false;" class="detail-chat-btn" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='#ffffff'">
-                            <i class="fa-solid fa-comment-dots detail-chat-icon"></i> Nhắn tin trao đổi
-                        </a>
                     </div>
 
-                </div>
-
-                <h3 class="detail-section-title">Thông số kỹ thuật</h3>
-                <div class="detail-specs-card">
-                    <table class="detail-specs-table">
-                        <tr class="detail-spec-row detail-spec-row-alt">
-                            <td class="detail-spec-label">Hãng xe</td>
-                            <td class="detail-spec-value"><?php echo htmlspecialchars($productBrand); ?></td>
-                        </tr>
-                        <tr class="detail-spec-row">
-                            <td class="detail-spec-label">Size khung</td>
-                            <td class="detail-spec-value"><?php echo htmlspecialchars($productSize); ?></td>
-                        </tr>
-                        <tr class="detail-spec-row detail-spec-row-alt">
-                            <td class="detail-spec-label">Độ mới</td>
-                            <td class="detail-spec-value detail-spec-value-danger"><?php echo htmlspecialchars($productConditionLabel); ?></td>
-                        </tr>
-                   
-                    </table>
                 </div>
 
                 <h3 class="detail-section-title detail-description-title">Mô tả bài đăng</h3>
                 <div class="detail-description-card">
 <?php echo nl2br(htmlspecialchars($productDescription)); ?>
+                </div>
+
+                <h3 class="detail-section-title">Thông tin xe</h3>
+                <div class="detail-specs-card">
+                    <div class="detail-spec-row">
+                        <span class="detail-spec-label">Hãng xe</span>
+                        <strong class="detail-spec-value"><?php echo htmlspecialchars($productBrand); ?></strong>
+                    </div>
+                    <div class="detail-spec-row">
+                        <span class="detail-spec-label">Dòng xe</span>
+                        <strong class="detail-spec-value"><?php echo htmlspecialchars($productType); ?></strong>
+                    </div>
+                    <div class="detail-spec-row">
+                        <span class="detail-spec-label">Size khung</span>
+                        <strong class="detail-spec-value"><?php echo htmlspecialchars($productSize); ?></strong>
+                    </div>
+                    <div class="detail-spec-row">
+                        <span class="detail-spec-label">Độ mới</span>
+                        <strong class="detail-spec-value"><?php echo htmlspecialchars($productConditionLabel); ?></strong>
+                    </div>
+                    <div class="detail-spec-row">
+                        <span class="detail-spec-label">Khu vực</span>
+                        <strong class="detail-spec-value"><?php echo htmlspecialchars($productLocation); ?></strong>
+                    </div>
                 </div>
             </div>
         </div>
@@ -233,45 +264,6 @@ include __DIR__ . '/../app/views/layouts/header.php';
 <?php endif; ?>
 
 <?php if ($detailError === null): ?>
-<?php if ($canPurchase): ?>
-<div id="buyOptionsModal" class="modal hidden">
-    <div class="modal-backdrop" onclick="hideBuyOptions()"></div>
-    <div class="modal-content detail-buy-modal">
-        
-        <div class="detail-buy-modal-header">
-            <h3 class="detail-buy-modal-title">Chọn cách tiếp tục</h3>
-            <button onclick="hideBuyOptions()" class="detail-buy-modal-close">&times;</button>
-        </div>
-        
-        <div class="detail-buy-option detail-buy-option-primary" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'" onclick="processEscrowCheckout()">
-            <div class="detail-buy-option-content">
-                <div class="detail-buy-option-icon detail-buy-option-icon-primary">
-                    <i class="fa-solid fa-shield-halved"></i>
-                </div>
-                <div>
-                    <h4 class="detail-buy-option-heading detail-buy-option-heading-primary">Đặt mua an toàn qua SpinBike</h4>
-                    <span class="detail-buy-badge">Khuyên dùng</span>
-                    <p class="detail-buy-option-text detail-buy-option-text-primary">Bạn sẽ đi tới bước xác nhận đơn hàng và thanh toán an toàn. SpinBike giữ tiền cho tới khi bạn xác nhận đã nhận xe đúng mô tả.</p>
-                </div>
-            </div>
-        </div>
-
-        <div class="detail-buy-option detail-buy-option-secondary" onmouseover="this.style.borderColor='var(--text-secondary)'; this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='var(--border)'; this.style.transform='translateY(0)'" onclick="processDirectCheckout()">
-            <div class="detail-buy-option-content">
-                <div class="detail-buy-option-icon detail-buy-option-icon-secondary">
-                    <i class="fa-solid fa-handshake"></i>
-                </div>
-                <div>
-                    <h4 class="detail-buy-option-heading">Tự giao dịch trực tiếp</h4>
-                    <p class="detail-buy-option-text">Tự liên hệ và hẹn gặp người bán. SpinBike sẽ <b>không chịu trách nhiệm</b> bảo vệ tiền nếu bạn chọn phương thức này.</p>
-                </div>
-            </div>
-        </div>
-
-    </div>
-</div>
-<?php endif; ?>
-
 <script>
     // Logic Slider Ảnh
     const bikeImages = <?php echo json_encode($images); ?>;
@@ -381,26 +373,7 @@ include __DIR__ . '/../app/views/layouts/header.php';
             return;
         <?php endif; ?>
         
-        document.getElementById('buyOptionsModal').classList.remove('hidden');
-    }
-
-    function hideBuyOptions() {
-        const modal = document.getElementById('buyOptionsModal');
-        if (modal) {
-            modal.classList.add('hidden');
-        }
-    }
-
-    function processEscrowCheckout() {
         window.location.href = '<?php echo route_url('checkout'); ?>?product_id=<?php echo $id; ?>';
-    }
-
-    function processDirectCheckout() {
-        hideBuyOptions();
-        showInfoDialog({
-            title: 'Giao dịch trực tiếp',
-            message: 'Nếu muốn tự giao dịch trực tiếp, bạn vui lòng trao đổi với người bán trước. SpinBike chỉ bảo vệ khoản tiền khi bạn chọn luồng đặt mua an toàn qua hệ thống.'
-        });
     }
 </script>
 <?php endif; ?>

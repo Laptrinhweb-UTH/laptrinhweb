@@ -158,7 +158,7 @@ if ($isLoggedIn) {
                     
                     <hr class="dropdown-divider">
                     
-                    <a href="#" class="dropdown-item text-danger" onclick="showLogoutModal(event)">
+                    <a href="javascript:void(0)" class="dropdown-item text-danger" onclick="showLogoutModal(event)">
                       <i class="fa-solid fa-right-from-bracket"></i> Đăng xuất
                     </a>
                   </div>
