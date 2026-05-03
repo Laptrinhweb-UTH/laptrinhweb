@@ -13,6 +13,12 @@ define('PUBLIC_ROOT', PROJECT_ROOT . '/public');
 define('CLD_CLOUD_NAME', getenv('CLD_CLOUD_NAME') ?: 'dge3u1dzk');
 define('CLD_UPLOAD_PRESET', getenv('CLD_UPLOAD_PRESET') ?: 'spinbike');
 
+// VNPAY sandbox defaults. Replace these with real sandbox merchant credentials.
+define('VNPAY_URL', getenv('VNPAY_URL') ?: 'https://sandbox.vnpayment.vn/paymentv2/vpcpay.html');
+define('VNPAY_TMN_CODE', getenv('VNPAY_TMN_CODE') ?: '');
+define('VNPAY_HASH_SECRET', getenv('VNPAY_HASH_SECRET') ?: '');
+define('VNPAY_DEFAULT_BANK_CODE', getenv('VNPAY_DEFAULT_BANK_CODE') ?: 'VNPAYQR');
+
 // ==========================================
 // ĐỊNH NGHĨA CÁC HÀM (Bọc chống lỗi Redeclare)
 // ==========================================
@@ -186,6 +192,10 @@ if (!function_exists('route_definitions')) {
                 'path' => 'checkout/process',
                 'target' => PROJECT_ROOT . '/app/views/orders/process_checkout.php',
                 'aliases' => ['process_checkout.php'],
+            ],
+            'checkout.vnpay-return' => [
+                'path' => 'checkout/vnpay-return',
+                'target' => PROJECT_ROOT . '/app/views/orders/vnpay_return.php',
             ],
             'admin.dashboard' => [
                 'path' => 'admin',

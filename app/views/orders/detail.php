@@ -14,6 +14,10 @@ function format_order_status_label(string $status): string {
 }
 
 function format_escrow_status_label(string $status): string {
+    if ($status === '') {
+        return 'Chưa giữ tiền';
+    }
+
     return ProjectFlow::escrowLabel($status);
 }
 
@@ -115,7 +119,7 @@ if ($orderError === null) {
 }
 
 $orderStatus = $order['order_status'] ?? ProjectFlow::ORDER_PENDING_PAYMENT;
-$escrowStatus = $order['escrow_status'] ?? ProjectFlow::ESCROW_HOLDING;
+$escrowStatus = $order['escrow_status'] ?? '';
 $productTitle = trim((string) ($order['product_title'] ?? ''));
 if ($productTitle === '') {
     $productTitle = 'Xe đạp đang cập nhật tên';
@@ -171,7 +175,9 @@ $formattedSellerReceives = number_format($sellerReceives, 0, ',', '.') . ' đ';
 $formattedOrderDate = !empty($order['order_created_at']) ? date('d/m/Y H:i', strtotime((string) $order['order_created_at'])) : 'Đang cập nhật';
 $formattedReleaseDate = !empty($order['released_at']) ? date('d/m/Y H:i', strtotime((string) $order['released_at'])) : 'Chưa giải phóng';
 $statusGuideText = ProjectFlow::orderDescription($orderStatus);
-$escrowGuideText = ProjectFlow::escrowDescription($escrowStatus);
+$escrowGuideText = $escrowStatus !== ''
+    ? ProjectFlow::escrowDescription($escrowStatus)
+    : 'Escrow chỉ được tạo sau khi cổng thanh toán xác nhận giao dịch thành công.';
 $resolutionGuideTitle = match ($escrowStatus) {
     ProjectFlow::ESCROW_DISPUTED => 'Đơn hàng đang ở chế độ tranh chấp',
     ProjectFlow::ESCROW_REFUNDED => 'Khoản tiền đã được hoàn cho người mua',
@@ -189,7 +195,7 @@ $resolutionGuideClass = match ($escrowStatus) {
 };
 
 $statusBadgeClass = ProjectFlow::orderBadgeClass($orderStatus);
-$escrowBadgeClass = ProjectFlow::orderBadgeClass($escrowStatus);
+$escrowBadgeClass = $escrowStatus !== '' ? ProjectFlow::orderBadgeClass($escrowStatus) : 'bg-secondary';
 $timelineCurrentStep = ProjectFlow::orderTimelineCurrentStep($orderStatus, $escrowStatus);
 $isCancelledOrder = $orderStatus === ProjectFlow::ORDER_CANCELLED || $escrowStatus === ProjectFlow::ESCROW_REFUNDED;
 $isBuyerView = $order !== null && (int) $order['buyer_id'] === $currentUserId;
@@ -290,9 +296,13 @@ include __DIR__ . '/../layouts/header.php';
                     <i class="fa-solid fa-lock"></i>
                 </div>
                 <div class="flex-grow-1">
-                    <h5 class="fw-bold text-primary mb-1">SpinBike đang quản lý khoản tiền <?php echo htmlspecialchars($formattedPaidAmount); ?></h5>
+                    <h5 class="fw-bold text-primary mb-1">
+                        <?php echo $escrowStatus !== '' ? 'SpinBike đang quản lý khoản tiền ' . htmlspecialchars($formattedPaidAmount) : 'SpinBike chưa tạo escrow cho đơn này'; ?>
+                    </h5>
                     <p class="text-muted mb-3" style="font-size: 14px;">
-                        <?php if ($escrowStatus === 'holding'): ?>
+                        <?php if ($escrowStatus === ''): ?>
+                        Khoản tiền chỉ được ghi nhận vào escrow sau khi thanh toán VNPAY hoặc phương thức demo trả về thành công.
+                        <?php elseif ($escrowStatus === 'holding'): ?>
                         Khoản tiền này sẽ được giữ an toàn cho đến khi người mua xác nhận đã nhận xe đúng mô tả.
                         <?php elseif ($escrowStatus === 'released'): ?>
                         Khoản tiền này đã được giải phóng cho người bán vào <?php echo htmlspecialchars($formattedReleaseDate); ?>.

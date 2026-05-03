@@ -53,14 +53,4 @@ $footerCatalogLinks = [
             </section>
         </div>
     </div>
-
-    <div class="footer-bottom">
-        <div class="container bottom-flex">
-            <p>&copy; 2026 SPINBIKE. Đồ án Lập Trình Web.</p>
-            <div class="payment-methods">
-                <span>Mô phỏng thanh toán an toàn:</span>
-                <strong>VNPay</strong> | <strong>MoMo</strong> | <strong>Escrow</strong>
-            </div>
-        </div>
-    </div>
 </footer>

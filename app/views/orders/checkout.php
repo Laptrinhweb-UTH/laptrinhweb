@@ -18,6 +18,10 @@ $product = null;
 $checkoutStatus = $_GET['status'] ?? '';
 $checkoutMessage = trim((string)($_GET['message'] ?? ''));
 $checkoutNoticeClass = $checkoutStatus === 'success' ? 'alert alert-success' : 'alert alert-danger';
+$vnpayConfigured = defined('VNPAY_TMN_CODE')
+    && defined('VNPAY_HASH_SECRET')
+    && trim((string) VNPAY_TMN_CODE) !== ''
+    && trim((string) VNPAY_HASH_SECRET) !== '';
 
 if ($productId === false || $productId === null) {
     $checkoutError = 'Không tìm thấy sản phẩm hợp lệ để thanh toán.';
@@ -188,8 +192,10 @@ include __DIR__ . '/../layouts/header.php';
                             <div class="d-flex align-items-center gap-3">
                                 <img src="https://vnpay.vn/s1/statics.vnpay.vn/2023/9/06ncktiwd6dc1694418189687.png" height="32" alt="VNPay">
                                 <div>
-                                    <div class="fw-bold text-dark">Thẻ ATM / Internet Banking / VNPAY-QR</div>
-                                    <div class="text-muted small">Thanh toán an toàn qua cổng VNPay</div>
+                                    <div class="fw-bold text-dark">VNPAY sandbox QR</div>
+                                    <div class="text-muted small">
+                                        <?php echo $vnpayConfigured ? 'Chuyển sang cổng VNPAY demo để quét QR hoặc dùng thẻ test' : 'Cần cấu hình TmnCode/HashSecret trước khi demo'; ?>
+                                    </div>
                                 </div>
                             </div>
                             <i class="fa-solid fa-circle-check fs-4 check-icon"></i>
@@ -202,13 +208,18 @@ include __DIR__ . '/../layouts/header.php';
                             <div class="d-flex align-items-center gap-3">
                                 <img src="https://upload.wikimedia.org/wikipedia/vi/f/fe/MoMo_Logo.png" height="32" alt="MoMo">
                                 <div>
-                                    <div class="fw-bold text-dark">Ví điện tử MoMo</div>
-                                    <div class="text-muted small">Quét mã QR qua ứng dụng MoMo</div>
+                                    <div class="fw-bold text-dark">MoMo demo nội bộ</div>
+                                    <div class="text-muted small">Fallback mô phỏng thanh toán thành công khi chưa dùng VNPAY</div>
                                 </div>
                             </div>
                             <i class="fa-solid fa-circle-check fs-4 check-icon"></i>
                         </div>
                     </label>
+
+                    <div class="alert alert-light border rounded-3 mt-3 mb-0 small text-muted">
+                        <i class="fa-solid fa-circle-info text-primary me-2"></i>
+                        VNPAY sandbox mô phỏng thanh toán thật nhưng không chuyển tiền thật. Khi thanh toán thành công, SpinBike mới tạo escrow giữ tiền cho đơn hàng.
+                    </div>
                 </div>
 
                 <div class="card border-0 shadow-sm rounded-4 p-4">

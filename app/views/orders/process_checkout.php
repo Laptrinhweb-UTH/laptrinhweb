@@ -3,7 +3,10 @@ session_start();
 require_once __DIR__ . '/../../../config/config.php';
 require_once __DIR__ . '/../../helpers/Database.php';
 require_once __DIR__ . '/../../helpers/ProjectFlow.php';
+require_once __DIR__ . '/../../helpers/VnpayHelper.php';
 require_once __DIR__ . '/../../models/Product.php';
+
+date_default_timezone_set('Asia/Ho_Chi_Minh');
 
 function redirect_with_feedback(string $url, string $message, string $status = 'error'): never {
     $separator = str_contains($url, '?') ? '&' : '?';
@@ -27,9 +30,12 @@ if ($product_id === false || $product_id === null || !in_array($payment_method, 
     redirect_with_feedback(route_url('home'), 'Dữ liệu thanh toán không hợp lệ. Vui lòng thử lại.');
 }
 
-// TẠI ĐÂY MÔ PHỎNG VIỆC GỌI API VNPAY/MOMO THÀNH CÔNG
-// Nếu tích hợp thật, code VNPAY sẽ redirect người dùng sang app ngân hàng ở đây.
-// Vì đang test, ta coi như thanh toán auto thành công.
+if ($payment_method === 'vnpay' && !VnpayHelper::isConfigured()) {
+    redirect_with_feedback(
+        $checkoutUrl,
+        'Chưa cấu hình VNPAY sandbox. Vui lòng điền VNPAY_TMN_CODE và VNPAY_HASH_SECRET trước khi demo thanh toán QR.'
+    );
+}
 
 $database = new Database();
 $db = $database->getConnectionOrNull();
@@ -70,14 +76,13 @@ try {
          LEFT JOIN escrows e ON e.order_id = o.id
          WHERE o.product_id = ?
            AND (
-                o.status IN (?, ?, ?, ?)
+                o.status IN (?, ?, ?)
                 OR e.status IN (?, ?)
            )
          LIMIT 1"
     );
     $activeOrderStmt->execute([
         $product_id,
-        ProjectFlow::ORDER_PENDING_PAYMENT,
         ProjectFlow::ORDER_PAID,
         ProjectFlow::ORDER_SELLER_CONFIRMED,
         ProjectFlow::ORDER_SHIPPING,
@@ -94,9 +99,33 @@ try {
     $stmtDraftOrder = $db->prepare($queryDraftOrder);
     $stmtDraftOrder->execute([$buyer_id, $seller_id, $product_id, $amount, ProjectFlow::ORDER_PENDING_PAYMENT]);
 
-    $order_id = $db->lastInsertId();
+    $order_id = (int) $db->lastInsertId();
 
-    // 2. Mô phỏng cổng thanh toán thành công và cập nhật đơn sang trạng thái đã thanh toán.
+    if ($payment_method === 'vnpay') {
+        $db->commit();
+
+        $paymentUrl = VnpayHelper::buildPaymentUrl([
+            'vnp_Version' => '2.1.0',
+            'vnp_Command' => 'pay',
+            'vnp_TmnCode' => VNPAY_TMN_CODE,
+            'vnp_Amount' => (string) ((int) round((float) $amount) * 100),
+            'vnp_CurrCode' => 'VND',
+            'vnp_TxnRef' => (string) $order_id,
+            'vnp_OrderInfo' => VnpayHelper::buildOrderInfo($order_id),
+            'vnp_OrderType' => 'other',
+            'vnp_Locale' => 'vn',
+            'vnp_ReturnUrl' => route_url('checkout.vnpay-return'),
+            'vnp_IpAddr' => $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1',
+            'vnp_CreateDate' => date('YmdHis'),
+            'vnp_ExpireDate' => date('YmdHis', strtotime('+15 minutes')),
+            'vnp_BankCode' => VNPAY_DEFAULT_BANK_CODE,
+        ]);
+
+        header('Location: ' . $paymentUrl);
+        exit;
+    }
+
+    // 2. Fallback MoMo demo: mô phỏng cổng thanh toán thành công.
     $stmtOrder = $db->prepare("UPDATE orders SET status = ? WHERE id = ?");
     $stmtOrder->execute([ProjectFlow::ORDER_PAID, $order_id]);
 
