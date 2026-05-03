@@ -22,6 +22,7 @@ $isAdminArea = $isAdmin && is_string($currentRoute) && str_starts_with($currentR
 $isAdminDashboardPage = $currentRoute === 'admin.dashboard';
 $isAdminListingsPage = $currentRoute === 'admin.listings';
 $isAdminOrdersPage = $currentRoute === 'admin.orders';
+$shouldShowLoginOverlay = !$isLoggedIn && !in_array($currentRoute, ['auth', 'auth.login', 'auth.register', 'auth.forgot_password', 'auth.reset_password'], true);
 $homeUrl = $isAdminArea ? $adminDashboardUrl : route_url('home');
 $displayUserName = htmlspecialchars($_SESSION['user_name'] ?? '');
 
@@ -195,7 +196,39 @@ if ($isLoggedIn) {
       </div>
     </div>
 
+    <?php if ($shouldShowLoginOverlay): ?>
+    <div id="guestLoginOverlay" class="guest-login-overlay" role="region" aria-label="Đăng nhập để nhận deal mới">
+      <div class="guest-login-overlay-content">
+        <div class="guest-login-overlay-icon">
+          <i class="fa-solid fa-user"></i>
+        </div>
+        <div class="guest-login-overlay-copy">
+          <strong>Đăng nhập ngay để không bỏ lỡ deal mới gần bạn.</strong>
+        </div>
+      </div>
+      <div class="guest-login-overlay-actions">
+        <a href="<?php echo $authUrl; ?>" class="guest-login-overlay-login">Đăng nhập</a>
+      </div>
+      <button type="button" class="guest-login-overlay-close" onclick="closeGuestLoginOverlay()" aria-label="Đóng thông báo">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+    <?php endif; ?>
+
 <script>
+    const guestLoginOverlay = document.getElementById('guestLoginOverlay');
+    if (guestLoginOverlay && sessionStorage.getItem('spinbike_guest_overlay_closed') === '1') {
+        guestLoginOverlay.classList.add('hidden');
+    }
+
+    function closeGuestLoginOverlay() {
+        const overlay = document.getElementById('guestLoginOverlay');
+        if (overlay) {
+            overlay.classList.add('hidden');
+            sessionStorage.setItem('spinbike_guest_overlay_closed', '1');
+        }
+    }
+
     // Hàm bật bảng Đăng xuất
     function showLogoutModal(e) {
         e.preventDefault(); // Chặn việc nhảy trang
