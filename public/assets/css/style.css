@@ -939,6 +939,57 @@ img {
   line-height: 1.5;
 }
 
+.filter-section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  color: #0f172a;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.filter-chip-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.filter-chip {
+  min-height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #475569;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    background-color var(--transition-base),
+    border-color var(--transition-base),
+    color var(--transition-base),
+    transform var(--transition-base);
+}
+
+.filter-chip:hover {
+  border-color: #10b981;
+  color: #047857;
+}
+
+.filter-chip.is-active {
+  background: #0f172a;
+  border-color: #0f172a;
+  color: #ffffff;
+}
+
+.filter-price-presets {
+  margin-bottom: 12px;
+}
+
 .marketplace-results {
   min-width: 0;
 }
@@ -950,6 +1001,14 @@ img {
   border-radius: 16px;
   background: #ffffff;
   box-shadow: var(--shadow-sm);
+}
+
+.results-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
 .marketplace-results .products-header h1 {
@@ -970,6 +1029,23 @@ img {
   color: #047857;
   font-size: 14px;
   font-weight: 800;
+}
+
+.result-sort-select {
+  min-height: 38px;
+  padding: 0 34px 0 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #334155;
+  font-size: 14px;
+  font-weight: 700;
+  outline: none;
+}
+
+.result-sort-select:focus {
+  border-color: #10b981;
+  box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
 }
 
 .marketplace-results .product-grid {

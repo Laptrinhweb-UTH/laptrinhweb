@@ -35,60 +35,60 @@ if (!$db) {
         </div>
 
         <div class="filter-group">
-          <label class="filter-label"><i class="fa-solid fa-copyright"></i> Hãng xe</label>
-          <select id="brandFilter" onchange="applyFilters()" class="filter-select-modern">
-            <option value="">Tất cả hãng</option>
-            <option value="Asama">Asama</option>
-            <option value="Cannondale">Cannondale</option>
-            <option value="Giant">Giant</option>
-            <option value="Java">Java</option>
-            <option value="Martin 107">Martin 107</option>
-            <option value="Polygon">Polygon</option>
-            <option value="Specialized">Specialized</option>
-            <option value="Trek">Trek</option>
-            <option value="Trinx">Trinx</option>
-            <option value="Twitter">Twitter</option>
-          </select>
+          <div class="filter-section-heading">
+            <span>Hãng</span>
+          </div>
+          <div class="filter-chip-grid" data-filter-group="brand">
+            <button type="button" class="filter-chip is-active" data-value="">Tất cả</button>
+            <button type="button" class="filter-chip" data-value="Giant">Giant</button>
+            <button type="button" class="filter-chip" data-value="Trek">Trek</button>
+            <button type="button" class="filter-chip" data-value="Specialized">Specialized</button>
+            <button type="button" class="filter-chip" data-value="Cannondale">Cannondale</button>
+            <button type="button" class="filter-chip" data-value="Trinx">Trinx</button>
+            <button type="button" class="filter-chip" data-value="Asama">Asama</button>
+            <button type="button" class="filter-chip" data-value="Java">Java</button>
+            <button type="button" class="filter-chip" data-value="Polygon">Polygon</button>
+          </div>
         </div>
 
         <div class="filter-group">
-          <label class="filter-label"><i class="fa-solid fa-bicycle"></i> Dòng xe</label>
-          <select id="typeFilter" onchange="applyFilters()" class="filter-select-modern">
-            <option value="">Tất cả dòng xe</option>
-            <option value="Road">Road bike</option>
-            <option value="MTB">Mountain bike</option>
-            <option value="Gravel">Gravel</option>
-            <option value="Touring">Touring</option>
-            <option value="Fixed">Fixed gear</option>
-          </select>
+          <div class="filter-section-heading">
+            <span>Dòng xe</span>
+          </div>
+          <div class="filter-chip-grid" data-filter-group="type">
+            <button type="button" class="filter-chip is-active" data-value="">Tất cả</button>
+            <button type="button" class="filter-chip" data-value="Road">Road</button>
+            <button type="button" class="filter-chip" data-value="MTB">MTB</button>
+            <button type="button" class="filter-chip" data-value="Gravel">Gravel</button>
+            <button type="button" class="filter-chip" data-value="Touring">Touring</button>
+            <button type="button" class="filter-chip" data-value="Fixed">Fixed</button>
+          </div>
         </div>
 
         <div class="filter-group">
-          <label class="filter-label"><i class="fa-solid fa-money-bill-wave"></i> Khoảng giá</label>
+          <div class="filter-section-heading">
+            <span>Khoảng giá</span>
+          </div>
+          <div class="filter-chip-grid filter-price-presets" data-filter-group="price">
+            <button type="button" class="filter-chip is-active" data-min="" data-max="">Tất cả</button>
+            <button type="button" class="filter-chip" data-min="0" data-max="10000000">Dưới 10tr</button>
+            <button type="button" class="filter-chip" data-min="10000000" data-max="20000000">10-20tr</button>
+            <button type="button" class="filter-chip" data-min="20000000" data-max="40000000">20-40tr</button>
+            <button type="button" class="filter-chip" data-min="40000000" data-max="">Trên 40tr</button>
+          </div>
           <div class="price-range-box">
             <input id="priceMin" type="number" min="0" placeholder="Từ" oninput="applyFilters()" class="price-input-modern" />
             <span class="price-separator">-</span>
             <input id="priceMax" type="number" min="0" placeholder="Đến" oninput="applyFilters()" class="price-input-modern" />
           </div>
-          <p class="filter-help">Nhập giá theo VNĐ, ví dụ 10000000.</p>
-        </div>
-
-        <div class="filter-group filter-group-last">
-          <label class="filter-label"><i class="fa-solid fa-arrow-down-a-z"></i> Sắp xếp</label>
-          <select id="sortFilter" onchange="applyFilters()" class="filter-select-modern">
-            <option value="newest">Tin mới nhất</option>
-            <option value="price-low">Giá thấp đến cao</option>
-            <option value="price-high">Giá cao đến thấp</option>
-          </select>
         </div>
       </aside>
 
       <div class="products-section marketplace-results">
         <div class="products-header">
           <div>
-            <h1>Xe đạp đang bán</h1>
+            <h1>Tin xe mới nhất</h1>
           </div>
-          <p id="resultCount"><?php echo count($products); ?> tin phù hợp</p>
         </div>
 
         <div id="productGrid" class="product-grid">
@@ -220,17 +220,32 @@ if (!$db) {
     return searchInput ? searchInput.value.trim().toLowerCase() : '';
   }
 
+  function getActiveChipValue(groupName) {
+    return document.querySelector(`[data-filter-group="${groupName}"] .filter-chip.is-active`)?.dataset.value || '';
+  }
+
+  function syncPricePresetState() {
+    const priceMin = document.getElementById('priceMin')?.value || '';
+    const priceMax = document.getElementById('priceMax')?.value || '';
+    const priceChips = document.querySelectorAll('[data-filter-group="price"] .filter-chip');
+
+    priceChips.forEach((chip) => {
+      const matches = (chip.dataset.min || '') === priceMin && (chip.dataset.max || '') === priceMax;
+      chip.classList.toggle('is-active', matches);
+    });
+  }
+
   function applyFilters() {
     const grid = document.getElementById('productGrid');
     if (!grid) return;
 
     const cards = Array.from(grid.querySelectorAll('.product-card'));
-    const brand = document.getElementById('brandFilter')?.value || '';
-    const type = document.getElementById('typeFilter')?.value || '';
+    const brand = getActiveChipValue('brand');
+    const type = getActiveChipValue('type');
     const min = Number(document.getElementById('priceMin')?.value || 0);
     const maxInput = document.getElementById('priceMax')?.value || '';
     const max = maxInput !== '' ? Number(maxInput) : Infinity;
-    const sort = document.getElementById('sortFilter')?.value || 'newest';
+    const sort = 'newest';
     const keyword = getSearchTerm();
     let visibleCount = 0;
 
@@ -258,19 +273,20 @@ if (!$db) {
       if (matched) visibleCount += 1;
     });
 
-    const resultCount = document.getElementById('resultCount');
-    if (resultCount) {
-      resultCount.textContent = `${visibleCount} tin phù hợp`;
-    }
-
     noResults?.classList.toggle('hidden', visibleCount !== 0);
   }
 
   function resetFilters() {
-    ['brandFilter', 'typeFilter', 'sortFilter', 'priceMin', 'priceMax'].forEach((id) => {
+    ['priceMin', 'priceMax'].forEach((id) => {
       const element = document.getElementById(id);
       if (!element) return;
-      element.value = id === 'sortFilter' ? 'newest' : '';
+      element.value = '';
+    });
+
+    document.querySelectorAll('.filter-chip-grid').forEach((group) => {
+      group.querySelectorAll('.filter-chip').forEach((chip, index) => {
+        chip.classList.toggle('is-active', index === 0);
+      });
     });
 
     const searchInput = document.getElementById('searchInput');
@@ -278,6 +294,28 @@ if (!$db) {
     applyFilters();
   }
 
+  document.querySelectorAll('[data-filter-group="brand"] .filter-chip, [data-filter-group="type"] .filter-chip').forEach((chip) => {
+    chip.addEventListener('click', () => {
+      const group = chip.closest('.filter-chip-grid');
+      group.querySelectorAll('.filter-chip').forEach((item) => item.classList.remove('is-active'));
+      chip.classList.add('is-active');
+      applyFilters();
+    });
+  });
+
+  document.querySelectorAll('[data-filter-group="price"] .filter-chip').forEach((chip) => {
+    chip.addEventListener('click', () => {
+      const group = chip.closest('.filter-chip-grid');
+      group.querySelectorAll('.filter-chip').forEach((item) => item.classList.remove('is-active'));
+      chip.classList.add('is-active');
+      document.getElementById('priceMin').value = chip.dataset.min || '';
+      document.getElementById('priceMax').value = chip.dataset.max || '';
+      applyFilters();
+    });
+  });
+
+  document.getElementById('priceMin')?.addEventListener('input', syncPricePresetState);
+  document.getElementById('priceMax')?.addEventListener('input', syncPricePresetState);
   document.getElementById('searchInput')?.addEventListener('input', applyFilters);
   window.addEventListener('DOMContentLoaded', applyFilters);
 </script>
