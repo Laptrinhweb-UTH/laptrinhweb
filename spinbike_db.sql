@@ -355,6 +355,205 @@ ALTER TABLE `transactions`
   ADD CONSTRAINT `fk_transactions_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`);
 COMMIT;
 
+-- --------------------------------------------------------
+-- Realistic marketplace polish seed
+-- Makes seeded listings look like user-posted used bicycles.
+-- --------------------------------------------------------
+
+START TRANSACTION;
+
+UPDATE products
+SET
+  title = CASE id
+    WHEN 1 THEN 'Trek Domane AL 2, xe nhà đi kỹ cần bán'
+    WHEN 2 THEN 'Giant XTC 820 màu đen, còn rất mới'
+    WHEN 3 THEN 'Twitter Gravel V3 đi tour nhẹ, full ảnh thật'
+    WHEN 4 THEN 'Trinx Free 2.0 cần bổ sung ảnh thực tế'
+    WHEN 5 THEN 'Specialized Allez Sport đã bán qua SpinBike'
+    WHEN 6 THEN 'Asama MTB Pro, xe đã giao dịch xong'
+    WHEN 7 THEN 'Martin Touring 107 đang tạm ẩn để chỉnh giá'
+    WHEN 8 THEN 'Cannondale Trail 6 phanh dầu, size M'
+    WHEN 9 THEN 'Java Siluro 3 xe tập hằng ngày'
+    WHEN 10 THEN 'Polygon Path 3 đang xử lý giao dịch'
+    WHEN 11 THEN 'XDS AD350 2024 mới đi vài lần'
+    ELSE title
+  END,
+  location = CASE id
+    WHEN 1 THEN 'Phường Hòa Hưng, Quận 10, TP. Hồ Chí Minh'
+    WHEN 2 THEN 'Phường Linh Trung, TP. Thủ Đức, TP. Hồ Chí Minh'
+    WHEN 3 THEN 'Phường 25, Quận Bình Thạnh, TP. Hồ Chí Minh'
+    WHEN 4 THEN 'Phường Trảng Dài, TP. Biên Hòa, Đồng Nai'
+    WHEN 5 THEN 'Phường Tân Phong, Quận 7, TP. Hồ Chí Minh'
+    WHEN 6 THEN 'Phường Hải Châu, Quận Hải Châu, Đà Nẵng'
+    WHEN 7 THEN 'Phường Cái Khế, Quận Ninh Kiều, Cần Thơ'
+    WHEN 8 THEN 'Phường 5, Quận Gò Vấp, TP. Hồ Chí Minh'
+    WHEN 9 THEN 'Phường 4, Quận Tân Bình, TP. Hồ Chí Minh'
+    WHEN 10 THEN 'Phường Võ Thị Sáu, Quận 3, TP. Hồ Chí Minh'
+    WHEN 11 THEN 'Xã Giáp Sơn, Huyện Lục Ngạn, Bắc Giang'
+    ELSE location
+  END,
+  description = CASE id
+    WHEN 1 THEN 'Mình lên đời xe carbon nên bán lại Trek Domane AL 2. Xe đi tập buổi sáng là chính, khung không móp, sơn có vài vết xước nhỏ ở càng sau. Đã thay dây đề và bọc ghi đông gần đây, xem xe trực tiếp ở Quận 10.'
+    WHEN 2 THEN 'Giant XTC 820 mua cuối 2022, phuộc còn nhún tốt, thắng ăn và sang số mượt. Xe hợp đi phố, đi đường xấu hoặc cuối tuần chạy công viên. Có trầy nhẹ ở tay đề do dựng xe trong bãi.'
+    WHEN 3 THEN 'Xe gravel Twitter V3 mình dùng đi tour ngắn và đi làm. Lốp 700x40C còn dày, bộ truyền động sạch, không rơ cổ phốt. Bán vì chuyển qua size nhỏ hơn.'
+    WHEN 4 THEN 'Tin này đang thiếu ảnh chụp thực tế nên để trạng thái từ chối. Người bán cần chụp rõ khung, bộ truyền động, bánh và các vết trầy nếu có.'
+    WHEN 5 THEN 'Xe đã bán thành công qua SpinBike. Trước khi bán xe còn rất đẹp, bánh quay thẳng, group hoạt động ổn và người mua đã xác nhận đúng mô tả.'
+    WHEN 6 THEN 'Asama MTB Pro đã qua sử dụng, phù hợp đi làm và tập thể dục. Giao dịch này đã hoàn tất trên hệ thống, giữ lại để demo lịch sử đơn hàng.'
+    WHEN 7 THEN 'Người bán tạm ẩn tin để chụp lại ảnh ban ngày và cân nhắc giá. Xe touring gác baga chắc, hợp đi làm xa hoặc chở đồ nhẹ.'
+    WHEN 8 THEN 'Cannondale Trail 6 size M, phanh dầu, vỏ còn khá mới. Xe đã có đơn nên hệ thống chuyển trạng thái đã bán, demo luồng đặt mua an toàn.'
+    WHEN 9 THEN 'Java Siluro 3 mình dùng tập hằng ngày khoảng 8 tháng. Sang số ổn, thắng tốt, bánh chưa đảo. Có xước sơn nhỏ ở gióng ngang, không ảnh hưởng sử dụng.'
+    WHEN 10 THEN 'Polygon Path 3 đang có giao dịch cần admin theo dõi. Mô tả này dùng để demo trường hợp đơn hàng phát sinh khiếu nại và hệ thống giữ tiền.'
+    WHEN 11 THEN 'XDS AD350 mua mới đầu năm, mới chạy vài vòng khu nhà. Xe còn sạch, chưa té ngã, phù hợp bạn mới bắt đầu chơi road. Mình bán vì không hợp size.'
+    ELSE description
+  END
+WHERE id BETWEEN 1 AND 11;
+
+UPDATE products p
+JOIN (
+  SELECT
+    id,
+    CASE MOD(id, 18)
+      WHEN 0 THEN CONCAT('Giant TCR Advanced, xe tập sáng còn đẹp - ', id)
+      WHEN 1 THEN CONCAT('Trek Domane AL đi phố cuối tuần - ', id)
+      WHEN 2 THEN CONCAT('Specialized Allez Sport cần bán nhanh - ', id)
+      WHEN 3 THEN CONCAT('Cannondale Trail phanh dầu, size M - ', id)
+      WHEN 4 THEN CONCAT('Merida Scultura lên vài món nhẹ - ', id)
+      WHEN 5 THEN CONCAT('Scott Speedster màu xám, giấy tờ đủ - ', id)
+      WHEN 6 THEN CONCAT('Java Siluro 3 cho người mới chơi - ', id)
+      WHEN 7 THEN CONCAT('Twitter Gravel đi tour ngắn rất ổn - ', id)
+      WHEN 8 THEN CONCAT('Polygon Path 3 đi làm hằng ngày - ', id)
+      WHEN 9 THEN CONCAT('Trinx Free 2.0 xe nhà ít dùng - ', id)
+      WHEN 10 THEN CONCAT('Asama MTB Pro bánh 27.5 - ', id)
+      WHEN 11 THEN CONCAT('Martin Touring gác baga chắc chắn - ', id)
+      WHEN 12 THEN CONCAT('Giant Escape dáng hybrid dễ đi - ', id)
+      WHEN 13 THEN CONCAT('Trek Checkpoint ALR gravel size M - ', id)
+      WHEN 14 THEN CONCAT('Specialized Diverge E5 đi cafe tour - ', id)
+      WHEN 15 THEN CONCAT('Fixed gear khung nhôm, màu tối - ', id)
+      WHEN 16 THEN CONCAT('Xe đạp city Nhật bãi còn zin - ', id)
+      ELSE CONCAT('MTB Giant Talon cho sinh viên - ', id)
+    END AS realistic_title,
+    CASE MOD(id, 10)
+      WHEN 0 THEN 'Road'
+      WHEN 1 THEN 'Road'
+      WHEN 2 THEN 'MTB'
+      WHEN 3 THEN 'MTB'
+      WHEN 4 THEN 'Gravel'
+      WHEN 5 THEN 'Touring'
+      WHEN 6 THEN 'Hybrid'
+      WHEN 7 THEN 'City'
+      WHEN 8 THEN 'Fixed'
+      ELSE 'Road'
+    END AS realistic_type,
+    CASE MOD(id, 16)
+      WHEN 0 THEN 'Phường Bến Thành, Quận 1, TP. Hồ Chí Minh'
+      WHEN 1 THEN 'Phường An Phú, TP. Thủ Đức, TP. Hồ Chí Minh'
+      WHEN 2 THEN 'Phường 25, Quận Bình Thạnh, TP. Hồ Chí Minh'
+      WHEN 3 THEN 'Phường Dịch Vọng, Quận Cầu Giấy, Hà Nội'
+      WHEN 4 THEN 'Phường Hàng Bạc, Quận Hoàn Kiếm, Hà Nội'
+      WHEN 5 THEN 'Phường Hải Châu, Quận Hải Châu, Đà Nẵng'
+      WHEN 6 THEN 'Phường Cái Khế, Quận Ninh Kiều, Cần Thơ'
+      WHEN 7 THEN 'Phường Tân Mai, TP. Biên Hòa, Đồng Nai'
+      WHEN 8 THEN 'Phường Phú Hòa, TP. Thủ Dầu Một, Bình Dương'
+      WHEN 9 THEN 'Phường Máy Tơ, Quận Ngô Quyền, Hải Phòng'
+      WHEN 10 THEN 'Phường Ghềnh Ráng, TP. Quy Nhơn, Gia Lai'
+      WHEN 11 THEN 'Phường Vĩnh Hòa, TP. Nha Trang, Khánh Hòa'
+      WHEN 12 THEN 'Phường Thắng Tam, TP. Vũng Tàu, TP. Hồ Chí Minh'
+      WHEN 13 THEN 'Phường Phú Hội, TP. Huế'
+      WHEN 14 THEN 'Phường Tân Lợi, TP. Buôn Ma Thuột, Đắk Lắk'
+      ELSE 'Phường Bãi Cháy, TP. Hạ Long, Quảng Ninh'
+    END AS realistic_location,
+    CASE MOD(id, 9)
+      WHEN 0 THEN 'Mình bán vì mới lên đời xe khác. Xe đi tập buổi sáng là chính, để trong nhà, không dầm mưa. Có vài vết xước nhỏ do dựng xe chung nhưng khung không móp, sang số và thắng vẫn ổn.'
+      WHEN 1 THEN 'Xe của nhà dùng đi làm gần, cuối tuần có chạy công viên. Vỏ còn dày, bánh quay thẳng, cổ phốt không rơ. Bạn nào cần xe gọn, dễ bảo dưỡng thì qua xem trực tiếp.'
+      WHEN 2 THEN 'Mua lại từ người quen nên lịch sử xe khá rõ. Mình đã vệ sinh sên líp và chỉnh lại thắng trước khi đăng. Ngoại hình còn đẹp, có trầy nhẹ ở tay đề.'
+      WHEN 3 THEN 'Xe phù hợp người mới chơi, không cần nâng cấp thêm nhiều. Bộ truyền động hoạt động bình thường, yên và ghi đông còn sạch. Bán vì không còn thời gian đạp.'
+      WHEN 4 THEN 'Đã thay ruột sau và bọc lại tay nắm tháng trước. Xe chạy êm, không phát tiếng lạ. Khuyến khích xem ban ngày để kiểm tra kỹ màu sơn và phụ tùng.'
+      WHEN 5 THEN 'Xe nữ trong nhà dùng nên khá giữ gìn. Có hóa đơn mua ban đầu, phụ kiện kèm theo gồm chân chống và bình nước. Giá còn thương lượng nhẹ cho bạn thiện chí.'
+      WHEN 6 THEN 'Xe đã đi vài chuyến xa nên có dấu sử dụng thật, nhưng máy móc ổn. Mình mô tả đúng tình trạng, xem xe không ưng thì thoải mái bỏ qua.'
+      WHEN 7 THEN 'Cần bán nhanh để dọn chỗ. Xe để lâu khoảng một tháng, trước khi bán đã bơm lốp và kiểm tra phanh. Phù hợp đi học, đi làm hoặc tập thể dục.'
+      ELSE 'Xe còn sử dụng hằng ngày nên lịch xem xe hẹn trước giúp mình. Không lỗi nặng, chỉ có xước lặt vặt theo thời gian. Có thể test quanh khu vực gần nhà.'
+    END AS realistic_description
+  FROM products
+  WHERE id >= 12
+) seed ON seed.id = p.id
+SET
+  p.title = seed.realistic_title,
+  p.bike_type = seed.realistic_type,
+  p.location = seed.realistic_location,
+  p.description = seed.realistic_description,
+  p.price = CAST(
+    CASE seed.realistic_type
+      WHEN 'Road' THEN 8500000 + MOD(p.id * 930000, 38000000)
+      WHEN 'MTB' THEN 5200000 + MOD(p.id * 710000, 22000000)
+      WHEN 'Gravel' THEN 12000000 + MOD(p.id * 860000, 36000000)
+      WHEN 'Touring' THEN 6500000 + MOD(p.id * 510000, 18000000)
+      WHEN 'Hybrid' THEN 4800000 + MOD(p.id * 430000, 15000000)
+      WHEN 'City' THEN 2800000 + MOD(p.id * 270000, 8500000)
+      ELSE 3500000 + MOD(p.id * 330000, 12000000)
+    END AS DECIMAL(15,2)
+  ),
+  p.condition_percent = 76 + MOD(p.id * 7, 23),
+  p.frame_size = CASE MOD(p.id, 5)
+    WHEN 0 THEN 'XS'
+    WHEN 1 THEN 'S'
+    WHEN 2 THEN 'M'
+    WHEN 3 THEN 'L'
+    ELSE 'XL'
+  END;
+
+DELETE FROM product_images;
+
+INSERT INTO product_images (product_id, image_url, created_at)
+SELECT
+  p.id,
+  CASE
+    WHEN p.bike_type = 'MTB' THEN CASE MOD(p.id + image_seed.image_index, 6)
+      WHEN 0 THEN 'https://images.pexels.com/photos/11219607/pexels-photo-11219607.jpeg?auto=compress&cs=tinysrgb&w=1200'
+      WHEN 1 THEN 'https://images.pexels.com/photos/27600453/pexels-photo-27600453.jpeg?auto=compress&cs=tinysrgb&w=1200'
+      WHEN 2 THEN 'https://images.pexels.com/photos/29382118/pexels-photo-29382118.jpeg?auto=compress&cs=tinysrgb&w=1200'
+      WHEN 3 THEN 'https://images.unsplash.com/photo-1571068316344-75bc76f77890?auto=format&fit=crop&w=1200&q=80'
+      WHEN 4 THEN 'https://images.unsplash.com/photo-1502740479091-635887520276?auto=format&fit=crop&w=1200&q=80'
+      ELSE 'https://images.unsplash.com/photo-1541625602330-2277a4c46182?auto=format&fit=crop&w=1200&q=80'
+    END
+    WHEN p.bike_type = 'Road' THEN CASE MOD(p.id + image_seed.image_index, 7)
+      WHEN 0 THEN 'https://images.pexels.com/photos/13799193/pexels-photo-13799193.jpeg?auto=compress&cs=tinysrgb&w=1200'
+      WHEN 1 THEN 'https://images.pexels.com/photos/13799194/pexels-photo-13799194.jpeg?auto=compress&cs=tinysrgb&w=1200'
+      WHEN 2 THEN 'https://images.pexels.com/photos/18424630/pexels-photo-18424630.jpeg?auto=compress&cs=tinysrgb&w=1200'
+      WHEN 3 THEN 'https://images.unsplash.com/photo-1511994298241-608e28f14fde?auto=format&fit=crop&w=1200&q=80'
+      WHEN 4 THEN 'https://images.unsplash.com/photo-1532298229144-0ec0c57515c7?auto=format&fit=crop&w=1200&q=80'
+      WHEN 5 THEN 'https://images.unsplash.com/photo-1485965120184-e220f721d03e?auto=format&fit=crop&w=1200&q=80'
+      ELSE 'https://images.unsplash.com/photo-1507035895480-2b3156c31fc8?auto=format&fit=crop&w=1200&q=80'
+    END
+    WHEN p.bike_type = 'Gravel' THEN CASE MOD(p.id + image_seed.image_index, 5)
+      WHEN 0 THEN 'https://images.pexels.com/photos/13799193/pexels-photo-13799193.jpeg?auto=compress&cs=tinysrgb&w=1200'
+      WHEN 1 THEN 'https://images.pexels.com/photos/13799194/pexels-photo-13799194.jpeg?auto=compress&cs=tinysrgb&w=1200'
+      WHEN 2 THEN 'https://images.unsplash.com/photo-1507035895480-2b3156c31fc8?auto=format&fit=crop&w=1200&q=80'
+      WHEN 3 THEN 'https://images.unsplash.com/photo-1485965120184-e220f721d03e?auto=format&fit=crop&w=1200&q=80'
+      ELSE 'https://images.unsplash.com/photo-1511994298241-608e28f14fde?auto=format&fit=crop&w=1200&q=80'
+    END
+    ELSE CASE MOD(p.id + image_seed.image_index, 6)
+      WHEN 0 THEN 'https://images.pexels.com/photos/4061694/pexels-photo-4061694.jpeg?auto=compress&cs=tinysrgb&w=1200'
+      WHEN 1 THEN 'https://images.unsplash.com/photo-1507035895480-2b3156c31fc8?auto=format&fit=crop&w=1200&q=80'
+      WHEN 2 THEN 'https://images.unsplash.com/photo-1511994298241-608e28f14fde?auto=format&fit=crop&w=1200&q=80'
+      WHEN 3 THEN 'https://images.unsplash.com/photo-1532298229144-0ec0c57515c7?auto=format&fit=crop&w=1200&q=80'
+      WHEN 4 THEN 'https://images.unsplash.com/photo-1541625602330-2277a4c46182?auto=format&fit=crop&w=1200&q=80'
+      ELSE 'https://images.unsplash.com/photo-1571068316344-75bc76f77890?auto=format&fit=crop&w=1200&q=80'
+    END
+  END AS image_url,
+  DATE_ADD(p.created_at, INTERVAL image_seed.image_index MINUTE) AS created_at
+FROM products p
+JOIN (
+  SELECT 1 AS image_index
+  UNION ALL SELECT 2
+  UNION ALL SELECT 3
+) image_seed
+WHERE image_seed.image_index <= CASE
+  WHEN MOD(p.id, 4) = 0 THEN 3
+  ELSE 2
+END;
+
+COMMIT;
+
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
@@ -573,5 +772,157 @@ WHERE p.id >= @seed_start_product_id
   END;
 
 DROP TEMPORARY TABLE IF EXISTS _spinbike_seed_nums;
+
+COMMIT;
+
+-- --------------------------------------------------------
+-- Final realistic pass for all generated marketplace listings
+-- --------------------------------------------------------
+
+START TRANSACTION;
+
+UPDATE products p
+JOIN (
+  SELECT
+    id,
+    CASE MOD(id, 18)
+      WHEN 0 THEN CONCAT('Giant TCR Advanced xe tập sáng còn đẹp - ', id)
+      WHEN 1 THEN CONCAT('Trek Domane AL đi phố cuối tuần - ', id)
+      WHEN 2 THEN CONCAT('Specialized Allez Sport cần bán nhanh - ', id)
+      WHEN 3 THEN CONCAT('Cannondale Trail phanh dầu, size M - ', id)
+      WHEN 4 THEN CONCAT('Merida Scultura đã lên vỏ mới - ', id)
+      WHEN 5 THEN CONCAT('Scott Speedster màu xám, giấy tờ đủ - ', id)
+      WHEN 6 THEN CONCAT('Java Siluro 3 cho người mới chơi - ', id)
+      WHEN 7 THEN CONCAT('Twitter Gravel đi tour ngắn rất ổn - ', id)
+      WHEN 8 THEN CONCAT('Polygon Path 3 đi làm hằng ngày - ', id)
+      WHEN 9 THEN CONCAT('Trinx Free 2.0 xe nhà ít dùng - ', id)
+      WHEN 10 THEN CONCAT('Asama MTB Pro bánh 27.5 - ', id)
+      WHEN 11 THEN CONCAT('Martin Touring gác baga chắc chắn - ', id)
+      WHEN 12 THEN CONCAT('Giant Escape dáng hybrid dễ đi - ', id)
+      WHEN 13 THEN CONCAT('Trek Checkpoint ALR gravel size M - ', id)
+      WHEN 14 THEN CONCAT('Specialized Diverge E5 đi cafe tour - ', id)
+      WHEN 15 THEN CONCAT('Fixed gear khung nhôm, màu tối - ', id)
+      WHEN 16 THEN CONCAT('Xe đạp city Nhật bãi còn zin - ', id)
+      ELSE CONCAT('MTB Giant Talon cho sinh viên - ', id)
+    END AS realistic_title,
+    CASE MOD(id, 10)
+      WHEN 0 THEN 'Road'
+      WHEN 1 THEN 'Road'
+      WHEN 2 THEN 'MTB'
+      WHEN 3 THEN 'MTB'
+      WHEN 4 THEN 'Gravel'
+      WHEN 5 THEN 'Touring'
+      WHEN 6 THEN 'Hybrid'
+      WHEN 7 THEN 'City'
+      WHEN 8 THEN 'Fixed'
+      ELSE 'Road'
+    END AS realistic_type,
+    CASE MOD(id, 16)
+      WHEN 0 THEN 'Phường Bến Thành, Quận 1, TP. Hồ Chí Minh'
+      WHEN 1 THEN 'Phường An Phú, TP. Thủ Đức, TP. Hồ Chí Minh'
+      WHEN 2 THEN 'Phường 25, Quận Bình Thạnh, TP. Hồ Chí Minh'
+      WHEN 3 THEN 'Phường Dịch Vọng, Quận Cầu Giấy, Hà Nội'
+      WHEN 4 THEN 'Phường Hàng Bạc, Quận Hoàn Kiếm, Hà Nội'
+      WHEN 5 THEN 'Phường Hải Châu, Quận Hải Châu, Đà Nẵng'
+      WHEN 6 THEN 'Phường Cái Khế, Quận Ninh Kiều, Cần Thơ'
+      WHEN 7 THEN 'Phường Tân Mai, TP. Biên Hòa, Đồng Nai'
+      WHEN 8 THEN 'Phường Phú Hòa, TP. Thủ Dầu Một, Bình Dương'
+      WHEN 9 THEN 'Phường Máy Tơ, Quận Ngô Quyền, Hải Phòng'
+      WHEN 10 THEN 'Phường Ghềnh Ráng, TP. Quy Nhơn, Gia Lai'
+      WHEN 11 THEN 'Phường Vĩnh Hòa, TP. Nha Trang, Khánh Hòa'
+      WHEN 12 THEN 'Phường Thắng Tam, TP. Vũng Tàu, TP. Hồ Chí Minh'
+      WHEN 13 THEN 'Phường Phú Hội, TP. Huế'
+      WHEN 14 THEN 'Phường Tân Lợi, TP. Buôn Ma Thuột, Đắk Lắk'
+      ELSE 'Phường Bãi Cháy, TP. Hạ Long, Quảng Ninh'
+    END AS realistic_location,
+    CASE MOD(id, 9)
+      WHEN 0 THEN 'Mình bán vì mới lên đời xe khác. Xe đi tập buổi sáng là chính, để trong nhà, không dầm mưa. Có vài vết xước nhỏ do dựng xe chung nhưng khung không móp, sang số và thắng vẫn ổn.'
+      WHEN 1 THEN 'Xe của nhà dùng đi làm gần, cuối tuần có chạy công viên. Vỏ còn dày, bánh quay thẳng, cổ phốt không rơ. Bạn nào cần xe gọn, dễ bảo dưỡng thì qua xem trực tiếp.'
+      WHEN 2 THEN 'Mua lại từ người quen nên lịch sử xe khá rõ. Mình đã vệ sinh sên líp và chỉnh lại thắng trước khi đăng. Ngoại hình còn đẹp, có trầy nhẹ ở tay đề.'
+      WHEN 3 THEN 'Xe phù hợp người mới chơi, không cần nâng cấp thêm nhiều. Bộ truyền động hoạt động bình thường, yên và ghi đông còn sạch. Bán vì không còn thời gian đạp.'
+      WHEN 4 THEN 'Đã thay ruột sau và bọc lại tay nắm tháng trước. Xe chạy êm, không phát tiếng lạ. Khuyến khích xem ban ngày để kiểm tra kỹ màu sơn và phụ tùng.'
+      WHEN 5 THEN 'Xe trong nhà dùng nên khá giữ gìn. Có hóa đơn mua ban đầu, phụ kiện kèm theo gồm chân chống và bình nước. Giá còn thương lượng nhẹ cho bạn thiện chí.'
+      WHEN 6 THEN 'Xe đã đi vài chuyến xa nên có dấu sử dụng thật, nhưng máy móc ổn. Mình mô tả đúng tình trạng, xem xe không ưng thì thoải mái bỏ qua.'
+      WHEN 7 THEN 'Cần bán nhanh để dọn chỗ. Xe để lâu khoảng một tháng, trước khi bán đã bơm lốp và kiểm tra phanh. Phù hợp đi học, đi làm hoặc tập thể dục.'
+      ELSE 'Xe còn sử dụng hằng ngày nên lịch xem xe hẹn trước giúp mình. Không lỗi nặng, chỉ có xước lặt vặt theo thời gian. Có thể test quanh khu vực gần nhà.'
+    END AS realistic_description
+  FROM products
+  WHERE id >= 12
+) seed ON seed.id = p.id
+SET
+  p.title = seed.realistic_title,
+  p.bike_type = seed.realistic_type,
+  p.location = seed.realistic_location,
+  p.description = seed.realistic_description,
+  p.price = CAST(
+    CASE seed.realistic_type
+      WHEN 'Road' THEN 8500000 + MOD(p.id * 930000, 38000000)
+      WHEN 'MTB' THEN 5200000 + MOD(p.id * 710000, 22000000)
+      WHEN 'Gravel' THEN 12000000 + MOD(p.id * 860000, 36000000)
+      WHEN 'Touring' THEN 6500000 + MOD(p.id * 510000, 18000000)
+      WHEN 'Hybrid' THEN 4800000 + MOD(p.id * 430000, 15000000)
+      WHEN 'City' THEN 2800000 + MOD(p.id * 270000, 8500000)
+      ELSE 3500000 + MOD(p.id * 330000, 12000000)
+    END AS DECIMAL(15,2)
+  ),
+  p.condition_percent = 76 + MOD(p.id * 7, 23),
+  p.frame_size = CASE MOD(p.id, 5)
+    WHEN 0 THEN 'XS'
+    WHEN 1 THEN 'S'
+    WHEN 2 THEN 'M'
+    WHEN 3 THEN 'L'
+    ELSE 'XL'
+  END;
+
+DELETE FROM product_images;
+
+INSERT INTO product_images (product_id, image_url, created_at)
+SELECT
+  p.id,
+  CASE
+    WHEN p.bike_type = 'MTB' THEN CASE MOD(p.id + image_seed.image_index, 6)
+      WHEN 0 THEN 'https://images.pexels.com/photos/11219607/pexels-photo-11219607.jpeg?auto=compress&cs=tinysrgb&w=1200'
+      WHEN 1 THEN 'https://images.pexels.com/photos/27600453/pexels-photo-27600453.jpeg?auto=compress&cs=tinysrgb&w=1200'
+      WHEN 2 THEN 'https://images.pexels.com/photos/29382118/pexels-photo-29382118.jpeg?auto=compress&cs=tinysrgb&w=1200'
+      WHEN 3 THEN 'https://images.unsplash.com/photo-1571068316344-75bc76f77890?auto=format&fit=crop&w=1200&q=80'
+      WHEN 4 THEN 'https://images.unsplash.com/photo-1502740479091-635887520276?auto=format&fit=crop&w=1200&q=80'
+      ELSE 'https://images.unsplash.com/photo-1541625602330-2277a4c46182?auto=format&fit=crop&w=1200&q=80'
+    END
+    WHEN p.bike_type = 'Road' THEN CASE MOD(p.id + image_seed.image_index, 7)
+      WHEN 0 THEN 'https://images.pexels.com/photos/13799193/pexels-photo-13799193.jpeg?auto=compress&cs=tinysrgb&w=1200'
+      WHEN 1 THEN 'https://images.pexels.com/photos/13799194/pexels-photo-13799194.jpeg?auto=compress&cs=tinysrgb&w=1200'
+      WHEN 2 THEN 'https://images.pexels.com/photos/18424630/pexels-photo-18424630.jpeg?auto=compress&cs=tinysrgb&w=1200'
+      WHEN 3 THEN 'https://images.unsplash.com/photo-1511994298241-608e28f14fde?auto=format&fit=crop&w=1200&q=80'
+      WHEN 4 THEN 'https://images.unsplash.com/photo-1532298229144-0ec0c57515c7?auto=format&fit=crop&w=1200&q=80'
+      WHEN 5 THEN 'https://images.unsplash.com/photo-1485965120184-e220f721d03e?auto=format&fit=crop&w=1200&q=80'
+      ELSE 'https://images.unsplash.com/photo-1507035895480-2b3156c31fc8?auto=format&fit=crop&w=1200&q=80'
+    END
+    WHEN p.bike_type = 'Gravel' THEN CASE MOD(p.id + image_seed.image_index, 5)
+      WHEN 0 THEN 'https://images.pexels.com/photos/13799193/pexels-photo-13799193.jpeg?auto=compress&cs=tinysrgb&w=1200'
+      WHEN 1 THEN 'https://images.pexels.com/photos/13799194/pexels-photo-13799194.jpeg?auto=compress&cs=tinysrgb&w=1200'
+      WHEN 2 THEN 'https://images.unsplash.com/photo-1507035895480-2b3156c31fc8?auto=format&fit=crop&w=1200&q=80'
+      WHEN 3 THEN 'https://images.unsplash.com/photo-1485965120184-e220f721d03e?auto=format&fit=crop&w=1200&q=80'
+      ELSE 'https://images.unsplash.com/photo-1511994298241-608e28f14fde?auto=format&fit=crop&w=1200&q=80'
+    END
+    ELSE CASE MOD(p.id + image_seed.image_index, 6)
+      WHEN 0 THEN 'https://images.pexels.com/photos/4061694/pexels-photo-4061694.jpeg?auto=compress&cs=tinysrgb&w=1200'
+      WHEN 1 THEN 'https://images.unsplash.com/photo-1507035895480-2b3156c31fc8?auto=format&fit=crop&w=1200&q=80'
+      WHEN 2 THEN 'https://images.unsplash.com/photo-1511994298241-608e28f14fde?auto=format&fit=crop&w=1200&q=80'
+      WHEN 3 THEN 'https://images.unsplash.com/photo-1532298229144-0ec0c57515c7?auto=format&fit=crop&w=1200&q=80'
+      WHEN 4 THEN 'https://images.unsplash.com/photo-1541625602330-2277a4c46182?auto=format&fit=crop&w=1200&q=80'
+      ELSE 'https://images.unsplash.com/photo-1571068316344-75bc76f77890?auto=format&fit=crop&w=1200&q=80'
+    END
+  END AS image_url,
+  DATE_ADD(p.created_at, INTERVAL image_seed.image_index MINUTE) AS created_at
+FROM products p
+JOIN (
+  SELECT 1 AS image_index
+  UNION ALL SELECT 2
+  UNION ALL SELECT 3
+) image_seed
+WHERE image_seed.image_index <= CASE
+  WHEN MOD(p.id, 4) = 0 THEN 3
+  ELSE 2
+END;
 
 COMMIT;
