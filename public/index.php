@@ -112,11 +112,12 @@ if (!$db) {
                 // 2. Lấy link ảnh
                 $image = !empty($row['main_image']) ? $row['main_image'] : 'https://via.placeholder.com/400x300?text=Chua+Co+Anh';
                 
-                // 2.1 Xử lý địa chỉ: Chỉ cắt lấy Tỉnh/Thành phố
+                // 2.1 Xử lý địa chỉ: hiển thị Quận/Huyện + Tỉnh/Thành phố
                 $location = 'Đang cập nhật';
                 if (!empty($row['location'])) {
-                    $locationParts = explode(',', $row['location']); 
-                    $location = trim(end($locationParts)); 
+                    $locationParts = array_values(array_filter(array_map('trim', explode(',', $row['location']))));
+                    $locationTail = array_slice($locationParts, -2);
+                    $location = !empty($locationTail) ? implode(', ', $locationTail) : trim((string) $row['location']);
                 }
 
                 // 3. TÍNH TOÁN THỜI GIAN ĐĂNG BÀI
@@ -124,14 +125,24 @@ if (!$db) {
                 $now = time(); 
                 $diff = $createdAt ? ($now - $createdAt) : null;
 
-                if ($diff !== null && $diff < 3600) {
+                if ($diff !== null && $diff < 60) {
+                    $seconds = max(1, (int) $diff);
+                    $timeAgo = $seconds . ' giây trước';
+                } elseif ($diff !== null && $diff < 3600) {
                     $mins = floor($diff / 60);
-                    $timeAgo = ($mins > 0 ? $mins : 1) . ' phút trước';
+                    $timeAgo = max(1, (int) $mins) . ' phút trước';
                 } elseif ($diff !== null && $diff < 86400) {
                     $hours = floor($diff / 3600);
-                    $timeAgo = $hours . ' giờ trước';
+                    $timeAgo = max(1, (int) $hours) . ' giờ trước';
+                } elseif ($diff !== null && $diff < 2592000) {
+                    $days = floor($diff / 86400);
+                    $timeAgo = max(1, (int) $days) . ' ngày trước';
+                } elseif ($diff !== null && $diff < 31536000) {
+                    $months = floor($diff / 2592000);
+                    $timeAgo = max(1, (int) $months) . ' tháng trước';
                 } elseif ($createdAt) {
-                    $timeAgo = date('d/m/Y', $createdAt);
+                    $years = floor($diff / 31536000);
+                    $timeAgo = max(1, (int) $years) . ' năm trước';
                 } else {
                     $timeAgo = 'Vừa cập nhật';
                 }
@@ -148,6 +159,7 @@ if (!$db) {
               ?>
               <article
                 class="product-card"
+                onclick="window.location.href='<?php echo route_url('listing', ['id' => (int) $row['id']]); ?>'"
                 data-title="<?php echo htmlspecialchars($productTitle); ?>"
                 data-brand="<?php echo htmlspecialchars($brandValue); ?>"
                 data-type="<?php echo htmlspecialchars($typeValue); ?>"
@@ -155,15 +167,17 @@ if (!$db) {
                 data-created="<?php echo (int) $createdSort; ?>"
                 data-location="<?php echo htmlspecialchars($locationSearch); ?>"
               >
-                <a href="<?php echo route_url('listing', ['id' => (int) $row['id']]); ?>" class="product-image product-image-link" style="background-image: url('<?php echo htmlspecialchars($image); ?>');">
-                    <span class="product-status-pill">Đã duyệt</span>
+                <div class="product-image product-image-link" style="background-image: url('<?php echo htmlspecialchars($image); ?>');">
+                    <button type="button" class="product-favorite-btn" aria-label="Lưu tin yêu thích" onclick="event.stopPropagation(); this.classList.toggle('is-active'); this.querySelector('i').classList.toggle('fa-solid'); this.querySelector('i').classList.toggle('fa-regular');">
+                        <i class="fa-regular fa-heart"></i>
+                    </button>
                     <div class="product-time-badge">
-                        <i class="fa-regular fa-clock"></i> <?php echo $timeAgo; ?>
+                        <?php echo $timeAgo; ?>
                     </div>
                     <div class="product-image-count">
                         <i class="fa-regular fa-images"></i> <?php echo $imgCount; ?>
                     </div>
-                </a>
+                </div>
                 
                 <div class="product-info">
                     <div class="product-meta-row">
@@ -173,7 +187,7 @@ if (!$db) {
                         <?php endif; ?>
                     </div>
                     <h3 class="product-title">
-                        <a href="<?php echo route_url('listing', ['id' => (int) $row['id']]); ?>"><?php echo htmlspecialchars($productTitle); ?></a>
+                        <?php echo htmlspecialchars($productTitle); ?>
                     </h3>
                     <div class="product-price"><?php echo $formattedPrice; ?></div>
                     
@@ -183,10 +197,6 @@ if (!$db) {
                     </div>
                     
                     <div class="product-spacer"></div>
-                    
-                    <a href="<?php echo route_url('listing', ['id' => (int) $row['id']]); ?>" class="btn-detail product-detail-link">
-                        Xem chi tiết <i class="fa-solid fa-arrow-right"></i>
-                    </a>
                 </div>
               </article>
             <?php endforeach; ?>

@@ -125,14 +125,10 @@ include __DIR__ . '/../layouts/header.php';
 
                 <div class="form-section">
                     <h2 class="section-title">3. Địa chỉ xem xe</h2>
-                    <div class="form-grid-3">
+                    <div class="form-grid-2">
                         <div class="form-group">
                             <label class="form-label">Tỉnh/Thành phố <span class="required">*</span></label>
                             <select id="province" class="form-control" required><option value="">-- Chọn --</option></select>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Quận/Huyện <span class="required">*</span></label>
-                            <select id="district" class="form-control" required disabled><option value="">-- Chọn --</option></select>
                         </div>
                         <div class="form-group">
                             <label class="form-label">Phường/Xã <span class="required">*</span></label>
@@ -652,27 +648,34 @@ include __DIR__ . '/../layouts/header.php';
     // ==========================================
     // TÍCH HỢP API TỈNH THÀNH VIỆT NAM
     // ==========================================
-    const host = "https://provinces.open-api.vn/api/";
+    const host = "https://provinces.open-api.vn/api/v2/";
+
+    function setAddressSelectOptions(select, placeholder, items = []) {
+        select.innerHTML = placeholder;
+        items.forEach(element => {
+            select.innerHTML += `<option value="${element.code}" data-name="${element.name}">${element.name}</option>`;
+        });
+    }
 
     // 1. Lấy danh sách Tỉnh/Thành phố khi load trang
     fetch(host + "?depth=1")
         .then(response => response.json())
         .then(data => {
-            let html = '<option value="">-- Chọn Tỉnh/Thành phố --</option>';
-            data.forEach(element => {
-                // Lưu tên tỉnh vào thuộc tính data-name để lát nữa lấy tên thay vì lấy mã code
-                html += `<option value="${element.code}" data-name="${element.name}">${element.name}</option>`;
-            });
-            document.getElementById('province').innerHTML = html;
+            setAddressSelectOptions(
+                document.getElementById('province'),
+                '<option value="">-- Chọn Tỉnh/Thành phố --</option>',
+                Array.isArray(data) ? data : []
+            );
+        })
+        .catch(() => {
+            document.getElementById('province').innerHTML = '<option value="">Không tải được danh sách tỉnh/thành</option>';
         });
 
-    // 2. Khi chọn Tỉnh -> Load danh sách Quận/Huyện
+    // 2. Khi chọn Tỉnh -> Load danh sách Phường/Xã theo dữ liệu hành chính mới
     document.getElementById('province').addEventListener('change', function() {
         const provinceCode = this.value;
-        const districtSelect = document.getElementById('district');
         const wardSelect = document.getElementById('ward');
         
-        // Reset Phường/Xã
         wardSelect.innerHTML = '<option value="">-- Chọn Phường/Xã --</option>';
         wardSelect.disabled = true;
 
@@ -680,38 +683,20 @@ include __DIR__ . '/../layouts/header.php';
             fetch(host + "p/" + provinceCode + "?depth=2")
                 .then(response => response.json())
                 .then(data => {
-                    let html = '<option value="">-- Chọn Quận/Huyện --</option>';
-                    data.districts.forEach(element => {
-                        html += `<option value="${element.code}" data-name="${element.name}">${element.name}</option>`;
-                    });
-                    districtSelect.innerHTML = html;
-                    districtSelect.disabled = false; // Mở khóa ô Quận/Huyện
-                });
-        } else {
-            districtSelect.innerHTML = '<option value="">-- Chọn Quận/Huyện --</option>';
-            districtSelect.disabled = true;
-        }
-    });
+                    const wards = Array.isArray(data.wards)
+                        ? data.wards
+                        : (Array.isArray(data.districts) ? data.districts : []);
 
-    // 3. Khi chọn Quận/Huyện -> Load danh sách Phường/Xã
-    document.getElementById('district').addEventListener('change', function() {
-        const districtCode = this.value;
-        const wardSelect = document.getElementById('ward');
-
-        if (districtCode) {
-            fetch(host + "d/" + districtCode + "?depth=2")
-                .then(response => response.json())
-                .then(data => {
-                    let html = '<option value="">-- Chọn Phường/Xã --</option>';
-                    data.wards.forEach(element => {
-                        html += `<option value="${element.code}" data-name="${element.name}">${element.name}</option>`;
-                    });
-                    wardSelect.innerHTML = html;
-                    wardSelect.disabled = false; // Mở khóa ô Phường/Xã
+                    setAddressSelectOptions(
+                        wardSelect,
+                        '<option value="">-- Chọn Phường/Xã --</option>',
+                        wards
+                    );
+                    wardSelect.disabled = wards.length === 0;
+                })
+                .catch(() => {
+                    wardSelect.innerHTML = '<option value="">Không tải được phường/xã</option>';
                 });
-        } else {
-            wardSelect.innerHTML = '<option value="">-- Chọn Phường/Xã --</option>';
-            wardSelect.disabled = true;
         }
     });
 
@@ -727,18 +712,16 @@ include __DIR__ . '/../layouts/header.php';
         
         // Lấy TÊN của các đơn vị hành chính thay vì mã code
         const provinceSelect = document.getElementById('province');
-        const districtSelect = document.getElementById('district');
         const wardSelect = document.getElementById('ward');
 
         // Dùng data-name đã lưu lúc nãy để lấy chuỗi chữ (VD: "Hà Nội" thay vì số "1")
         const provinceName = provinceSelect.options[provinceSelect.selectedIndex]?.getAttribute('data-name') || '';
-        const districtName = districtSelect.options[districtSelect.selectedIndex]?.getAttribute('data-name') || '';
         const wardName = wardSelect.options[wardSelect.selectedIndex]?.getAttribute('data-name') || '';
         
         const street = document.getElementById('street').value.trim();
 
         // Ghép thành 1 chuỗi địa chỉ hoàn chỉnh, cách nhau bởi dấu phẩy
-        const fullAddressArray = [street, wardName, districtName, provinceName].filter(item => item !== '');
+        const fullAddressArray = [street, wardName, provinceName].filter(item => item !== '');
         document.getElementById('fullLocation').value = fullAddressArray.join(', ');
     });
 </script>
