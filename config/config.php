@@ -1,5 +1,26 @@
 <?php
-// Database local defaults
+// Load .env file if present (no Composer required)
+(static function (): void {
+    $envFile = dirname(__DIR__) . '/.env';
+    if (!is_file($envFile)) {
+        return;
+    }
+    $lines = file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    foreach ($lines as $line) {
+        $line = trim($line);
+        if ($line === '' || str_starts_with($line, '#') || !str_contains($line, '=')) {
+            continue;
+        }
+        [$key, $value] = explode('=', $line, 2);
+        $key = trim($key);
+        $value = trim($value);
+        if ($key !== '' && getenv($key) === false) {
+            putenv("$key=$value");
+        }
+    }
+})();
+
+// Database
 define('DB_HOST', getenv('DB_HOST') ?: 'localhost');
 define('DB_NAME', getenv('DB_NAME') ?: 'spinbike_db');
 define('DB_USER', getenv('DB_USER') ?: 'root');
@@ -9,15 +30,15 @@ define('DB_PASS', getenv('DB_PASS') !== false ? getenv('DB_PASS') : '');
 define('PROJECT_ROOT', dirname(__DIR__));
 define('PUBLIC_ROOT', PROJECT_ROOT . '/public');
 
-// Cloudinary config
+// Cloudinary
 define('CLD_CLOUD_NAME', getenv('CLD_CLOUD_NAME') ?: 'dge3u1dzk');
 define('CLD_UPLOAD_PRESET', getenv('CLD_UPLOAD_PRESET') ?: 'spinbike');
 
-// VNPAY sandbox defaults. Replace these with real sandbox merchant credentials.
+// VNPAY Sandbox
 define('VNPAY_URL', getenv('VNPAY_URL') ?: 'https://sandbox.vnpayment.vn/paymentv2/vpcpay.html');
 define('VNPAY_TMN_CODE', getenv('VNPAY_TMN_CODE') ?: '');
 define('VNPAY_HASH_SECRET', getenv('VNPAY_HASH_SECRET') ?: '');
-define('VNPAY_DEFAULT_BANK_CODE', getenv('VNPAY_DEFAULT_BANK_CODE') ?: 'VNPAYQR');
+define('VNPAY_DEFAULT_BANK_CODE', getenv('VNPAY_DEFAULT_BANK_CODE') !== false ? getenv('VNPAY_DEFAULT_BANK_CODE') : '');
 
 // ==========================================
 // ĐỊNH NGHĨA CÁC HÀM (Bọc chống lỗi Redeclare)

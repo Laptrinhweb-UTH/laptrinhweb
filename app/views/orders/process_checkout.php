@@ -23,7 +23,7 @@ if (!isset($_SESSION['user_id']) || $_SERVER['REQUEST_METHOD'] !== 'POST') {
 $buyer_id = $_SESSION['user_id'];
 $product_id = filter_input(INPUT_POST, 'product_id', FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
 $payment_method = $_POST['payment_method'] ?? '';
-$allowedPaymentMethods = ['vnpay', 'momo'];
+$allowedPaymentMethods = ['vnpay'];
 $checkoutUrl = route_url('checkout', ['product_id' => $product_id ?: '']);
 
 if ($product_id === false || $product_id === null || !in_array($payment_method, $allowedPaymentMethods, true)) {
@@ -70,19 +70,34 @@ try {
         throw new Exception("Giá sản phẩm không hợp lệ để thanh toán.");
     }
 
+    $buyerPendingStmt = $db->prepare(
+        "SELECT id FROM orders WHERE product_id = ? AND buyer_id = ? AND status = ? LIMIT 1"
+    );
+    $buyerPendingStmt->execute([$product_id, $buyer_id, ProjectFlow::ORDER_PENDING_PAYMENT]);
+    $buyerPending = $buyerPendingStmt->fetch(PDO::FETCH_ASSOC);
+    if ($buyerPending) {
+        $db->rollBack();
+        redirect_with_feedback(
+            route_url('order', ['id' => (int) $buyerPending['id']]),
+            'Bạn đang có đơn hàng chờ thanh toán cho sản phẩm này. Vui lòng hoàn tất hoặc liên hệ hỗ trợ để hủy đơn.',
+            'error'
+        );
+    }
+
     $activeOrderStmt = $db->prepare(
         "SELECT o.id
          FROM orders o
          LEFT JOIN escrows e ON e.order_id = o.id
          WHERE o.product_id = ?
            AND (
-                o.status IN (?, ?, ?)
+                o.status IN (?, ?, ?, ?)
                 OR e.status IN (?, ?)
            )
          LIMIT 1"
     );
     $activeOrderStmt->execute([
         $product_id,
+        ProjectFlow::ORDER_PENDING_PAYMENT,
         ProjectFlow::ORDER_PAID,
         ProjectFlow::ORDER_SELLER_CONFIRMED,
         ProjectFlow::ORDER_SHIPPING,
@@ -125,35 +140,7 @@ try {
         exit;
     }
 
-    // 2. Fallback MoMo demo: mô phỏng cổng thanh toán thành công.
-    $stmtOrder = $db->prepare("UPDATE orders SET status = ? WHERE id = ?");
-    $stmtOrder->execute([ProjectFlow::ORDER_PAID, $order_id]);
-
-    // 3. Tạo escrow ở trạng thái holding ngay sau khi thanh toán thành công.
-    $queryEscrow = "INSERT INTO escrows (order_id, amount, status) VALUES (?, ?, ?)";
-    $stmtEscrow = $db->prepare($queryEscrow);
-    $stmtEscrow->execute([$order_id, $amount, ProjectFlow::ESCROW_HOLDING]);
-
-    // 4. Ghi nhận dòng tiền người mua đã thanh toán vào hệ thống.
-    $transactionStmt = $db->prepare(
-        "INSERT INTO transactions (user_id, order_id, amount, fee, type) VALUES (?, ?, ?, ?, 'payment')"
-    );
-    $transactionStmt->execute([$buyer_id, $order_id, $amount, 0]);
-
-    // 5. Khóa tin đăng để tránh phát sinh giao dịch trùng.
-    $productModel = new Product($db);
-    if (!$productModel->markAsSold((int) $product_id)) {
-        throw new Exception("Không thể khóa tin đăng cho đơn hàng này. Vui lòng thử lại.");
-    }
-    
-    // Xác nhận lưu vào Database
-    $db->commit();
-
-    redirect_with_feedback(
-        route_url('order', ['id' => $order_id]),
-        'Đặt mua thành công. Hệ thống đã tạo đơn hàng và đang giữ tiền an toàn cho giao dịch của bạn.',
-        'success'
-    );
+    throw new Exception('Phương thức thanh toán không được hỗ trợ.');
 
 } catch (Exception $e) {
     // Nếu có lỗi CSDL, hủy bỏ lệnh

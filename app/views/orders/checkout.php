@@ -159,79 +159,69 @@ include __DIR__ . '/../layouts/header.php';
     <?php else: ?>
     
     <div class="d-flex align-items-center mb-4 pb-2 border-bottom">
-        <a href="javascript:history.back()" class="text-muted text-decoration-none me-3 fs-5"><i class="fa-solid fa-arrow-left"></i></a>
+        <a href="<?php echo route_url('listing', ['id' => $productId]); ?>" class="text-muted text-decoration-none me-3 fs-5"><i class="fa-solid fa-arrow-left"></i></a>
         <h2 class="fw-bold mb-0 text-dark">Thanh toán & Đặt hàng</h2>
     </div>
 
     <div class="row g-4">
         <div class="col-lg-7">
             
- <div class="escrow-banner p-4 mb-4 shadow-sm">
-                <div class="d-flex gap-3 align-items-start">
+            <div class="escrow-banner p-4 mb-4 shadow-sm">
+                <div class="d-flex gap-3 align-items-start mb-3">
                     <div class="bg-white bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 48px; height: 48px;">
                         <i class="fa-solid fa-shield-halved text-success fs-4"></i>
                     </div>
                     <div>
                         <h5 class="fw-bold text-white mb-2">Giao dịch được bảo vệ 100%</h5>
                         <p class="text-white-50 mb-0 small" style="line-height: 1.6;">
-                            SpinBike sẽ <b>giữ an toàn số tiền này</b>. Người bán chỉ nhận được tiền sau khi bạn xác nhận đã nhận xe, kiểm tra đúng mô tả và không có khiếu nại.
+                            SpinBike sẽ <strong class="text-white">giữ an toàn số tiền này</strong>. Người bán chỉ nhận được tiền sau khi bạn xác nhận đã nhận xe, kiểm tra đúng mô tả và không có khiếu nại.
                         </p>
+                    </div>
+                </div>
+                <div class="d-flex gap-3 pt-3" style="border-top: 1px solid rgba(255,255,255,0.1);">
+                    <div class="d-flex align-items-center gap-2 text-white-50 small">
+                        <i class="fa-solid fa-lock text-success"></i> Thanh toán mã hóa SSL
+                    </div>
+                    <div class="d-flex align-items-center gap-2 text-white-50 small">
+                        <i class="fa-solid fa-rotate-left text-success"></i> Hoàn tiền nếu có tranh chấp
+                    </div>
+                    <div class="d-flex align-items-center gap-2 text-white-50 small">
+                        <i class="fa-solid fa-headset text-success"></i> Hỗ trợ 24/7
                     </div>
                 </div>
             </div>
 
-            <form action="<?php echo route_url('checkout.process'); ?>" method="POST">
+            <form id="checkoutForm" action="<?php echo route_url('checkout.process'); ?>" method="POST">
                 <input type="hidden" name="product_id" value="<?php echo $product['id']; ?>">
                 
                 <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
                     <h5 class="fw-bold mb-4"><i class="fa-solid fa-wallet text-primary me-2"></i>Chọn phương thức thanh toán</h5>
                     
-                    <label class="d-block mb-3 position-relative">
+                    <label class="d-block mb-2 position-relative">
                         <input type="radio" name="payment_method" value="vnpay" class="payment-option-input d-none" checked>
                         <div class="payment-option-card rounded-3 p-3 d-flex align-items-center justify-content-between">
                             <div class="d-flex align-items-center gap-3">
-                                <img src="https://vnpay.vn/s1/statics.vnpay.vn/2023/9/06ncktiwd6dc1694418189687.png" height="32" alt="VNPay">
+                                <span style="background:#0060AF;color:#fff;font-weight:800;padding:5px 11px;border-radius:7px;font-size:15px;letter-spacing:0.5px;line-height:1.3;">VNPAY</span>
                                 <div>
-                                    <div class="fw-bold text-dark">VNPAY sandbox QR</div>
-                                    <div class="text-muted small">
-                                        <?php echo $vnpayConfigured ? 'Chuyển sang cổng VNPAY demo để quét QR hoặc dùng thẻ test' : 'Cần cấu hình TmnCode/HashSecret trước khi demo'; ?>
-                                    </div>
+                                    <div class="fw-bold text-dark">Thanh toán qua VNPAY</div>
+                                    <div class="text-muted small">Thẻ ATM nội địa, thẻ quốc tế, QR ngân hàng</div>
                                 </div>
                             </div>
                             <i class="fa-solid fa-circle-check fs-4 check-icon"></i>
                         </div>
                     </label>
-
-                    <label class="d-block mb-2 position-relative">
-                        <input type="radio" name="payment_method" value="momo" class="payment-option-input d-none">
-                        <div class="payment-option-card rounded-3 p-3 d-flex align-items-center justify-content-between">
-                            <div class="d-flex align-items-center gap-3">
-                                <img src="https://upload.wikimedia.org/wikipedia/vi/f/fe/MoMo_Logo.png" height="32" alt="MoMo">
-                                <div>
-                                    <div class="fw-bold text-dark">MoMo demo nội bộ</div>
-                                    <div class="text-muted small">Fallback mô phỏng thanh toán thành công khi chưa dùng VNPAY</div>
-                                </div>
-                            </div>
-                            <i class="fa-solid fa-circle-check fs-4 check-icon"></i>
-                        </div>
-                    </label>
-
-                    <div class="alert alert-light border rounded-3 mt-3 mb-0 small text-muted">
-                        <i class="fa-solid fa-circle-info text-primary me-2"></i>
-                        VNPAY sandbox mô phỏng thanh toán thật nhưng không chuyển tiền thật. Khi thanh toán thành công, SpinBike mới tạo escrow giữ tiền cho đơn hàng.
-                    </div>
                 </div>
 
                 <div class="card border-0 shadow-sm rounded-4 p-4">
                     <div class="form-check mb-4">
-                        <input class="form-check-input" type="checkbox" value="" id="termsCheck" required checked>
+                        <input class="form-check-input" type="checkbox" value="" id="termsCheck" required>
                         <label class="form-check-label small text-muted ms-1" for="termsCheck">
                             Tôi đã xem kỹ tình trạng xe và đồng ý với <a href="<?= route_url('support.safe_trading') ?>" target="_blank" class="text-primary text-decoration-none">Chính sách mua bán an toàn</a> của SpinBike.
                         </label>
                     </div>
 
-                    <button type="submit" class="btn btn-primary w-100 py-3 rounded-pill fw-bold fs-5 shadow">
-                        Thanh toán <?php echo $formattedPrice; ?>
+                    <button type="button" id="submitBtn" class="btn btn-primary w-100 py-3 rounded-pill fw-bold fs-5 shadow" onclick="showCheckoutConfirm()">
+                        <i class="fa-solid fa-lock me-2"></i>Thanh toán <?php echo $formattedPrice; ?>
                     </button>
                     <p class="text-center text-muted small mt-3 mb-0"><i class="fa-solid fa-lock text-success me-1"></i> Thông tin thanh toán của bạn được mã hóa bảo mật tuyệt đối.</p>
                 </div>
@@ -315,5 +305,63 @@ include __DIR__ . '/../layouts/header.php';
     </div>
     <?php endif; ?>
 </div>
+
+<div id="checkoutConfirmModal" class="modal hidden">
+    <div class="modal-backdrop" onclick="hideCheckoutConfirm()"></div>
+    <div class="modal-content detail-buy-modal" style="max-width: 500px;">
+        <div class="detail-buy-modal-header">
+            <h3 class="detail-buy-modal-title">Xác nhận thanh toán</h3>
+            <button type="button" class="detail-buy-modal-close" onclick="hideCheckoutConfirm()">&times;</button>
+        </div>
+        <div class="p-4">
+            <div class="d-flex gap-3 align-items-center mb-4 p-3 bg-light rounded-3">
+                <img src="<?php echo htmlspecialchars($mainImage); ?>" class="rounded-2" style="width:64px;height:64px;object-fit:cover;flex-shrink:0;">
+                <div>
+                    <div class="fw-bold text-dark" style="font-size:15px;"><?php echo htmlspecialchars($productTitle); ?></div>
+                    <div class="text-primary fw-bold fs-5 mt-1"><?php echo $formattedPrice; ?></div>
+                </div>
+            </div>
+            <div class="d-flex align-items-start gap-2 mb-4 p-3 rounded-3" style="background:#ecfdf5;border:1px solid #bbf7d0;">
+                <i class="fa-solid fa-shield-halved text-success mt-1"></i>
+                <p class="mb-0 small text-success" style="line-height:1.6;">
+                    Số tiền sẽ được <strong>SpinBike giữ an toàn</strong>. Người bán chỉ nhận tiền khi bạn xác nhận đã nhận xe đúng mô tả.
+                </p>
+            </div>
+            <div class="d-flex gap-2">
+                <button type="button" class="btn btn-outline-secondary rounded-pill px-4 flex-grow-1" onclick="hideCheckoutConfirm()">Quay lại</button>
+                <button type="button" id="confirmPayBtn" class="btn btn-primary rounded-pill px-4 flex-grow-1 fw-bold" onclick="submitCheckout()">
+                    Xác nhận thanh toán
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function showCheckoutConfirm() {
+    const terms = document.getElementById('termsCheck');
+    if (!terms.checked) {
+        terms.reportValidity();
+        terms.closest('.form-check').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
+    }
+    document.getElementById('checkoutConfirmModal').classList.remove('hidden');
+}
+
+function hideCheckoutConfirm() {
+    document.getElementById('checkoutConfirmModal').classList.add('hidden');
+}
+
+function submitCheckout() {
+    const btn = document.getElementById('submitBtn');
+    const confirmBtn = document.getElementById('confirmPayBtn');
+    confirmBtn.disabled = true;
+    confirmBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i>Đang chuyển hướng...';
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i>Đang chuyển sang cổng thanh toán...';
+    hideCheckoutConfirm();
+    document.getElementById('checkoutForm').submit();
+}
+</script>
 
 <?php include __DIR__ . '/../layouts/footer.php'; ?>

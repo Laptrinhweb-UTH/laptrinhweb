@@ -318,15 +318,17 @@ include __DIR__ . '/../layouts/header.php';
                             <span class="text-muted">Tổng tiền đơn hàng</span>
                             <span class="fw-bold"><?php echo htmlspecialchars($formattedPaidAmount); ?></span>
                         </div>
+                        <?php if ($isSellerView || $isAdminView): ?>
                         <div class="d-flex justify-content-between mb-2" style="font-size: 14px;">
                             <span class="text-danger">Phí nền tảng (5%)</span>
                             <span>- <?php echo htmlspecialchars($formattedFeeAmount); ?></span>
                         </div>
                         <hr class="my-2">
                         <div class="d-flex justify-content-between" style="font-size: 15px;">
-                            <span class="text-success fw-bold">Người bán dự kiến nhận</span>
+                            <span class="text-success fw-bold">Bạn dự kiến nhận</span>
                             <span class="fw-bold text-success"><?php echo htmlspecialchars($formattedSellerReceives); ?></span>
                         </div>
+                        <?php endif; ?>
                     </div>
                 </div>
             </div>
