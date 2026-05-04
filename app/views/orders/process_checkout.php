@@ -3,7 +3,10 @@ session_start();
 require_once __DIR__ . '/../../../config/config.php';
 require_once __DIR__ . '/../../helpers/Database.php';
 require_once __DIR__ . '/../../helpers/ProjectFlow.php';
+require_once __DIR__ . '/../../helpers/VnpayHelper.php';
 require_once __DIR__ . '/../../models/Product.php';
+
+date_default_timezone_set('Asia/Ho_Chi_Minh');
 
 function redirect_with_feedback(string $url, string $message, string $status = 'error'): never {
     $separator = str_contains($url, '?') ? '&' : '?';
@@ -20,16 +23,19 @@ if (!isset($_SESSION['user_id']) || $_SERVER['REQUEST_METHOD'] !== 'POST') {
 $buyer_id = $_SESSION['user_id'];
 $product_id = filter_input(INPUT_POST, 'product_id', FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
 $payment_method = $_POST['payment_method'] ?? '';
-$allowedPaymentMethods = ['vnpay', 'momo'];
+$allowedPaymentMethods = ['vnpay'];
 $checkoutUrl = route_url('checkout', ['product_id' => $product_id ?: '']);
 
 if ($product_id === false || $product_id === null || !in_array($payment_method, $allowedPaymentMethods, true)) {
     redirect_with_feedback(route_url('home'), 'Dữ liệu thanh toán không hợp lệ. Vui lòng thử lại.');
 }
 
-// TẠI ĐÂY MÔ PHỎNG VIỆC GỌI API VNPAY/MOMO THÀNH CÔNG
-// Nếu tích hợp thật, code VNPAY sẽ redirect người dùng sang app ngân hàng ở đây.
-// Vì đang test, ta coi như thanh toán auto thành công.
+if ($payment_method === 'vnpay' && !VnpayHelper::isConfigured()) {
+    redirect_with_feedback(
+        $checkoutUrl,
+        'Chưa cấu hình VNPAY sandbox. Vui lòng điền VNPAY_TMN_CODE và VNPAY_HASH_SECRET trước khi demo thanh toán QR.'
+    );
+}
 
 $database = new Database();
 $db = $database->getConnectionOrNull();
@@ -64,6 +70,20 @@ try {
         throw new Exception("Giá sản phẩm không hợp lệ để thanh toán.");
     }
 
+    $buyerPendingStmt = $db->prepare(
+        "SELECT id FROM orders WHERE product_id = ? AND buyer_id = ? AND status = ? LIMIT 1"
+    );
+    $buyerPendingStmt->execute([$product_id, $buyer_id, ProjectFlow::ORDER_PENDING_PAYMENT]);
+    $buyerPending = $buyerPendingStmt->fetch(PDO::FETCH_ASSOC);
+    if ($buyerPending) {
+        $db->rollBack();
+        redirect_with_feedback(
+            route_url('order', ['id' => (int) $buyerPending['id']]),
+            'Bạn đang có đơn hàng chờ thanh toán cho sản phẩm này. Vui lòng hoàn tất hoặc liên hệ hỗ trợ để hủy đơn.',
+            'error'
+        );
+    }
+
     $activeOrderStmt = $db->prepare(
         "SELECT o.id
          FROM orders o
@@ -94,37 +114,33 @@ try {
     $stmtDraftOrder = $db->prepare($queryDraftOrder);
     $stmtDraftOrder->execute([$buyer_id, $seller_id, $product_id, $amount, ProjectFlow::ORDER_PENDING_PAYMENT]);
 
-    $order_id = $db->lastInsertId();
+    $order_id = (int) $db->lastInsertId();
 
-    // 2. Mô phỏng cổng thanh toán thành công và cập nhật đơn sang trạng thái đã thanh toán.
-    $stmtOrder = $db->prepare("UPDATE orders SET status = ? WHERE id = ?");
-    $stmtOrder->execute([ProjectFlow::ORDER_PAID, $order_id]);
+    if ($payment_method === 'vnpay') {
+        $db->commit();
 
-    // 3. Tạo escrow ở trạng thái holding ngay sau khi thanh toán thành công.
-    $queryEscrow = "INSERT INTO escrows (order_id, amount, status) VALUES (?, ?, ?)";
-    $stmtEscrow = $db->prepare($queryEscrow);
-    $stmtEscrow->execute([$order_id, $amount, ProjectFlow::ESCROW_HOLDING]);
+        $paymentUrl = VnpayHelper::buildPaymentUrl([
+            'vnp_Version' => '2.1.0',
+            'vnp_Command' => 'pay',
+            'vnp_TmnCode' => VNPAY_TMN_CODE,
+            'vnp_Amount' => (string) ((int) round((float) $amount) * 100),
+            'vnp_CurrCode' => 'VND',
+            'vnp_TxnRef' => (string) $order_id,
+            'vnp_OrderInfo' => VnpayHelper::buildOrderInfo($order_id),
+            'vnp_OrderType' => 'other',
+            'vnp_Locale' => 'vn',
+            'vnp_ReturnUrl' => route_url('checkout.vnpay-return'),
+            'vnp_IpAddr' => $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1',
+            'vnp_CreateDate' => date('YmdHis'),
+            'vnp_ExpireDate' => date('YmdHis', strtotime('+15 minutes')),
+            'vnp_BankCode' => VNPAY_DEFAULT_BANK_CODE,
+        ]);
 
-    // 4. Ghi nhận dòng tiền người mua đã thanh toán vào hệ thống.
-    $transactionStmt = $db->prepare(
-        "INSERT INTO transactions (user_id, order_id, amount, fee, type) VALUES (?, ?, ?, ?, 'payment')"
-    );
-    $transactionStmt->execute([$buyer_id, $order_id, $amount, 0]);
-
-    // 5. Khóa tin đăng để tránh phát sinh giao dịch trùng.
-    $productModel = new Product($db);
-    if (!$productModel->markAsSold((int) $product_id)) {
-        throw new Exception("Không thể khóa tin đăng cho đơn hàng này. Vui lòng thử lại.");
+        header('Location: ' . $paymentUrl);
+        exit;
     }
-    
-    // Xác nhận lưu vào Database
-    $db->commit();
 
-    redirect_with_feedback(
-        route_url('order', ['id' => $order_id]),
-        'Đặt mua thành công. Hệ thống đã tạo đơn hàng và đang giữ tiền an toàn cho giao dịch của bạn.',
-        'success'
-    );
+    throw new Exception('Phương thức thanh toán không được hỗ trợ.');
 
 } catch (Exception $e) {
     // Nếu có lỗi CSDL, hủy bỏ lệnh

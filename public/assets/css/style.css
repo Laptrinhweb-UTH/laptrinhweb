@@ -1926,34 +1926,6 @@ img {
   transform: translateY(-2px);
 }
 
-/* --- Phần Bottom --- */
-.footer-bottom {
-  background-color: #080808;
-  padding: 20px 0;
-  font-size: 13px;
-}
-
-.bottom-flex {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 15px;
-}
-
-.bottom-flex p {
-  margin: 0;
-}
-
-.payment-methods span {
-  margin-right: 10px;
-}
-
-.payment-methods strong {
-  color: #ffffff;
-  margin-left: 5px;
-}
-
 /* --- RESPONSIVE CHO IPAD & MOBILE --- */
 @media (max-width: 991px) {
   .footer-grid {
@@ -1976,11 +1948,6 @@ img {
   .footer-grid {
     grid-template-columns: 1fr;
     /* Rớt xuống 1 cột trên Mobile */
-  }
-
-  .bottom-flex {
-    flex-direction: column;
-    text-align: center;
   }
 }
 
@@ -3868,10 +3835,6 @@ body {
   background: transparent !important;
 }
 
-.footer-bottom {
-  background: #020617 !important;
-}
-
 .footer-widget h4::after,
 .footer-logo span {
   background-color: #10b981 !important;
@@ -3885,10 +3848,6 @@ body {
 .footer-muted-item {
   color: #94a3b8;
   font-size: 14px;
-}
-
-.payment-methods strong {
-  color: #ffffff;
 }
 
 .guest-login-overlay {

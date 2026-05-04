@@ -232,7 +232,7 @@ final class ProjectFlow
 
     public static function orderCanBeConfirmedByBuyer(string $orderStatus, string $escrowStatus): bool
     {
-        return in_array($orderStatus, [self::ORDER_PAID, self::ORDER_SELLER_CONFIRMED, self::ORDER_SHIPPING], true)
+        return $orderStatus === self::ORDER_SHIPPING
             && $escrowStatus === self::ESCROW_HOLDING;
     }
 
