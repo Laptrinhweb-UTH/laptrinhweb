@@ -229,7 +229,7 @@ include __DIR__ . '/../layouts/header.php';
         </div>
 
         <div class="col-lg-5">
-            <div class="summary-card shadow-sm p-4 sticky-top" style="top: 24px;">
+            <div class="summary-card shadow-sm p-4">
                 <h5 class="fw-bold mb-4">Thông tin xe</h5>
                 
                 <div class="d-flex gap-3 mb-4 pb-4 border-bottom">

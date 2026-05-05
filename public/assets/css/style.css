@@ -3171,19 +3171,22 @@ img {
 }
 
 .detail-buy-modal {
-  max-width: 500px;
-  padding: 32px;
+  max-width: 600px;
+  width: 100%;
+  padding: 0;
   border-radius: var(--radius-xl);
   position: relative;
   z-index: 9999;
   background: white;
+  overflow: hidden;
 }
 
 .detail-buy-modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 24px;
+  padding: 24px 28px;
+  margin-bottom: 0;
 }
 
 .detail-buy-modal-title {
