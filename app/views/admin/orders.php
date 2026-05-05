@@ -146,25 +146,6 @@ include __DIR__ . '/../layouts/header.php';
         <?php include __DIR__ . '/_sidebar.php'; ?>
 
         <main class="admin-main-content">
-            <div class="profile-card mb-4">
-                <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
-                    <div>
-                        <span class="badge bg-dark rounded-pill px-3 py-2 mb-3">Khu vực quản trị</span>
-                        <h2 class="fw-bold mb-1">Quản lý đơn hàng & tranh chấp</h2>
-                        <p class="text-muted mb-0">Admin theo dõi toàn bộ giao dịch giữ tiền, đơn đang tranh chấp và các case hoàn tiền trên hệ thống.</p>
-                        <p class="order-filter-subtitle mb-0">Đang xem: <?php echo htmlspecialchars($filterLabel); ?></p>
-                    </div>
-                    <div class="d-flex gap-2 flex-wrap">
-                        <a href="<?php echo $dashboardUrl; ?>" class="btn btn-outline-secondary rounded-pill px-4">
-                            <i class="fa-solid fa-gauge-high me-2"></i>Dashboard Admin
-                        </a>
-                        <a href="<?php echo $listingsUrl; ?>" class="btn btn-outline-secondary rounded-pill px-4">
-                            <i class="fa-solid fa-list-check me-2"></i>Quản lý tin đăng
-                        </a>
-                    </div>
-                </div>
-            </div>
-
             <div class="row g-3 mb-4">
         <div class="col-md-4 col-xl-2">
             <a href="<?php echo $allOrdersUrl; ?>" class="text-decoration-none">

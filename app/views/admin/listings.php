@@ -65,22 +65,6 @@ include __DIR__ . '/../layouts/header.php';
         <?php include __DIR__ . '/_sidebar.php'; ?>
 
         <main class="admin-main-content">
-            <div class="profile-card mb-4">
-                <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
-                    <div>
-                        <span class="badge bg-dark rounded-pill px-3 py-2 mb-3">Khu vực quản trị</span>
-                        <h2 class="fw-bold mb-1">Quản lý tin đăng</h2>
-                        <p class="text-muted mb-0">Admin kiểm tra, duyệt, từ chối hoặc ẩn các tin đăng trước khi hiển thị trên hệ thống.</p>
-                    </div>
-                    <div class="d-flex gap-2 flex-wrap">
-                        <a href="<?php echo $dashboardUrl; ?>" class="btn btn-outline-secondary rounded-pill px-4">
-                            <i class="fa-solid fa-gauge-high me-2"></i>Dashboard Admin
-                        </a>
-                        <span class="badge bg-dark rounded-pill px-4 py-3">Quyền quản trị viên</span>
-                    </div>
-                </div>
-            </div>
-
             <?php if ($message !== ''): ?>
             <div class="<?php echo $noticeClass; ?>">
                 <?php echo htmlspecialchars($message); ?>

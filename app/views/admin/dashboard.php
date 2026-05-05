@@ -33,13 +33,19 @@ if (!$db) {
     $dashboardError = 'Không thể tải số liệu dashboard lúc này vì kết nối dữ liệu đang gặp sự cố.';
 } else {
     try {
-        $listingStatsStmt = $db->query("
-            SELECT
-                SUM(CASE WHEN listing_status = '" . ProjectFlow::LISTING_PENDING . "' THEN 1 ELSE 0 END) AS pending_listings,
-                SUM(CASE WHEN listing_status = '" . ProjectFlow::LISTING_APPROVED . "' THEN 1 ELSE 0 END) AS approved_listings
+        $listingStatusStmt = $db->query("
+            SELECT listing_status, COUNT(*) AS cnt
             FROM products
+            GROUP BY listing_status
         ");
-        $listingStats = $listingStatsStmt->fetch(PDO::FETCH_ASSOC) ?: [];
+        $listingStatusRows = $listingStatusStmt->fetchAll(PDO::FETCH_ASSOC);
+        foreach ($listingStatusRows as $row) {
+            if ($row['listing_status'] === ProjectFlow::LISTING_PENDING) {
+                $stats['pending_listings'] = (int) $row['cnt'];
+            } elseif ($row['listing_status'] === ProjectFlow::LISTING_APPROVED) {
+                $stats['approved_listings'] = (int) $row['cnt'];
+            }
+        }
 
         $orderStatsStmt = $db->query("
             SELECT
@@ -49,9 +55,6 @@ if (!$db) {
             LEFT JOIN escrows e ON e.order_id = o.id
         ");
         $orderStats = $orderStatsStmt->fetch(PDO::FETCH_ASSOC) ?: [];
-
-        $stats['pending_listings'] = (int) ($listingStats['pending_listings'] ?? 0);
-        $stats['approved_listings'] = (int) ($listingStats['approved_listings'] ?? 0);
         $stats['disputed_orders'] = (int) ($orderStats['disputed_orders'] ?? 0);
         $stats['refunded_orders'] = (int) ($orderStats['refunded_orders'] ?? 0);
 
@@ -85,9 +88,90 @@ if (!$db) {
         ");
         $disputeStmt->execute([ProjectFlow::ESCROW_DISPUTED]);
         $recentDisputedOrders = $disputeStmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $revenueStmt = $db->query("
+            SELECT
+                DATE_FORMAT(created_at, '%Y-%m') AS month,
+                SUM(amount) AS revenue
+            FROM orders
+            WHERE created_at >= DATE_SUB(NOW(), INTERVAL 6 MONTH)
+              AND status != 'cancelled'
+            GROUP BY DATE_FORMAT(created_at, '%Y-%m')
+            ORDER BY month ASC
+        ");
+        $revenueRows = $revenueStmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $orderStatusStmt = $db->query("
+            SELECT status, COUNT(*) AS cnt
+            FROM orders
+            GROUP BY status
+        ");
+        $orderStatusRows = $orderStatusStmt->fetchAll(PDO::FETCH_ASSOC);
     } catch (Throwable $exception) {
         $dashboardError = 'Dashboard hiện chưa thể tải đủ số liệu. Vui lòng thử lại sau.';
     }
+}
+
+$revenueRows = $revenueRows ?? [];
+$orderStatusRows = $orderStatusRows ?? [];
+$listingStatusRows = $listingStatusRows ?? [];
+
+$revenueLabels = [];
+$revenueData = [];
+foreach ($revenueRows as $row) {
+    [$year, $month] = explode('-', $row['month']);
+    $revenueLabels[] = "T{$month}/{$year}";
+    $revenueData[] = (float) $row['revenue'];
+}
+
+$statusLabels = [
+    'pending_payment'  => 'Chờ thanh toán',
+    'paid'             => 'Đã thanh toán',
+    'seller_confirmed' => 'Người bán xác nhận',
+    'shipping'         => 'Đang giao',
+    'completed'        => 'Hoàn thành',
+    'cancelled'        => 'Đã hủy',
+];
+$statusColors = [
+    'pending_payment'  => '#fbbf24',
+    'paid'             => '#60a5fa',
+    'seller_confirmed' => '#a78bfa',
+    'shipping'         => '#34d399',
+    'completed'        => '#10b981',
+    'cancelled'        => '#f87171',
+];
+$donutLabels = [];
+$donutData = [];
+$donutColors = [];
+foreach ($orderStatusRows as $row) {
+    $key = $row['status'];
+    $donutLabels[] = $statusLabels[$key] ?? $key;
+    $donutData[] = (int) $row['cnt'];
+    $donutColors[] = $statusColors[$key] ?? '#94a3b8';
+}
+
+$listingStatusLabels = [
+    'pending'  => 'Chờ duyệt',
+    'approved' => 'Đang hiển thị',
+    'rejected' => 'Bị từ chối',
+    'sold'     => 'Đã bán',
+    'hidden'   => 'Ẩn',
+];
+$listingStatusColors = [
+    'pending'  => '#fbbf24',
+    'approved' => '#10b981',
+    'rejected' => '#f87171',
+    'sold'     => '#60a5fa',
+    'hidden'   => '#94a3b8',
+];
+$listingDonutLabels = [];
+$listingDonutData = [];
+$listingDonutColors = [];
+foreach ($listingStatusRows as $row) {
+    $key = $row['listing_status'];
+    $listingDonutLabels[] = $listingStatusLabels[$key] ?? $key;
+    $listingDonutData[] = (int) $row['cnt'];
+    $listingDonutColors[] = $listingStatusColors[$key] ?? '#94a3b8';
 }
 
 include __DIR__ . '/../layouts/header.php';
@@ -98,28 +182,6 @@ include __DIR__ . '/../layouts/header.php';
         <?php include __DIR__ . '/_sidebar.php'; ?>
 
         <main class="admin-main-content">
-            <div class="profile-card mb-4">
-                <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
-                    <div>
-                        <span class="badge bg-dark rounded-pill px-3 py-2 mb-3">Khu vực quản trị</span>
-                        <h1 class="fw-bold mb-2">Dashboard Admin</h1>
-                        <p class="text-muted mb-0">
-                            Xin chào <?php echo htmlspecialchars($adminName); ?>. Đây là điểm vào dành riêng cho quản trị viên để theo dõi và xử lý các nghiệp vụ nội bộ của SpinBike.
-                        </p>
-                    </div>
-                    <div class="d-flex gap-2 flex-wrap">
-                        <a href="<?php echo $reviewListingsUrl; ?>" class="btn btn-success rounded-pill px-4">
-                            <i class="fa-solid fa-shield-halved me-2"></i>Duyệt tin đăng
-                        </a>
-                        <a href="<?php echo $adminOrdersUrl; ?>" class="btn btn-outline-secondary rounded-pill px-4">
-                            <i class="fa-solid fa-receipt me-2"></i>Quản lý đơn hàng
-                        </a>
-                        <a href="<?php echo $homeUrl; ?>" class="btn btn-outline-secondary rounded-pill px-4">
-                            <i class="fa-solid fa-globe me-2"></i>Xem website
-                        </a>
-                    </div>
-                </div>
-            </div>
 
             <?php if ($dashboardError !== null): ?>
             <div class="empty-state-card mb-4">
@@ -128,81 +190,123 @@ include __DIR__ . '/../layouts/header.php';
             </div>
             <?php endif; ?>
 
-            <div class="row g-3 mb-4">
-        <div class="col-md-6 col-xl-3">
-            <a href="<?php echo $pendingListingsUrl; ?>" class="text-decoration-none">
-                <div class="profile-card order-summary-card h-100">
-                    <div class="order-summary-label text-warning-emphasis">Tin chờ duyệt</div>
-                    <div class="order-summary-value"><?php echo $stats['pending_listings']; ?></div>
-                    <div class="small text-muted mt-2">Cần admin kiểm tra trước khi hiển thị</div>
+            <div class="row g-4 mb-4">
+                <div class="col-lg-8">
+                    <div class="profile-card h-100">
+                        <h5 class="fw-bold mb-1">Doanh thu theo tháng</h5>
+                        <p class="text-muted small mb-3">6 tháng gần nhất (không tính đơn hủy)</p>
+                        <?php if (empty($revenueLabels)): ?>
+                        <p class="text-muted small mb-0">Chưa có dữ liệu doanh thu.</p>
+                        <?php else: ?>
+                        <canvas id="revenueChart" height="110"></canvas>
+                        <?php endif; ?>
+                    </div>
                 </div>
-            </a>
-        </div>
-        <div class="col-md-6 col-xl-3">
-            <a href="<?php echo $allListingsUrl; ?>" class="text-decoration-none">
-                <div class="profile-card order-summary-card h-100">
-                    <div class="order-summary-label text-success-emphasis">Tin đang hiển thị</div>
-                    <div class="order-summary-value"><?php echo $stats['approved_listings']; ?></div>
-                    <div class="small text-muted mt-2">Những listing đang mở bán công khai</div>
+                <div class="col-lg-4">
+                    <div class="profile-card h-100">
+                        <h5 class="fw-bold mb-1">Phân bổ tin đăng</h5>
+                        <p class="text-muted small mb-3">Theo trạng thái kiểm duyệt</p>
+                        <?php if (empty($listingDonutData)): ?>
+                        <p class="text-muted small mb-0">Chưa có dữ liệu tin đăng.</p>
+                        <?php else: ?>
+                        <canvas id="listingChart"></canvas>
+                        <?php endif; ?>
+                    </div>
                 </div>
-            </a>
-        </div>
-        <div class="col-md-6 col-xl-3">
-            <a href="<?php echo $disputedOrdersUrl; ?>" class="text-decoration-none">
-                <div class="profile-card order-summary-card h-100">
-                    <div class="order-summary-label text-danger-emphasis">Đơn đang tranh chấp</div>
-                    <div class="order-summary-value"><?php echo $stats['disputed_orders']; ?></div>
-                    <div class="small text-muted mt-2">Mở nhanh khu admin xử lý dispute</div>
-                </div>
-            </a>
-        </div>
-        <div class="col-md-6 col-xl-3">
-            <a href="<?php echo $refundedOrdersUrl; ?>" class="text-decoration-none">
-                <div class="profile-card order-summary-card h-100">
-                    <div class="order-summary-label text-primary-emphasis">Đơn đã hoàn tiền</div>
-                    <div class="order-summary-value"><?php echo $stats['refunded_orders']; ?></div>
-                    <div class="small text-muted mt-2">Theo dõi các case đã khép lại theo hướng refund</div>
-                </div>
-            </a>
-        </div>
             </div>
 
             <div class="row g-4 mb-4">
-        <div class="col-lg-4">
-            <div class="profile-card h-100">
-                <h5 class="fw-bold mb-3">Thao tác nhanh</h5>
-                <div class="d-grid gap-2">
-                    <a href="<?php echo $pendingListingsUrl; ?>" class="btn btn-success rounded-pill px-4">
-                        <i class="fa-solid fa-shield-halved me-2"></i>Mở tin chờ duyệt
-                    </a>
-                    <a href="<?php echo $allListingsUrl; ?>" class="btn btn-outline-secondary rounded-pill px-4">
-                        <i class="fa-solid fa-list-check me-2"></i>Xem toàn bộ tin đăng
-                    </a>
-                    <a href="<?php echo $adminOrdersUrl; ?>" class="btn btn-outline-secondary rounded-pill px-4">
-                        <i class="fa-solid fa-receipt me-2"></i>Quản lý đơn hàng
-                    </a>
-                    <a href="<?php echo $profileUrl; ?>" class="btn btn-outline-secondary rounded-pill px-4">
-                        <i class="fa-solid fa-user-shield me-2"></i>Hồ sơ quản trị viên
-                    </a>
-                    <a href="<?php echo $homeUrl; ?>" class="btn btn-outline-secondary rounded-pill px-4">
-                        <i class="fa-solid fa-globe me-2"></i>Quay lại website
-                    </a>
+                <div class="col-lg-4">
+                    <div class="profile-card h-100">
+                        <h5 class="fw-bold mb-1">Trạng thái đơn hàng</h5>
+                        <p class="text-muted small mb-3">Phân bổ toàn bộ đơn</p>
+                        <?php if (empty($donutData)): ?>
+                        <p class="text-muted small mb-0">Chưa có dữ liệu đơn hàng.</p>
+                        <?php else: ?>
+                        <canvas id="statusChart"></canvas>
+                        <?php endif; ?>
+                    </div>
+                </div>
+                <div class="col-lg-8">
+                    <div class="profile-card h-100">
+                        <div class="d-flex justify-content-between align-items-center gap-3 flex-wrap mb-3">
+                            <div>
+                                <h5 class="fw-bold mb-1">Việc cần xử lý ngay</h5>
+                                <p class="text-muted mb-0 small">Tin chờ duyệt và đơn đang tranh chấp.</p>
+                            </div>
+                            <span class="badge bg-warning text-dark rounded-pill px-3 py-2">
+                                <?php echo $stats['pending_listings'] + $stats['disputed_orders']; ?> mục cần chú ý
+                            </span>
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="order-status-note h-100 mb-0">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <strong>Tin chờ duyệt</strong>
+                                        <span class="badge bg-warning text-dark rounded-pill"><?php echo $stats['pending_listings']; ?></span>
+                                    </div>
+                                    <?php if (empty($recentPendingListings)): ?>
+                                    <p class="mb-0 text-muted">Hiện không có tin nào đang chờ admin duyệt.</p>
+                                    <?php else: ?>
+                                    <div class="d-grid gap-2">
+                                        <?php foreach ($recentPendingListings as $listing): ?>
+                                        <a href="<?php echo $pendingListingsUrl; ?>" class="text-decoration-none">
+                                            <div class="border rounded-3 px-3 py-2 bg-white">
+                                                <div class="fw-semibold text-dark"><?php echo htmlspecialchars((string) ($listing['title'] ?? 'Tin đăng')); ?></div>
+                                                <div class="small text-muted">
+                                                    <?php echo htmlspecialchars((string) ($listing['seller_name'] ?? 'Người bán')); ?> ·
+                                                    <?php echo is_numeric($listing['price'] ?? null) ? number_format((float) $listing['price'], 0, ',', '.') . ' đ' : 'Đang cập nhật'; ?>
+                                                </div>
+                                            </div>
+                                        </a>
+                                        <?php endforeach; ?>
+                                    </div>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="order-status-note h-100 mb-0">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <strong>Đơn đang tranh chấp</strong>
+                                        <span class="badge bg-danger rounded-pill"><?php echo $stats['disputed_orders']; ?></span>
+                                    </div>
+                                    <?php if (empty($recentDisputedOrders)): ?>
+                                    <p class="mb-0 text-muted">Hiện không có đơn nào đang tranh chấp.</p>
+                                    <?php else: ?>
+                                    <div class="d-grid gap-2">
+                                        <?php foreach ($recentDisputedOrders as $order): ?>
+                                        <a href="<?php echo route_url('order', ['id' => (int) $order['id']]); ?>" class="text-decoration-none">
+                                            <div class="border rounded-3 px-3 py-2 bg-white">
+                                                <div class="fw-semibold text-dark">Đơn #<?php echo (int) $order['id']; ?> · <?php echo htmlspecialchars((string) ($order['product_title'] ?? 'Xe đạp')); ?></div>
+                                                <div class="small text-muted">
+                                                    Buyer: <?php echo htmlspecialchars((string) ($order['buyer_name'] ?? 'Đang cập nhật')); ?> ·
+                                                    Seller: <?php echo htmlspecialchars((string) ($order['seller_name'] ?? 'Đang cập nhật')); ?>
+                                                </div>
+                                                <div class="small text-danger fw-semibold">
+                                                    <?php echo is_numeric($order['amount'] ?? null) ? number_format((float) $order['amount'], 0, ',', '.') . ' đ' : 'Đang cập nhật'; ?>
+                                                </div>
+                                            </div>
+                                        </a>
+                                        <?php endforeach; ?>
+                                    </div>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <div class="col-lg-8">
-            <div class="profile-card h-100">
+            <div class="profile-card mb-4">
                 <div class="d-flex justify-content-between align-items-center gap-3 flex-wrap mb-3">
                     <div>
                         <h5 class="fw-bold mb-1">Việc cần xử lý ngay</h5>
-                        <p class="text-muted mb-0">Danh sách ưu tiên để admin không phải đi tìm lại từng khu vực xử lý.</p>
+                        <p class="text-muted mb-0 small">Tin chờ duyệt và đơn đang tranh chấp.</p>
                     </div>
                     <span class="badge bg-warning text-dark rounded-pill px-3 py-2">
                         <?php echo $stats['pending_listings'] + $stats['disputed_orders']; ?> mục cần chú ý
                     </span>
                 </div>
-
                 <div class="row g-3">
                     <div class="col-md-6">
                         <div class="order-status-note h-100 mb-0">
@@ -229,7 +333,6 @@ include __DIR__ . '/../layouts/header.php';
                             <?php endif; ?>
                         </div>
                     </div>
-
                     <div class="col-md-6">
                         <div class="order-status-note h-100 mb-0">
                             <div class="d-flex justify-content-between align-items-center mb-2">
@@ -260,17 +363,69 @@ include __DIR__ . '/../layouts/header.php';
                     </div>
                 </div>
             </div>
-        </div>
-            </div>
-
-            <div class="profile-card">
-                <h5 class="fw-bold mb-3">Vận hành hệ thống</h5>
-                <div class="order-status-note mb-0">
-                    <p class="mb-0">Theo dõi các tin chờ duyệt, đơn đang giữ tiền và trường hợp tranh chấp để xử lý kịp thời trong một khu vực quản trị tập trung.</p>
-                </div>
-            </div>
         </main>
     </div>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+<?php if (!empty($revenueLabels)): ?>
+new Chart(document.getElementById('revenueChart'), {
+    type: 'bar',
+    data: {
+        labels: <?php echo json_encode($revenueLabels); ?>,
+        datasets: [{
+            label: 'Doanh thu (đ)',
+            data: <?php echo json_encode($revenueData); ?>,
+            backgroundColor: 'rgba(16, 185, 129, 0.15)',
+            borderColor: '#10b981',
+            borderWidth: 2,
+            borderRadius: 6,
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: { display: false },
+            tooltip: {
+                callbacks: {
+                    label: ctx => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(ctx.raw)
+                }
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    callback: val => new Intl.NumberFormat('vi-VN', { notation: 'compact' }).format(val) + ' đ'
+                }
+            }
+        }
+    }
+});
+<?php endif; ?>
+
+<?php if (!empty($donutData)): ?>
+new Chart(document.getElementById('statusChart'), {
+    type: 'doughnut',
+    data: {
+        labels: <?php echo json_encode($donutLabels); ?>,
+        datasets: [{
+            data: <?php echo json_encode($donutData); ?>,
+            backgroundColor: <?php echo json_encode($donutColors); ?>,
+            borderWidth: 2,
+            borderColor: '#fff',
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: { position: 'bottom', labels: { padding: 12, font: { size: 12 } } }
+        },
+        cutout: '60%',
+    }
+});
+<?php endif; ?>
+</script>
 
 <?php include __DIR__ . '/../layouts/footer.php'; ?>
