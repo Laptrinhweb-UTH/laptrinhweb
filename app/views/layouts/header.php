@@ -8,9 +8,11 @@ require_once __DIR__ . '/../../helpers/AdminAuth.php';
 
 $authUrl = route_url('auth');
 $profileUrl = route_url('profile');
+$settingsUrl = route_url('user.settings.profile');
 $logoutUrl = route_url('logout');
 $sellUrl = route_url('sell');
 $myListingsUrl = route_url('my-listings');
+$buyingOrdersUrl = route_url('orders.buying');
 $reviewListingsUrl = admin_listings_url();
 $adminOrdersUrl = admin_orders_url();
 $adminDashboardUrl = admin_dashboard_url();
@@ -140,12 +142,19 @@ if ($isLoggedIn) {
                   
                   <div class="user-dropdown-menu">
                     <a href="<?php echo $profileUrl; ?>" class="dropdown-item dropdown-item-first">
-                      <i class="fa-solid fa-user-pen"></i> Cập nhật thông tin
+                      <i class="fa-regular fa-user"></i> Trang cá nhân
                     </a>
                     <a href="<?php echo $myListingsUrl; ?>" class="dropdown-item">
                       <i class="fa-solid fa-list-check"></i> Tin đăng của tôi
                     </a>
+                    <a href="<?php echo $buyingOrdersUrl; ?>" class="dropdown-item">
+                      <i class="fa-solid fa-box"></i> Đơn hàng
+                    </a>
+                    <a href="<?php echo $settingsUrl; ?>" class="dropdown-item">
+                      <i class="fa-solid fa-gear"></i> Cài đặt tài khoản
+                    </a>
                     <?php if ($isAdmin): ?>
+                    <hr class="dropdown-divider">
                     <a href="<?php echo $adminDashboardUrl; ?>" class="dropdown-item">
                       <i class="fa-solid fa-gauge-high"></i> Dashboard Admin
                     </a>
@@ -156,9 +165,9 @@ if ($isLoggedIn) {
                       <i class="fa-solid fa-receipt"></i> Đơn hàng & tranh chấp
                     </a>
                     <?php endif; ?>
-                    
+
                     <hr class="dropdown-divider">
-                    
+
                     <a href="javascript:void(0)" class="dropdown-item text-danger" onclick="showLogoutModal(event)">
                       <i class="fa-solid fa-right-from-bracket"></i> Đăng xuất
                     </a>

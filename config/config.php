@@ -157,8 +157,15 @@ if (!function_exists('route_definitions')) {
             ],          
             'profile' => [
                 'path' => 'profile',
-                'target' => PROJECT_ROOT . '/app/views/auth/profile.php',
-                'aliases' => ['profile.php'],
+                'target' => PROJECT_ROOT . '/app/views/user/profile.php',
+            ],
+            'user.settings.profile' => [
+                'path' => 'user/settings/profile',
+                'target' => PROJECT_ROOT . '/app/views/user/settings/profile.php',
+            ],
+            'user.settings.account' => [
+                'path' => 'user/settings/account',
+                'target' => PROJECT_ROOT . '/app/views/user/settings/account.php',
             ],
             'logout' => [
                 'path' => 'logout',
@@ -180,6 +187,14 @@ if (!function_exists('route_definitions')) {
             'orders' => [
                 'path' => 'orders',
                 'target' => PROJECT_ROOT . '/app/views/orders/index.php',
+            ],
+            'orders.buying' => [
+                'path' => 'orders/buying',
+                'target' => PROJECT_ROOT . '/app/views/orders/buying.php',
+            ],
+            'orders.selling' => [
+                'path' => 'orders/selling',
+                'target' => PROJECT_ROOT . '/app/views/orders/selling.php',
             ],
             'order' => [
                 'path' => 'order',

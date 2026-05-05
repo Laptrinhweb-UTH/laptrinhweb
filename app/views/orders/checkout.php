@@ -213,12 +213,15 @@ include __DIR__ . '/../layouts/header.php';
                 </div>
 
                 <div class="card border-0 shadow-sm rounded-4 p-4">
-                    <div class="form-check mb-4">
-                        <input class="form-check-input" type="checkbox" value="" id="termsCheck" required>
+                    <div class="form-check mb-1">
+                        <input class="form-check-input" type="checkbox" value="" id="termsCheck">
                         <label class="form-check-label small text-muted ms-1" for="termsCheck">
-                            Tôi đã xem kỹ tình trạng xe và đồng ý với <a href="<?= route_url('support.safe_trading') ?>" target="_blank" class="text-primary text-decoration-none">Chính sách mua bán an toàn</a> của SpinBike.
+                            Tôi đồng ý với <a href="<?= route_url('support.safe_trading') ?>" target="_blank" class="text-primary text-decoration-none">Chính sách mua bán an toàn</a> của SpinBike và xác nhận đã xem kỹ mô tả xe.
                         </label>
                     </div>
+                    <p id="termsError" class="small text-danger mb-3 ms-4 ps-1" style="display:none;">
+                        <i class="fa-solid fa-circle-exclamation me-1"></i>Vui lòng đồng ý với điều khoản trước khi tiếp tục.
+                    </p>
 
                     <button type="button" id="submitBtn" class="btn btn-primary w-100 py-3 rounded-pill fw-bold fs-5 shadow" onclick="showCheckoutConfirm()">
                         <i class="fa-solid fa-lock me-2"></i>Thanh toán <?php echo $formattedPrice; ?>
@@ -340,13 +343,19 @@ include __DIR__ . '/../layouts/header.php';
 <script>
 function showCheckoutConfirm() {
     const terms = document.getElementById('termsCheck');
+    const termsError = document.getElementById('termsError');
     if (!terms.checked) {
-        terms.reportValidity();
+        termsError.style.display = 'block';
         terms.closest('.form-check').scrollIntoView({ behavior: 'smooth', block: 'center' });
         return;
     }
+    termsError.style.display = 'none';
     document.getElementById('checkoutConfirmModal').classList.remove('hidden');
 }
+
+document.getElementById('termsCheck').addEventListener('change', function () {
+    document.getElementById('termsError').style.display = this.checked ? 'none' : 'block';
+});
 
 function hideCheckoutConfirm() {
     document.getElementById('checkoutConfirmModal').classList.add('hidden');
