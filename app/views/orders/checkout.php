@@ -201,7 +201,7 @@ include __DIR__ . '/../layouts/header.php';
                         <input type="radio" name="payment_method" value="vnpay" class="payment-option-input d-none" checked>
                         <div class="payment-option-card rounded-3 p-3 d-flex align-items-center justify-content-between">
                             <div class="d-flex align-items-center gap-3">
-                                <span style="background:#0060AF;color:#fff;font-weight:800;padding:5px 11px;border-radius:7px;font-size:15px;letter-spacing:0.5px;line-height:1.3;">VNPAY</span>
+                                <img src="/spinbike/public/assets/images/vnpay-logo.jpg" height="36" alt="VNPAY" class="rounded-2">
                                 <div>
                                     <div class="fw-bold text-dark">Thanh toán qua VNPAY</div>
                                     <div class="text-muted small">Thẻ ATM nội địa, thẻ quốc tế, QR ngân hàng</div>
