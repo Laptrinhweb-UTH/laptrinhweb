@@ -23,8 +23,9 @@ if (!$db) {
 
 // Xử lý lưu
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $db) {
-    $name = trim($_POST['fullname'] ?? '');
-    $phone = trim($_POST['phone'] ?? '');
+    $name    = trim($_POST['fullname'] ?? '');
+    $phone   = trim($_POST['phone'] ?? '');
+    $address = trim($_POST['address'] ?? '');
 
     if ($name === '') {
         $pageError = 'Tên hiển thị không được để trống.';
@@ -75,8 +76,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $db) {
 
     if ($pageError === null) {
         try {
-            $db->prepare("UPDATE users SET name = ?, phone = ?, avatar = ? WHERE id = ?")
-               ->execute([$name, $phone, $avatar_url, $user_id]);
+            $db->prepare("UPDATE users SET name = ?, phone = ?, address = ?, avatar = ? WHERE id = ?")
+               ->execute([$name, $phone, $address ?: null, $avatar_url, $user_id]);
             $_SESSION['user_name'] = $name;
             header('Location: ' . route_url('user.settings.profile', ['status' => 'success', 'message' => 'Cập nhật thông tin thành công.']));
             exit;
@@ -104,9 +105,10 @@ $displayName   = htmlspecialchars($user['name'] ?? $_SESSION['user_name'] ?? 'Ng
 $displayAvatar = !empty($user['avatar'])
     ? $user['avatar']
     : 'https://ui-avatars.com/api/?name=' . urlencode($user['name'] ?? 'U') . '&background=10b981&color=fff&size=160&rounded=true&bold=true';
-$profileName  = $user['name'] ?? '';
-$profilePhone = $user['phone'] ?? '';
-$profileEmail = $user['email'] ?? '';
+$profileName    = $user['name'] ?? '';
+$profilePhone   = $user['phone'] ?? '';
+$profileAddress = $user['address'] ?? '';
+$profileEmail   = $user['email'] ?? '';
 $currentSettingsRoute = 'user.settings.profile';
 
 include __DIR__ . '/../../layouts/header.php';
@@ -157,10 +159,35 @@ include __DIR__ . '/../../layouts/header.php';
                                     placeholder="Chưa cập nhật">
                             </div>
                             <div class="col-md-12">
+                                <label class="profile-field-label">Địa chỉ</label>
+                                <?php if ($profileAddress !== ''): ?>
+                                <div class="d-flex align-items-center gap-2 p-3 rounded-3 mb-3" style="background:#f8fafc;border:1px solid #e2e8f0;font-size:14px;">
+                                    <i class="fa-solid fa-location-dot text-muted"></i>
+                                    <span class="text-dark"><?php echo htmlspecialchars($profileAddress); ?></span>
+                                </div>
+                                <?php endif; ?>
+                                <div class="row g-2">
+                                    <div class="col-md-6">
+                                        <select id="addrProvince" class="form-control profile-field-input">
+                                            <option value="">-- Tỉnh/Thành phố --</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <select id="addrWard" class="form-control profile-field-input" disabled>
+                                            <option value="">-- Phường/Xã --</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-12">
+                                        <input type="text" id="addrStreet" class="form-control profile-field-input" placeholder="Số nhà, tên đường">
+                                    </div>
+                                </div>
+                                <input type="hidden" name="address" id="profileAddressHidden" value="<?php echo htmlspecialchars($profileAddress); ?>">
+                                <p class="profile-upload-hint mt-2">Chọn tỉnh/thành và phường/xã rồi nhập số nhà, tên đường để cập nhật địa chỉ.</p>
+                            </div>
+                            <div class="col-md-12">
                                 <label class="profile-field-label">Email</label>
                                 <input type="email" class="form-control profile-field-input profile-field-readonly"
                                     value="<?php echo htmlspecialchars($profileEmail); ?>" readonly>
-                                <p class="profile-upload-hint mt-1">Email không thể thay đổi tại đây. Đổi email trong <a href="<?php echo route_url('user.settings.account'); ?>">Cài đặt tài khoản</a>.</p>
                             </div>
                         </div>
 
@@ -188,6 +215,53 @@ function previewAvatar(event) {
     };
     reader.readAsDataURL(file);
 }
+
+// ==========================================
+// ADDRESS PICKER
+// ==========================================
+const addrHost = "https://provinces.open-api.vn/api/v2/";
+const addrProvince = document.getElementById('addrProvince');
+const addrWard     = document.getElementById('addrWard');
+const addrStreet   = document.getElementById('addrStreet');
+const addrHidden   = document.getElementById('profileAddressHidden');
+
+function buildAddrOptions(select, placeholder, items) {
+    select.innerHTML = placeholder;
+    items.forEach(item => {
+        select.innerHTML += `<option value="${item.code}" data-name="${item.name}">${item.name}</option>`;
+    });
+}
+
+fetch(addrHost + "?depth=1")
+    .then(r => r.json())
+    .then(data => buildAddrOptions(addrProvince, '<option value="">-- Tỉnh/Thành phố --</option>', Array.isArray(data) ? data : []))
+    .catch(() => { addrProvince.innerHTML = '<option value="">Không tải được danh sách</option>'; });
+
+addrProvince.addEventListener('change', function () {
+    addrWard.innerHTML = '<option value="">-- Phường/Xã --</option>';
+    addrWard.disabled = true;
+    if (!this.value) return;
+    fetch(addrHost + "p/" + this.value + "?depth=2")
+        .then(r => r.json())
+        .then(data => {
+            const wards = Array.isArray(data.wards) ? data.wards : (Array.isArray(data.districts) ? data.districts : []);
+            buildAddrOptions(addrWard, '<option value="">-- Phường/Xã --</option>', wards);
+            addrWard.disabled = wards.length === 0;
+        })
+        .catch(() => { addrWard.innerHTML = '<option value="">Không tải được phường/xã</option>'; });
+});
+
+// Compose address into hidden field whenever any part changes
+function composeAddress() {
+    const provinceName = addrProvince.options[addrProvince.selectedIndex]?.getAttribute('data-name') || '';
+    const wardName     = addrWard.options[addrWard.selectedIndex]?.getAttribute('data-name') || '';
+    const street       = addrStreet.value.trim();
+    const parts        = [street, wardName, provinceName].filter(Boolean);
+    if (parts.length > 0) addrHidden.value = parts.join(', ');
+}
+addrProvince.addEventListener('change', composeAddress);
+addrWard.addEventListener('change', composeAddress);
+addrStreet.addEventListener('input', composeAddress);
 </script>
 
 <?php include __DIR__ . '/../../layouts/footer.php'; ?>

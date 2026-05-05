@@ -201,6 +201,7 @@ CREATE TABLE `users` (
   `email` varchar(255) NOT NULL,
   `password` varchar(255) NOT NULL,
   `phone` varchar(20) DEFAULT NULL,
+  `address` varchar(255) DEFAULT NULL,
   `avatar` varchar(500) DEFAULT NULL,
   `role` enum('user','admin') NOT NULL DEFAULT 'user',
   `balance` decimal(15,2) NOT NULL DEFAULT 0.00,
@@ -213,15 +214,15 @@ CREATE TABLE `users` (
 -- Đang đổ dữ liệu cho bảng `users`
 --
 
-INSERT INTO `users` (`id`, `name`, `email`, `password`, `phone`, `avatar`, `role`, `balance`, `created_at`, `reset_token`, `reset_token_expire`) VALUES
-(1, 'Admin SpinBike', 'admin@spinbike.local', '$2y$12$JQh8OnsH9xHBQUVTQ09TUuF1h/ZCom5uNhKlBi6I3NgkTS.araUOa', '0909000001', 'https://ui-avatars.com/api/?name=Admin+SpinBike&background=0f766e&color=ffffff&rounded=true', 'admin', 0.00, '2026-04-10 01:00:00', NULL, NULL),
-(2, 'Nguyen Hoai Nam', 'nguyennam2017an@gmail.com', '123', '0909000002', 'https://ui-avatars.com/api/?name=Nguyen+Hoai+Nam&background=10b981&color=ffffff&rounded=true', 'user', 59565000.00, '2026-04-10 01:10:00', NULL, NULL),
-(3, 'Doan Hoai An', 'seller2@spinbike.local', '$2y$12$JjOIFQdOSgirTasQhVGshes7BlKeAyTqJz9ZI/hmLoZQIOxLrqRHu', '0909000003', 'https://ui-avatars.com/api/?name=Doan+Hoai+An&background=0ea5e9&color=ffffff&rounded=true', 'user', 0.00, '2026-04-10 01:15:00', NULL, NULL),
-(4, 'Nguyen Hoang Linh Tu', 'seller3@spinbike.local', '$2y$12$JjOIFQdOSgirTasQhVGshes7BlKeAyTqJz9ZI/hmLoZQIOxLrqRHu', '0909000004', 'https://ui-avatars.com/api/?name=Nguyen+Hoang+Linh+Tu&background=f59e0b&color=ffffff&rounded=true', 'user', 0.00, '2026-04-10 01:20:00', NULL, NULL),
-(5, 'Tran Minh Buyer', 'buyer1@spinbike.local', '$2y$12$R0J5V0YqKdcoSEbrB9njB.WQhJKz.Jwukomkh6Nm/0CkBrnyfCHWi', '0909000005', 'https://ui-avatars.com/api/?name=Tran+Minh+Buyer&background=6366f1&color=ffffff&rounded=true', 'user', 18500000.00, '2026-04-10 01:25:00', NULL, NULL),
-(6, 'Le Gia Buyer', 'buyer2@spinbike.local', '$2y$12$R0J5V0YqKdcoSEbrB9njB.WQhJKz.Jwukomkh6Nm/0CkBrnyfCHWi', '0909000006', 'https://ui-avatars.com/api/?name=Le+Gia+Buyer&background=ef4444&color=ffffff&rounded=true', 'user', 9200000.00, '2026-04-10 01:30:00', NULL, NULL),
-(7, 'Demo User', 'demo@spinbike.local', '$2y$12$NPuKDIHq1n1kzN1MDXWQ/OI2oE.7og.M0j9yDMVoUQvZdPj3LQAyC', '0909000007', 'https://ui-avatars.com/api/?name=Demo+User&background=334155&color=ffffff&rounded=true', 'user', 0.00, '2026-04-10 01:35:00', NULL, NULL),
-(8, 'Hoài Namm', 'nguyennam2017an1@gmail.com', '$2y$10$PpDM5RwDmZ9qhBno8a.vIeXixvsyiKRXlA4xCXAtYoNdN/kYUa5rG', '', 'https://res.cloudinary.com/dge3u1dzk/image/upload/v1776699709/gsj3dpemxwc6dxhc75ik.jpg', 'user', 0.00, '2026-04-20 15:41:20', NULL, NULL);
+INSERT INTO `users` (`id`, `name`, `email`, `password`, `phone`, `address`, `avatar`, `role`, `balance`, `created_at`, `reset_token`, `reset_token_expire`) VALUES
+(1, 'Admin SpinBike', 'admin@spinbike.local', '$2y$12$JQh8OnsH9xHBQUVTQ09TUuF1h/ZCom5uNhKlBi6I3NgkTS.araUOa', '0909000001', NULL, 'https://ui-avatars.com/api/?name=Admin+SpinBike&background=0f766e&color=ffffff&rounded=true', 'admin', 0.00, '2026-04-10 01:00:00', NULL, NULL),
+(2, 'Nguyễn Hoài Nam', 'nguyennam2017an@gmail.com', '123', '0909000002', '123 Nguyễn Trãi, Quận 1, TP.HCM', 'https://ui-avatars.com/api/?name=Nguyen+Hoai+Nam&background=10b981&color=ffffff&rounded=true', 'user', 59565000.00, '2026-04-10 01:10:00', NULL, NULL),
+(3, 'Đoàn Hoài Ân', 'seller2@spinbike.local', '$2y$12$JjOIFQdOSgirTasQhVGshes7BlKeAyTqJz9ZI/hmLoZQIOxLrqRHu', '0909000003', '45 Lê Văn Sỹ, Quận 3, TP.HCM', 'https://ui-avatars.com/api/?name=Doan+Hoai+An&background=0ea5e9&color=ffffff&rounded=true', 'user', 0.00, '2026-04-10 01:15:00', NULL, NULL),
+(4, 'Nguyễn Hoàng Linh Tú', 'seller3@spinbike.local', '$2y$12$JjOIFQdOSgirTasQhVGshes7BlKeAyTqJz9ZI/hmLoZQIOxLrqRHu', '0909000004', '88 Đinh Tiên Hoàng, Bình Thạnh, TP.HCM', 'https://ui-avatars.com/api/?name=Nguyen+Hoang+Linh+Tu&background=f59e0b&color=ffffff&rounded=true', 'user', 0.00, '2026-04-10 01:20:00', NULL, NULL),
+(5, 'Trần Minh Khoa', 'buyer1@spinbike.local', '$2y$12$R0J5V0YqKdcoSEbrB9njB.WQhJKz.Jwukomkh6Nm/0CkBrnyfCHWi', '0909000005', '12 Hoàng Diệu, Quận 4, TP.HCM', 'https://ui-avatars.com/api/?name=Tran+Minh+Khoa&background=6366f1&color=ffffff&rounded=true', 'user', 18500000.00, '2026-04-10 01:25:00', NULL, NULL),
+(6, 'Lê Gia Bảo', 'buyer2@spinbike.local', '$2y$12$R0J5V0YqKdcoSEbrB9njB.WQhJKz.Jwukomkh6Nm/0CkBrnyfCHWi', '0909000006', '56 Trần Hưng Đạo, Quận 5, TP.HCM', 'https://ui-avatars.com/api/?name=Le+Gia+Bao&background=ef4444&color=ffffff&rounded=true', 'user', 9200000.00, '2026-04-10 01:30:00', NULL, NULL),
+(7, 'Phạm Thanh Huy', 'demo@spinbike.local', '$2y$12$NPuKDIHq1n1kzN1MDXWQ/OI2oE.7og.M0j9yDMVoUQvZdPj3LQAyC', '0909000007', NULL, 'https://ui-avatars.com/api/?name=Pham+Thanh+Huy&background=334155&color=ffffff&rounded=true', 'user', 0.00, '2026-04-10 01:35:00', NULL, NULL),
+(8, 'Hoài Nam', 'nguyennam2017an1@gmail.com', '$2y$10$PpDM5RwDmZ9qhBno8a.vIeXixvsyiKRXlA4xCXAtYoNdN/kYUa5rG', '', NULL, 'https://res.cloudinary.com/dge3u1dzk/image/upload/v1776699709/gsj3dpemxwc6dxhc75ik.jpg', 'user', 0.00, '2026-04-20 15:41:20', NULL, NULL);
 
 --
 -- Chỉ mục cho các bảng đã đổ

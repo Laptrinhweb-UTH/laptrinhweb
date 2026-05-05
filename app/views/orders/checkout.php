@@ -51,6 +51,20 @@ if ($checkoutError === null) {
     }
 }
 
+// Lấy thông tin liên lạc của buyer
+$buyerPhone   = '';
+$buyerAddress = '';
+$buyerName    = trim((string) ($_SESSION['user_name'] ?? ''));
+if ($db) {
+    try {
+        $stmt = $db->prepare("SELECT phone, address FROM users WHERE id = ?");
+        $stmt->execute([$_SESSION['user_id']]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        $buyerPhone   = trim((string) ($row['phone'] ?? ''));
+        $buyerAddress = trim((string) ($row['address'] ?? ''));
+    } catch (Throwable $e) {}
+}
+
 // Xử lý dữ liệu hiển thị
 $formattedPrice = is_numeric($product['price'] ?? null) ? number_format((float)$product['price'], 0, ',', '.') . ' đ' : 'Liên hệ để báo giá';
 $mainImage = (!empty($product['images'])) ? $product['images'][0] : 'https://via.placeholder.com/80';
@@ -110,32 +124,75 @@ include __DIR__ . '/../layouts/header.php';
         color: #10b981;
     }
 
-    /* Timeline Styles */
-    .timeline-step { position: relative; padding-bottom: 1.5rem; }
-    .timeline-step:last-child { padding-bottom: 0; }
-    .timeline-icon {
-        width: 36px; height: 36px;
-        background: #f1f5f9; color: #475569;
+    /* Trust Card */
+    .trust-card {
+        background: #fff;
+        border: 1px solid #d1fae5;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 1px 3px rgba(0,0,0,.06), 0 4px 16px rgba(0,0,0,.04);
+    }
+    .trust-card-header {
+        background: linear-gradient(135deg, #ecfdf5 0%, #f0fdf4 100%);
+        border-bottom: 1px solid #d1fae5;
+        padding: 20px 24px;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+    }
+    .trust-card-icon {
+        width: 44px; height: 44px; border-radius: 50%;
+        background: #10b981; color: #fff;
         display: flex; align-items: center; justify-content: center;
-        border-radius: 50%; font-weight: bold; z-index: 2; position: relative;
+        font-size: 18px; flex-shrink: 0;
     }
-    .timeline-step:not(:last-child)::after {
-        content: ''; position: absolute;
-        left: 17px; top: 36px; bottom: 0;
-        width: 2px; background: #e2e8f0; z-index: 1;
+    .trust-card-badges {
+        display: flex;
+        gap: 8px;
+        padding: 14px 24px;
+        border-bottom: 1px solid #f1f5f9;
+        flex-wrap: wrap;
     }
+    .trust-badge {
+        display: inline-flex; align-items: center; gap: 6px;
+        font-size: 12px; font-weight: 600; color: #475569;
+        background: #f8fafc; border: 1px solid #e2e8f0;
+        border-radius: 999px; padding: 5px 12px;
+    }
+    .trust-badge i { color: #10b981; font-size: 11px; }
 
-    /* Escrow Banner */
-    .escrow-banner {
-        background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-        color: white; border-radius: 16px; position: relative; overflow: hidden;
+    /* Steps */
+    .trust-steps {
+        display: flex;
+        padding: 20px 24px;
+        gap: 0;
+        position: relative;
     }
-    .escrow-banner::before {
-        content: ''; position: absolute; top: -50%; right: -10%;
-        width: 200px; height: 200px; background: rgba(16, 185, 129, 0.2);
-        filter: blur(40px); border-radius: 50%;
+    .trust-step {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        position: relative;
     }
-    
+    .trust-step:not(:last-child)::after {
+        content: '';
+        position: absolute;
+        top: 18px;
+        left: calc(50% + 20px);
+        right: calc(-50% + 20px);
+        height: 2px;
+        background: #e2e8f0;
+    }
+    .trust-step-icon {
+        width: 36px; height: 36px; border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 14px; margin-bottom: 10px; position: relative; z-index: 1;
+    }
+    .trust-step-title { font-size: 12px; font-weight: 700; color: #0f172a; margin-bottom: 3px; }
+    .trust-step-desc { font-size: 11px; color: #94a3b8; line-height: 1.4; }
+
     /* Summary Card */
     .summary-card { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; }
 </style>
@@ -158,35 +215,46 @@ include __DIR__ . '/../layouts/header.php';
     </div>
     <?php else: ?>
     
-    <div class="d-flex align-items-center mb-4 pb-2 border-bottom">
-        <a href="<?php echo route_url('listing', ['id' => $productId]); ?>" class="text-muted text-decoration-none me-3 fs-5"><i class="fa-solid fa-arrow-left"></i></a>
-        <h2 class="fw-bold mb-0 text-dark">Thanh toán & Đặt hàng</h2>
-    </div>
+    <h2 class="fw-bold mb-4 text-dark">Thanh toán & Đặt hàng</h2>
 
     <div class="row g-4">
         <div class="col-lg-7">
             
-            <div class="escrow-banner p-4 mb-4 shadow-sm">
-                <div class="d-flex gap-3 align-items-start mb-3">
-                    <div class="bg-white bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 48px; height: 48px;">
-                        <i class="fa-solid fa-shield-halved text-success fs-4"></i>
+            <div class="trust-card mb-4">
+                <!-- Header -->
+                <div class="trust-card-header">
+                    <div class="trust-card-icon">
+                        <i class="fa-solid fa-shield-halved"></i>
                     </div>
                     <div>
-                        <h5 class="fw-bold text-white mb-2">Giao dịch được bảo vệ 100%</h5>
-                        <p class="text-white-50 mb-0 small" style="line-height: 1.6;">
-                            SpinBike sẽ <strong class="text-white">giữ an toàn số tiền này</strong>. Người bán chỉ nhận được tiền sau khi bạn xác nhận đã nhận xe, kiểm tra đúng mô tả và không có khiếu nại.
-                        </p>
+                        <div class="fw-bold text-dark" style="font-size:15px;">Giao dịch được bảo vệ 100%</div>
+                        <div class="text-muted small mt-1" style="line-height:1.5;">
+                            Tiền của bạn được giữ an toàn. Người bán chỉ nhận tiền sau khi bạn xác nhận đã nhận xe đúng mô tả.
+                        </div>
                     </div>
                 </div>
-                <div class="d-flex gap-3 pt-3" style="border-top: 1px solid rgba(255,255,255,0.1);">
-                    <div class="d-flex align-items-center gap-2 text-white-50 small">
-                        <i class="fa-solid fa-lock text-success"></i> Thanh toán mã hóa SSL
+                <!-- Steps -->
+                <div class="trust-steps">
+                    <div class="trust-step">
+                        <div class="trust-step-icon" style="background:#dcfce7;color:#166534;">
+                            <i class="fa-solid fa-lock"></i>
+                        </div>
+                        <div class="trust-step-title">Thanh toán</div>
+                        <div class="trust-step-desc">Tiền được giữ an toàn ngay lập tức</div>
                     </div>
-                    <div class="d-flex align-items-center gap-2 text-white-50 small">
-                        <i class="fa-solid fa-rotate-left text-success"></i> Hoàn tiền nếu có tranh chấp
+                    <div class="trust-step">
+                        <div class="trust-step-icon" style="background:#f1f5f9;color:#64748b;">
+                            <i class="fa-solid fa-truck"></i>
+                        </div>
+                        <div class="trust-step-title">Nhận xe</div>
+                        <div class="trust-step-desc">Người bán giao xe, bạn kiểm tra</div>
                     </div>
-                    <div class="d-flex align-items-center gap-2 text-white-50 small">
-                        <i class="fa-solid fa-headset text-success"></i> Hỗ trợ 24/7
+                    <div class="trust-step">
+                        <div class="trust-step-icon" style="background:#f1f5f9;color:#64748b;">
+                            <i class="fa-solid fa-circle-check"></i>
+                        </div>
+                        <div class="trust-step-title">Xác nhận</div>
+                        <div class="trust-step-desc">Bấm OK, giao dịch hoàn tất</div>
                     </div>
                 </div>
             </div>
@@ -195,8 +263,60 @@ include __DIR__ . '/../layouts/header.php';
                 <input type="hidden" name="product_id" value="<?php echo $product['id']; ?>">
                 
                 <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
-                    <h5 class="fw-bold mb-4"><i class="fa-solid fa-wallet text-primary me-2"></i>Chọn phương thức thanh toán</h5>
-                    
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <h5 class="fw-bold mb-0">Địa chỉ nhận xe</h5>
+                        <a href="<?php echo route_url('user.settings.profile'); ?>" class="btn btn-sm btn-outline-secondary rounded-pill px-3" style="font-size:13px;">
+                            <i class="fa-solid fa-pen-to-square me-1"></i>Chỉnh sửa
+                        </a>
+                    </div>
+
+                    <input type="hidden" name="buyer_address" id="buyerAddress" value="<?php echo htmlspecialchars($buyerAddress); ?>">
+
+                    <?php
+                    $missingInfo  = $buyerPhone === '' || $buyerAddress === '';
+                    $displayPhone = $buyerPhone !== '' ? '(+84) ' . ltrim($buyerPhone, '0') : '';
+                    ?>
+                    <div id="buyerContactCard" class="d-flex align-items-center gap-3 rounded-3"
+                         style="padding:14px 16px;border:1px solid <?php echo $missingInfo ? '#fed7aa' : '#e2e8f0'; ?>;background:<?php echo $missingInfo ? '#fff7ed' : '#f8fafc'; ?>;">
+                        <!-- Icon định vị -->
+                        <div style="width:44px;height:44px;border-radius:50%;background:<?php echo $missingInfo ? '#fed7aa' : '#dcfce7'; ?>;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                            <i class="fa-solid fa-location-dot" style="font-size:18px;color:<?php echo $missingInfo ? '#f97316' : '#16a34a'; ?>;"></i>
+                        </div>
+
+                        <!-- Nội dung -->
+                        <div class="flex-grow-1 min-w-0">
+                            <?php if ($missingInfo): ?>
+                            <div style="font-size:14px;color:#9a3412;font-weight:600;">
+                                <?php if ($buyerPhone === ''): ?>Chưa có số điện thoại<?php endif; ?>
+                                <?php if ($buyerPhone === '' && $buyerAddress === ''): ?> &amp; <?php endif; ?>
+                                <?php if ($buyerAddress === ''): ?>Chưa có địa chỉ nhận xe<?php endif; ?>
+                            </div>
+                            <div style="font-size:12px;color:#c2410c;margin-top:3px;">Nhấn <strong>Chỉnh sửa</strong> để bổ sung thông tin trước khi thanh toán.</div>
+                            <?php else: ?>
+                            <!-- Row 1: Tên + SĐT -->
+                            <div class="d-flex align-items-baseline gap-2 flex-wrap">
+                                <span class="fw-semibold text-dark" style="font-size:14px;"><?php echo htmlspecialchars($buyerName); ?></span>
+                                <span style="color:#94a3b8;font-size:12px;"><?php echo htmlspecialchars($displayPhone); ?></span>
+                            </div>
+                            <!-- Row 2: Địa chỉ -->
+                            <div style="font-size:13px;color:#475569;margin-top:3px;"><?php echo htmlspecialchars($buyerAddress); ?></div>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+
+                    <!-- Anchor cho JS scroll khi thiếu thông tin -->
+                    <div id="phoneWarning"></div>
+                    <div id="addressWarning"></div>
+
+                    <div class="mt-3">
+                        <label class="form-label fw-semibold small text-dark">Ghi chú cho người bán <span class="text-muted fw-normal">(tuỳ chọn)</span></label>
+                        <textarea name="buyer_note" rows="2" class="form-control" style="border-radius:10px;font-size:14px;resize:none;"></textarea>
+                    </div>
+                </div>
+
+                <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
+                    <h5 class="fw-bold mb-4">Chọn phương thức thanh toán</h5>
+
                     <label class="d-block mb-2 position-relative">
                         <input type="radio" name="payment_method" value="vnpay" class="payment-option-input d-none" checked>
                         <div class="payment-option-card rounded-3 p-3 d-flex align-items-center justify-content-between">
@@ -236,13 +356,12 @@ include __DIR__ . '/../layouts/header.php';
                 <h5 class="fw-bold mb-4">Thông tin xe</h5>
                 
                 <div class="d-flex gap-3 mb-4 pb-4 border-bottom">
-                    <img src="<?php echo $mainImage; ?>" class="rounded-3" style="width: 90px; height: 90px; object-fit: cover;">
-                    <div class="d-flex flex-column justify-content-center">
+                    <img src="<?php echo $mainImage; ?>" class="rounded-3 flex-shrink-0" style="width: 90px; height: 90px; object-fit: cover;">
+                    <div class="d-flex flex-column justify-content-center min-w-0">
                         <h6 class="fw-bold text-dark mb-2" style="line-height: 1.4;"><?php echo htmlspecialchars($productTitle); ?></h6>
-                        <div class="d-inline-flex align-items-center gap-2">
-                            <span class="badge bg-light text-dark border text-truncate" style="max-width: 150px;"><i class="fa-solid fa-user text-muted me-1"></i> <?php echo htmlspecialchars($sellerName); ?></span>
-                            <span class="badge bg-primary bg-opacity-10 text-primary border border-primary-subtle"><?php echo htmlspecialchars($productCondition); ?> mới</span>
-                        </div>
+                        <p class="text-muted small mb-0">
+                            <i class="fa-regular fa-user me-1"></i><?php echo htmlspecialchars($sellerName); ?>
+                        </p>
                     </div>
                 </div>
 
@@ -260,8 +379,12 @@ include __DIR__ . '/../layouts/header.php';
                         <div class="fw-semibold text-dark"><?php echo htmlspecialchars($productFrameSize); ?></div>
                     </div>
                     <div class="col-6">
+                        <div class="text-muted mb-1">Tình trạng</div>
+                        <div class="fw-semibold" style="color:#166534;"><?php echo htmlspecialchars($productCondition); ?> mới</div>
+                    </div>
+                    <div class="col-12">
                         <div class="text-muted mb-1">Khu vực giao dịch</div>
-                        <div class="fw-semibold text-dark text-truncate"><?php echo htmlspecialchars($productLocation); ?></div>
+                        <div class="fw-semibold text-dark"><?php echo htmlspecialchars($productLocation); ?></div>
                     </div>
                 </div>
 
@@ -274,35 +397,11 @@ include __DIR__ . '/../layouts/header.php';
                     <span class="text-success fw-bold">Miễn phí</span>
                 </div>
                 
-                <div class="d-flex justify-content-between align-items-center mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-0">
                     <span class="fw-bold text-dark fs-5">Tổng cộng</span>
                     <span class="fw-bold fs-3 text-primary"><?php echo $formattedPrice; ?></span>
                 </div>
 
-                <div class="bg-light rounded-3 p-3 mt-2 border">
-                    <h6 class="fw-bold text-dark mb-3 text-center" style="font-size: 0.9rem;">Hành trình đơn hàng của bạn</h6>
-                    <div class="timeline-step d-flex gap-3">
-                        <div class="timeline-icon text-primary bg-primary bg-opacity-10"><i class="fa-solid fa-check"></i></div>
-                        <div>
-                            <div class="fw-bold text-dark" style="font-size: 0.85rem;">Bạn thanh toán</div>
-                            <div class="text-muted" style="font-size: 0.75rem;">SpinBike giữ tiền an toàn</div>
-                        </div>
-                    </div>
-                    <div class="timeline-step d-flex gap-3">
-                        <div class="timeline-icon text-muted"><i class="fa-solid fa-truck"></i></div>
-                        <div>
-                            <div class="fw-bold text-muted" style="font-size: 0.85rem;">Người bán giao xe</div>
-                            <div class="text-muted" style="font-size: 0.75rem;">Bạn nhận và kiểm tra thực tế</div>
-                        </div>
-                    </div>
-                    <div class="timeline-step d-flex gap-3">
-                        <div class="timeline-icon text-muted"><i class="fa-solid fa-hand-holding-dollar"></i></div>
-                        <div>
-                            <div class="fw-bold text-muted" style="font-size: 0.85rem;">SpinBike giải ngân</div>
-                            <div class="text-muted" style="font-size: 0.75rem;">Chỉ khi bạn bấm xác nhận OK</div>
-                        </div>
-                    </div>
-                </div>
             </div>
         </div>
     </div>
@@ -341,7 +440,19 @@ include __DIR__ . '/../layouts/header.php';
 </div>
 
 <script>
+const buyerHasPhone   = <?php echo $buyerPhone !== '' ? 'true' : 'false'; ?>;
+const buyerHasAddress = <?php echo $buyerAddress !== '' ? 'true' : 'false'; ?>;
+
 function showCheckoutConfirm() {
+    let blocked = false;
+
+    if (!buyerHasPhone || !buyerHasAddress) {
+        document.getElementById('buyerContactCard')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        blocked = true;
+    }
+
+    if (blocked) return;
+
     const terms = document.getElementById('termsCheck');
     const termsError = document.getElementById('termsError');
     if (!terms.checked) {
