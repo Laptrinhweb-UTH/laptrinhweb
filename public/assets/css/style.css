@@ -150,7 +150,8 @@ img {
 .search-box i {
   position: absolute;
   left: 16px;
-  top: 12px;
+  top: 50%;
+  transform: translateY(-50%);
   font-size: 18px;
   color: var(--text-secondary);
   pointer-events: none;

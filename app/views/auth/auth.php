@@ -43,7 +43,7 @@ $loginEndpoint = route_url('auth.login');
       <div class="input-group">
         <label>Họ và tên</label>
         <div class="input-wrapper">
-            <input type="text" name="fullname" placeholder="VD: Nguyễn Hoài Nam" required />
+            <input type="text" name="fullname" placeholder="Nhập họ tên của bạn" required />
         </div>
       </div>
       
